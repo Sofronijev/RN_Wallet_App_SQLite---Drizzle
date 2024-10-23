@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Wallet App",
+    "slug": "RN_Wallet_App",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./app/assets/icon.png",
+    "splash": {
+      "image": "./app/assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./app/assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "icon": "./app/assets/icon.png",
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.sofronijev.RN_Wallet_App"
+    },
+    "web": {
+      "favicon": "./app/assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f7b6fc89-b26b-4461-9157-a03bb59cbfc3"
+      }
+    },
+    "plugins": []
+  }
+}

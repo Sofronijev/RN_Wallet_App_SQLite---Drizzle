@@ -1,0 +1,20 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    //  changes the type of the error in a catch from unknown to any 
+    "useUnknownInCatchVariables": false,
+    "baseUrl": "./",
+    "paths": {
+      "components/*": ["app/components/*"],
+      "constants/*": ["app/constants/*"],
+      "feature/*": ["app/feature/*"],
+      "modules/*": ["app/modules/*"],
+      "screens/*": ["app/screens/*"],
+      "api/*": ["app/api/*"],
+      "navigation/*": ["app/navigation/*"],
+      "store/*": ["app/store/*"],
+    }
+  },
+  "exclude": ["node_modules"]
+}
