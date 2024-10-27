@@ -4,7 +4,7 @@ import AppNavigator from "./AppNavigator";
 import { Alert, View } from "react-native";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "../../drizzle/migrations";
-import { categories, users } from "db/schema";
+import { categories, users, wallet } from "db/schema";
 import Label from "components/Label";
 import { db } from "db";
 
@@ -15,7 +15,7 @@ const RootNavigator: React.FC = () => {
   const [items, setItems] = useState<(typeof categories.$inferSelect)[] | null>(null);
   // const [isReady, setIsReady] = useState(false);
   console.log(success);
-  // console.log(error);
+  console.log(error);
   useEffect(() => {
     if (!success) return;
     (async () => {
@@ -33,7 +33,7 @@ const RootNavigator: React.FC = () => {
       //     email: "mike@example.com",
       //   },
       // ]);
-      const data = await db.select().from(users);
+      const data = await db.select().from(wallet);
       // console.log(data);
       setItems(data);
       // setIsReady(true);
