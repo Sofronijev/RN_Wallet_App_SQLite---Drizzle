@@ -1,0 +1,506 @@
+{
+  "id": "78dc71a3-c36d-4f16-9ab7-54e2171a89c6",
+  "prevId": "1ad64966-1c1f-4932-b42e-c81285f39381",
+  "version": "6",
+  "dialect": "sqlite",
+  "tables": {
+    "Categories": {
+      "name": "Categories",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'custom'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Transactions": {
+      "name": "Transactions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type_id": {
+          "name": "type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "categoryId": {
+          "name": "categoryId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "wallet_id": {
+          "name": "wallet_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Transactions_user_id_Users_id_fk": {
+          "name": "Transactions_user_id_Users_id_fk",
+          "tableFrom": "Transactions",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "tableTo": "Users",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        },
+        "Transactions_type_id_Types_id_fk": {
+          "name": "Transactions_type_id_Types_id_fk",
+          "tableFrom": "Transactions",
+          "columnsFrom": [
+            "type_id"
+          ],
+          "tableTo": "Types",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "no action"
+        },
+        "Transactions_categoryId_Categories_id_fk": {
+          "name": "Transactions_categoryId_Categories_id_fk",
+          "tableFrom": "Transactions",
+          "columnsFrom": [
+            "categoryId"
+          ],
+          "tableTo": "Categories",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "no action"
+        },
+        "Transactions_wallet_id_Wallet_walletId_fk": {
+          "name": "Transactions_wallet_id_Wallet_walletId_fk",
+          "tableFrom": "Transactions",
+          "columnsFrom": [
+            "wallet_id"
+          ],
+          "tableTo": "Wallet",
+          "columnsTo": [
+            "walletId"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Transfer": {
+      "name": "Transfer",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fromWalletId": {
+          "name": "fromWalletId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "toWalletId": {
+          "name": "toWalletId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fromTransactionId": {
+          "name": "fromTransactionId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "toTransactionId": {
+          "name": "toTransactionId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Transfer_userId_Users_id_fk": {
+          "name": "Transfer_userId_Users_id_fk",
+          "tableFrom": "Transfer",
+          "columnsFrom": [
+            "userId"
+          ],
+          "tableTo": "Users",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        },
+        "Transfer_fromWalletId_Wallet_walletId_fk": {
+          "name": "Transfer_fromWalletId_Wallet_walletId_fk",
+          "tableFrom": "Transfer",
+          "columnsFrom": [
+            "fromWalletId"
+          ],
+          "tableTo": "Wallet",
+          "columnsTo": [
+            "walletId"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        },
+        "Transfer_toWalletId_Wallet_walletId_fk": {
+          "name": "Transfer_toWalletId_Wallet_walletId_fk",
+          "tableFrom": "Transfer",
+          "columnsFrom": [
+            "toWalletId"
+          ],
+          "tableTo": "Wallet",
+          "columnsTo": [
+            "walletId"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        },
+        "Transfer_fromTransactionId_Transactions_id_fk": {
+          "name": "Transfer_fromTransactionId_Transactions_id_fk",
+          "tableFrom": "Transfer",
+          "columnsFrom": [
+            "fromTransactionId"
+          ],
+          "tableTo": "Transactions",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        },
+        "Transfer_toTransactionId_Transactions_id_fk": {
+          "name": "Transfer_toTransactionId_Transactions_id_fk",
+          "tableFrom": "Transfer",
+          "columnsFrom": [
+            "toTransactionId"
+          ],
+          "tableTo": "Transactions",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Types": {
+      "name": "Types",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'custom'"
+        },
+        "categoryId": {
+          "name": "categoryId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Types_categoryId_Categories_id_fk": {
+          "name": "Types_categoryId_Categories_id_fk",
+          "tableFrom": "Types",
+          "columnsFrom": [
+            "categoryId"
+          ],
+          "tableTo": "Categories",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Users": {
+      "name": "Users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "username": {
+          "name": "username",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "password": {
+          "name": "password",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(current_timestamp)"
+        },
+        "selectedWalletId": {
+          "name": "selectedWalletId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 1
+        }
+      },
+      "indexes": {
+        "Users_email_unique": {
+          "name": "Users_email_unique",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Wallet": {
+      "name": "Wallet",
+      "columns": {
+        "walletId": {
+          "name": "walletId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "startingBalance": {
+          "name": "startingBalance",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "walletName": {
+          "name": "walletName",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'My custom wallet'"
+        },
+        "currencyCode": {
+          "name": "currencyCode",
+          "type": "text(3)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'EUR'"
+        },
+        "currencySymbol": {
+          "name": "currencySymbol",
+          "type": "text(3)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'€'"
+        },
+        "type": {
+          "name": "type",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'custom'"
+        },
+        "color": {
+          "name": "color",
+          "type": "text(7)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'#3EB489'"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Wallet_user_id_Users_id_fk": {
+          "name": "Wallet_user_id_Users_id_fk",
+          "tableFrom": "Wallet",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "tableTo": "Users",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "cascade",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
