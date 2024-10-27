@@ -6,9 +6,6 @@ import colors from "constants/colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MenuProvider } from "react-native-popup-menu";
 import AlertPromptProvider from "modules/AlertPrompt/AlertPrompt";
-import * as SplashScreen from "expo-splash-screen";
-
-SplashScreen.preventAutoHideAsync();
 
 const App = () => (
   <GestureHandlerRootView style={{ flex: 1 }}>

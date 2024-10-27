@@ -1,4 +1,4 @@
-INSERT INTO
-    "Users" (id)
+INSERT
+    OR IGNORE INTO "Users" (id)
 VALUES
     (1);

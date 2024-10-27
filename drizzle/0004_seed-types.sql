@@ -1,5 +1,5 @@
-INSERT INTO
-    "Types" (id, name, categoryId, type)
+INSERT
+    OR IGNORE INTO "Types" (id, name, categoryId, type)
 VALUES
     (1, "income_wage", 1, "system"),
     (2, "income_interests", 1, "system"),
@@ -57,7 +57,12 @@ VALUES
     (54, "obligation_child_support", 11, "system"),
     (55, "obligation_taxes", 11, "system"),
     (56, "obligation_other", 11, "system"),
-    (57, "entertainment_vacation_travel", 12, "system"),
+    (
+        57,
+        "entertainment_vacation_travel",
+        12,
+        "system"
+    ),
     (58, "entertainment_movies", 12, "system"),
     (59, "entertainment_music", 12, "system"),
     (60, "entertainment_games", 12, "system"),

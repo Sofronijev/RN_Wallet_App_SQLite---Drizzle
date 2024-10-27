@@ -1,5 +1,5 @@
-INSERT INTO
-    "Categories" (id, name, type)
+INSERT
+    OR IGNORE INTO "Categories" (id, name, type)
 VALUES
     (1, "income", "system"),
     (2, "saving", "system"),
