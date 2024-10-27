@@ -7,6 +7,7 @@ import migrations from "../../drizzle/migrations";
 import { categories, users, wallet } from "db/schema";
 import Label from "components/Label";
 import { db } from "db";
+import { sql } from "drizzle-orm";
 
 // SplashScreen.preventAutoHideAsync();
 
@@ -33,7 +34,9 @@ const RootNavigator: React.FC = () => {
       //     email: "mike@example.com",
       //   },
       // ]);
-      const data = await db.select().from(wallet);
+      // const a = db.run(sql`INSERT INTO "Users" (id) VALUES (1);`);
+
+      const data = await db.select().from(users);
       // console.log(data);
       setItems(data);
       // setIsReady(true);
