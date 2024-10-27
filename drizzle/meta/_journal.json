@@ -22,6 +22,13 @@
       "when": 1730039134582,
       "tag": "0002_seed-wallet",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1730039813934,
+      "tag": "0003_seed-categories",
+      "breakpoints": true
     }
   ]
 }
