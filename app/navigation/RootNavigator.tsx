@@ -4,7 +4,7 @@ import AppNavigator from "./AppNavigator";
 import { Alert, View } from "react-native";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "../../drizzle/migrations";
-import { categories, users, wallet } from "db/schema";
+import { categories, types, users, wallet } from "db/schema";
 import Label from "components/Label";
 import { db } from "db";
 import { sql } from "drizzle-orm";
@@ -14,13 +14,13 @@ import { sql } from "drizzle-orm";
 const RootNavigator: React.FC = () => {
   const { success, error } = useMigrations(db, migrations);
   const [items, setItems] = useState<(typeof categories.$inferSelect)[] | null>(null);
-  // const [isReady, setIsReady] = useState(false);
+
   console.log(success);
   console.log(error);
   useEffect(() => {
     if (!success) return;
     (async () => {
-      // await db.delete(users);
+      // await db.delete(types);
       // await db.insert(users).values([
       //   {
       //     username: "Mike",
@@ -34,9 +34,26 @@ const RootNavigator: React.FC = () => {
       //     email: "mike@example.com",
       //   },
       // ]);
-      // const a = db.run(sql`INSERT INTO "Users" (id) VALUES (1);`);
+//       const a = db.run(sql`INSERT INTO
+//     "Categories" (id, name, type)
+// VALUES
+//     (1, "income", "system"),
+//     (2, "saving", "system"),
+//     (3, "gifts", "system"),
+//     (4, "housing", "system"),
+//     (5, "utilities", "system"),
+//     (6, "food", "system"),
+//     (7, "transportation", "system"),
+//     (8, "health", "system"),
+//     (9, "dailyLiving", "system"),
+//     (10, "children", "system"),
+//     (11, "obligation", "system"),
+//     (12, "entertainment", "system"),
+//     (13, "other", "system"),
+//     (14, "balanceAdjust", "system"),
+//     (15, "transfer", "system");`);
 
-      const data = await db.select().from(users);
+      const data = await db.select().from(types);
       // console.log(data);
       setItems(data);
       // setIsReady(true);
@@ -44,27 +61,23 @@ const RootNavigator: React.FC = () => {
   }, [success]);
 
   const onLayoutRootView = useCallback(async () => {
-    if (success) {
-      console.log("success");
-      const a = await SplashScreen.hideAsync();
-      console.log(a);
-    }
-  }, [success]);
+    await SplashScreen.hideAsync();
+  }, []);
 
-  if (error) {
-    return (
-      <View>
-        <Label>Migration error: {error.message}</Label>
-      </View>
-    );
-  }
-  if (!success) {
-    return (
-      <View>
-        <Label>Migration is in progress...</Label>
-      </View>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <View>
+  //       <Label>Migration error: {error.message}</Label>
+  //     </View>
+  //   );
+  // }
+  // if (!success) {
+  //   return (
+  //     <View>
+  //       <Label>Migration is in progress...</Label>
+  //     </View>
+  //   );
+  // }
   // if (items === null || items.length === 0) {
   //   return (
   //     <View>
@@ -85,6 +98,7 @@ const RootNavigator: React.FC = () => {
         justifyContent: "center",
       }}
     >
+      {error && <Label>Migration error: {error.message}</Label>}
       {items?.length ? (
         items.map((item) => <Label key={item.id}>{JSON.stringify(item)}</Label>)
       ) : (
