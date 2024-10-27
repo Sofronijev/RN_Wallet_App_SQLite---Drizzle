@@ -9,7 +9,9 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "apk": "eas build -p android --profile preview",
-    "prebuild": "npx expo prebuild"
+    "prebuild": "npx expo prebuild",
+    "db:generate": "npx drizzle-kit generate",
+    "db:customMigrate": "npx drizzle-kit generate --custom"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^4",
