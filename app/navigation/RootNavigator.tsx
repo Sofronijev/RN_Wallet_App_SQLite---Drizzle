@@ -13,6 +13,7 @@ import { db } from "db";
 const RootNavigator: React.FC = () => {
   const { success, error } = useMigrations(db, migrations);
   const [items, setItems] = useState<(typeof categories.$inferSelect)[] | null>(null);
+  // const [isReady, setIsReady] = useState(false);
   console.log(success);
   // console.log(error);
   useEffect(() => {
@@ -32,9 +33,10 @@ const RootNavigator: React.FC = () => {
       //     email: "mike@example.com",
       //   },
       // ]);
-      const data = await db.select().from(categories);
+      const data = await db.select().from(users);
       // console.log(data);
       setItems(data);
+      // setIsReady(true);
     })();
   }, [success]);
 
@@ -60,13 +62,13 @@ const RootNavigator: React.FC = () => {
       </View>
     );
   }
-  if (items === null || items.length === 0) {
-    return (
-      <View>
-        <Label>Empty</Label>
-      </View>
-    );
-  }
+  // if (items === null || items.length === 0) {
+  //   return (
+  //     <View>
+  //       <Label>Empty</Label>
+  //     </View>
+  //   );
+  // }
 
   return (
     <View
@@ -80,9 +82,11 @@ const RootNavigator: React.FC = () => {
         justifyContent: "center",
       }}
     >
-      {items.map((item) => (
-        <Label key={item.id}>{item.name}</Label>
-      ))}
+      {items?.length ? (
+        items.map((item) => <Label key={item.id}>{JSON.stringify(item)}</Label>)
+      ) : (
+        <Label>{"EMPTY ARRAY"}</Label>
+      )}
     </View>
   );
 
