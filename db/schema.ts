@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 // Users Table
@@ -90,83 +90,77 @@ export const transfer = sqliteTable("Transfer", {
   }),
 });
 
-// Relations
-// export const usersRelations = relations(users, ({ many }) => ({
-//   transactions: many(transactions),
-//   transfers: many(transfer),
-//   wallet: many(wallet),
-//   selectedWallet: wallet,
-// }));
+//Relations
+export const usersRelations = relations(users, ({ many, one }) => ({
+  transactions: many(transactions),
+  transfers: many(transfer),
+  wallet: many(wallet),
+  selectedWallet: one(wallet, { fields: [users.selectedWalletId], references: [wallet.walletId] }),
+}));
 
-// export const typesRelations = relations(types, ({ many, one }) => ({
-//   transactions: many(transactions),
-//   category: one(categories, {
-//     fields: [types.categoryId],
-//     references: [categories.id],
-//   }),
-// }));
+export const typesRelations = relations(types, ({ many, one }) => ({
+  transactions: many(transactions),
+  category: one(categories, {
+    fields: [types.categoryId],
+    references: [categories.id],
+  }),
+}));
 
-// export const categoriesRelations = relations(categories, ({ many }) => ({
-//   types: many(types),
-//   transactions: many(transactions),
-// }));
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  types: many(types),
+  transactions: many(transactions),
+}));
 
-// export const walletRelations = relations(wallet, ({ many, one }) => ({
-//   transactions: many(transactions),
-//   transfersFrom: many(transfer, {
-//     fields: [wallet.walletId],
-//     references: [transfer.fromWalletId],
-//   }),
-//   transfersTo: many(transfer, {
-//     fields: [wallet.walletId],
-//     references: [transfer.toWalletId],
-//   }),
-//   user: one(users, {
-//     fields: [wallet.userId],
-//     references: [users.id],
-//   }),
-// }));
+export const walletRelations = relations(wallet, ({ many, one }) => ({
+  transactions: many(transactions),
+  transfersFrom: many(transfer, { relationName: "transfersFrom" }),
+  transfersTo: many(transfer, { relationName: "transfersTo" }),
+  user: one(users, {
+    fields: [wallet.userId],
+    references: [users.id],
+  }),
+}));
 
-// export const transactionsRelations = relations(transactions, ({ one, many }) => ({
-//   user: one(users, {
-//     fields: [transactions.user_id],
-//     references: [users.id],
-//   }),
-//   type: one(types, {
-//     fields: [transactions.type_id],
-//     references: [types.id],
-//   }),
-//   category: one(categories, {
-//     fields: [transactions.categoryId],
-//     references: [categories.id],
-//   }),
-//   wallet: one(wallet, {
-//     fields: [transactions.wallet_id],
-//     references: [wallet.walletId],
-//   }),
-//   transfersFrom: many(transfer),
-//   transfersTo: many(transfer),
-// }));
+export const transactionsRelations = relations(transactions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [transactions.user_id],
+    references: [users.id],
+  }),
+  type: one(types, {
+    fields: [transactions.type_id],
+    references: [types.id],
+  }),
+  category: one(categories, {
+    fields: [transactions.categoryId],
+    references: [categories.id],
+  }),
+  wallet: one(wallet, {
+    fields: [transactions.wallet_id],
+    references: [wallet.walletId],
+  }),
+  transfersFrom: many(transfer),
+  transfersTo: many(transfer),
+}));
 
-// export const transferRelations = relations(transfer, ({ one }) => ({
-//   user: one(users, {
-//     fields: [transfer.userId],
-//     references: [users.id],
-//   }),
-//   fromWallet: one(wallet, {
-//     fields: [transfer.fromWalletId],
-//     references: [wallet.walletId],
-//   }),
-//   toWallet: one(wallet, {
-//     fields: [transfer.toWalletId],
-//     references: [wallet.walletId],
-//   }),
-//   fromTransaction: one(transactions, {
-//     fields: [transfer.fromTransactionId],
-//     references: [transactions.id],
-//   }),
-//   toTransaction: one(transactions, {
-//     fields: [transfer.toTransactionId],
-//     references: [transactions.id],
-//   }),
-// }));
+export const transferRelations = relations(transfer, ({ one }) => ({
+  user: one(users, {
+    fields: [transfer.userId],
+    references: [users.id],
+  }),
+  fromWallet: one(wallet, {
+    fields: [transfer.fromWalletId],
+    references: [wallet.walletId],
+  }),
+  toWallet: one(wallet, {
+    fields: [transfer.toWalletId],
+    references: [wallet.walletId],
+  }),
+  fromTransaction: one(transactions, {
+    fields: [transfer.fromTransactionId],
+    references: [transactions.id],
+  }),
+  toTransaction: one(transactions, {
+    fields: [transfer.toTransactionId],
+    references: [transactions.id],
+  }),
+}));
