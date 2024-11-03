@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
 import AddButton from "components/AddButton";
-import WalletList from "app/features/balance/ui/WalletList";
+import WalletList from "app/features/balance/ui/BalanceTab/WalletList";
 import { ScrollView } from "react-native-gesture-handler";
 import RecentTransactions from "app/features/balance/ui/BalanceTab/RecentTransactions";
 import NullScreen from "components/NullScreen";
