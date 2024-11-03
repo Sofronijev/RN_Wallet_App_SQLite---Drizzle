@@ -8,3 +8,8 @@ export const db = drizzle(expo, { logger: false, schema });
 
 export type User = InferSelectModel<typeof schema.users>;
 export type NewUser = InferInsertModel<typeof schema.users>;
+
+export type Wallet = InferSelectModel<typeof schema.wallet>;
+
+export type Transaction = InferSelectModel<typeof schema.transactions>;
+export type NewTransaction = InferInsertModel<typeof schema.transactions>;

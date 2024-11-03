@@ -33,7 +33,7 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
       navigation.navigate("TransferForm", {
         walletId: transaction.wallet_id,
         editData: {
-          amount: transaction.amount.toNumber(),
+          amount: transaction.amount,
           transactionIdFrom: transaction.type_id === transactionSentId ? transaction.id : undefined,
           transactionIdTo:
             transaction.type_id === transactionReceivedId ? transaction.id : undefined,
@@ -44,7 +44,7 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
         editData: {
           id: transaction.id,
           date: transaction.date.toDateString(),
-          amount: `${Math.abs(transaction.amount.toNumber())}`,
+          amount: `${Math.abs(transaction.amount)}`,
           description: transaction.description,
           category,
           type,
@@ -71,7 +71,7 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
       </View>
       <View>
         <Label style={[styles.price, isIncome && styles.incomeColor]}>
-          {`${formatDecimalDigits(transaction.amount.toNumber())}`}
+          {`${formatDecimalDigits(transaction.amount)}`}
         </Label>
         <View style={styles.dateContainer}>
           <Label style={styles.date} numberOfLines={1}>

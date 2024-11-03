@@ -21,7 +21,6 @@ const WalletSettingsItem: React.FC<Props> = ({ walletId }) => {
 
   const onBalancePress = () => {
     showBalancePrompt((value: string) => {
-      console.log(value);
     });
   };
 

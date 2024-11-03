@@ -30,6 +30,10 @@ import {
 import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
+import { useLiveQuery } from "drizzle-orm/expo-sqlite";
+import { getAllWallets } from "app/services/walletQueries";
+import { getUser } from "app/services/userQueries";
+import { addTransaction } from "app/services/transactionQueries";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -41,8 +45,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
 
-  const wallets = [];
-  const selectedWallet = {};
+  const { data: user } = useLiveQuery(getUser());
+  const { data: wallets } = useLiveQuery(getAllWallets(user?.id));
+  const selectedWallet = user?.selectedWallet;
   const walletId = selectedWallet?.walletId;
   const userId = selectedWallet?.userId;
 
@@ -59,10 +64,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           wallet_id: Number(values.walletId),
           user_id: userId,
         };
-
         if (editData) {
         } else {
-          // todo
+          await addTransaction(transactionData);
         }
         navigation.goBack();
       }

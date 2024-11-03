@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import React, { useCallback, useRef } from "react";
 
+// TODO - remove ANY
 type CarouselProps<ItemT = any> = {
   data: ArrayLike<ItemT>;
   renderItem: ListRenderItem<ItemT>;
