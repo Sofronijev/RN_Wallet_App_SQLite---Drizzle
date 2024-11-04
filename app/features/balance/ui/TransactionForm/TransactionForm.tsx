@@ -61,8 +61,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           type_id: values.type.id,
           categoryId: values.category.id,
           wallet_id: Number(values.walletId),
-          // TODO
-          user_id: 1,
         };
         if (editData) {
         } else {

@@ -1,6 +1,8 @@
 import { relations, sql } from "drizzle-orm";
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
+const DEFAULT_USER_ID = 1;
+
 // Users Table
 export const users = sqliteTable("Users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -31,10 +33,12 @@ export const categories = sqliteTable("Categories", {
 // Wallet Table
 export const wallet = sqliteTable("Wallet", {
   walletId: integer("walletId").primaryKey({ autoIncrement: true }),
-  userId: integer("user_id").references(() => users.id, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
+  userId: integer("user_id")
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .default(DEFAULT_USER_ID),
   startingBalance: real("startingBalance").default(0),
   walletName: text("walletName", { length: 255 }).default("My custom wallet"),
   currencyCode: text("currencyCode", { length: 3 }).default("EUR"),
@@ -50,10 +54,12 @@ export const transactions = sqliteTable("Transactions", {
   amount: real("amount"),
   description: text("description", { length: 255 }),
   date: text("date").default(sql`CURRENT_TIMESTAMP`),
-  user_id: integer("user_id").references(() => users.id, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
+  user_id: integer("user_id")
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .default(DEFAULT_USER_ID),
   type_id: integer("type_id").references(() => types.id, { onUpdate: "cascade" }),
   categoryId: integer("categoryId").references(() => categories.id, { onUpdate: "cascade" }),
   wallet_id: integer("wallet_id").references(() => wallet.walletId, {
@@ -69,7 +75,7 @@ export const transfer = sqliteTable("Transfer", {
   userId: integer("userId").references(() => users.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
-  }),
+  }).default(DEFAULT_USER_ID),
   fromWalletId: integer("fromWalletId").references(() => wallet.walletId, {
     onDelete: "cascade",
     onUpdate: "cascade",

@@ -36,6 +36,13 @@
       "when": 1730039900302,
       "tag": "0004_seed-types",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1730752324030,
+      "tag": "0005_left_pet_avengers",
+      "breakpoints": true
     }
   ]
 }
