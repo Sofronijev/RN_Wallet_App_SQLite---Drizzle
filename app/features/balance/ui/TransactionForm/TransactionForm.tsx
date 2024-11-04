@@ -32,7 +32,7 @@ import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { getAllWallets } from "app/services/walletQueries";
-import { getUser } from "app/services/userQueries";
+import { getSelectedWalletInfo } from "app/services/userQueries";
 import { addTransaction } from "app/services/transactionQueries";
 
 type Props = {
@@ -45,16 +45,15 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
 
-  const { data: user } = useLiveQuery(getUser());
-  const { data: wallets } = useLiveQuery(getAllWallets(user?.id));
-  const selectedWallet = user?.selectedWallet;
+  const { data: userWallet } = useLiveQuery(getSelectedWalletInfo());
+  const { data: wallets } = useLiveQuery(getAllWallets());
+  const selectedWallet = userWallet?.selectedWallet;
   const walletId = selectedWallet?.walletId;
-  const userId = selectedWallet?.userId;
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
     try {
-      if (values.type && values.category && values.walletId && userId) {
+      if (values.type && values.category && values.walletId) {
         const transactionData = {
           amount: formatFormAmountValue(values.amount, values.category.id, values.type.id),
           description: values.description,
@@ -62,7 +61,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           type_id: values.type.id,
           categoryId: values.category.id,
           wallet_id: Number(values.walletId),
-          user_id: userId,
+          // TODO
+          user_id: 1,
         };
         if (editData) {
         } else {

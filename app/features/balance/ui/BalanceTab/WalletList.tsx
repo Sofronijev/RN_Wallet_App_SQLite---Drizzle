@@ -15,7 +15,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { getAllWallets } from "../../../../services/walletQueries";
-import { getUser, setSelectedWallet } from "app/services/userQueries";
+import { setSelectedWallet } from "app/services/userQueries";
 import { Wallet } from "db";
 
 const WALLET_SPACING = 8;
@@ -27,13 +27,9 @@ const WalletList: React.FC = () => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
-  const { data: user } = useLiveQuery(getUser());
-  const { data: wallets } = useLiveQuery(getAllWallets(user?.id));
-
+  const { data: wallets } = useLiveQuery(getAllWallets());
   const onWalletChange = async (item: Wallet) => {
-    if (user?.id) {
-      await setSelectedWallet(user.id, item.walletId);
-    }
+    await setSelectedWallet(item.walletId);
   };
 
   const onBalancePress = (walletId: number) => {

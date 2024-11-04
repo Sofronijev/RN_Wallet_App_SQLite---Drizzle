@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useCallback } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import AppNavigator from "./AppNavigator";
 import { Alert, View } from "react-native";
@@ -23,10 +23,10 @@ const RootNavigator: React.FC = () => {
   }, [error]);
 
   const onLayoutRootView = useCallback(async () => {
-    if (1) {
+    if (success) {
       await SplashScreen.hideAsync();
     }
-  }, []);
+  }, [success]);
 
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
