@@ -128,10 +128,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   button: {
-    borderWidth: 1,
     paddingVertical: 3,
     paddingHorizontal: 5,
-    borderRadius: 20,
-    borderColor: colors.grey,
   },
 });
