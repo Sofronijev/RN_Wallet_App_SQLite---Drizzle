@@ -2,36 +2,42 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React, { useState } from "react";
 import Label from "components/Label";
 import colors from "constants/colors";
-import { addOrDeductMonth, getMonthAndYear } from "modules/timeAndDate";
+import { apiIsoFormat, getMonthAndYear } from "modules/timeAndDate";
 import { formatDecimalDigits } from "modules/numbers";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { transactionStrings } from "constants/strings";
-
+import { useLiveQuery } from "drizzle-orm/expo-sqlite";
+import { getMonthlyBalance } from "app/services/transactionQueries";
+import { getSelectedWalletInfo } from "app/services/userQueries";
+import { addMonths, format, isSameMonth, subMonths } from "date-fns";
 
 const TODAY = new Date();
 
 const MonthlyBalance: React.FC = () => {
-  const [monthDifference, setMonthDifference] = useState(0);
+  const { data: selectedWallet } = useLiveQuery(getSelectedWalletInfo());
+  const selectedWalletId = selectedWallet?.selectedWalletId ?? 1;
+  const [selectedDate, setSelectedDate] = useState(TODAY);
 
-  const walletId = 1;
-  const userId = {};
-
-  const selectedDate = addOrDeductMonth(TODAY, monthDifference);
-
+  const { data } = useLiveQuery(
+    getMonthlyBalance(selectedWalletId, format(selectedDate, apiIsoFormat)),
+    [selectedWalletId, selectedDate]
+  );
+  const { balance, expense, income } = data[0] ? data[0] : { balance: 0, expense: 0, income: 0 };
   const formattedMonth = getMonthAndYear(selectedDate);
-  const disableNextMonthBtn = monthDifference === 0;
+  const isCurrentMonth = isSameMonth(selectedDate, TODAY);
 
   const addMonth = () => {
-    if (monthDifference === 0) return;
-    setMonthDifference((prevMonth) => prevMonth + 1);
+    if (!isCurrentMonth) {
+      setSelectedDate(addMonths(selectedDate, 1));
+    }
   };
   const deductMonth = () => {
-    setMonthDifference((prevMonth) => prevMonth - 1);
+    setSelectedDate(subMonths(selectedDate, 1));
   };
   const setCurrentMonth = () => {
-    setMonthDifference(0);
+    setSelectedDate(TODAY);
   };
 
   return (
@@ -45,11 +51,11 @@ const MonthlyBalance: React.FC = () => {
           <TouchableOpacity onPress={setCurrentMonth} style={styles.icon}>
             <MaterialCommunityIcons name='calendar-today' size={25} color={colors.black} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={addMonth} style={styles.icon} disabled={disableNextMonthBtn}>
+          <TouchableOpacity onPress={addMonth} style={styles.icon} disabled={isCurrentMonth}>
             <FontAwesome
               name='chevron-right'
               size={25}
-              color={disableNextMonthBtn ? colors.disabled : colors.black}
+              color={isCurrentMonth ? colors.disabled : colors.black}
             />
           </TouchableOpacity>
         </View>
@@ -57,19 +63,19 @@ const MonthlyBalance: React.FC = () => {
       <View>
         <View style={styles.row}>
           <Label style={styles.label}>{transactionStrings.available}</Label>
-          <Label style={[styles.balance, 1 < 0 && styles.redBalance]}>
-            {formatDecimalDigits(1)}
+          <Label style={[styles.balance, balance < 0 && styles.redBalance]}>
+            {formatDecimalDigits(balance)}
           </Label>
         </View>
         <View style={styles.row}>
           <Label style={styles.label}>{transactionStrings.income}</Label>
-          <Label style={styles.transactions}>{formatDecimalDigits(1)}</Label>
+          <Label style={styles.transactions}>{formatDecimalDigits(income)}</Label>
         </View>
         <View style={styles.row}>
           <Label style={styles.label}>{transactionStrings.expenses}</Label>
-          <Label style={styles.transactions}>{formatDecimalDigits(1)}</Label>
+          <Label style={styles.transactions}>{formatDecimalDigits(expense)}</Label>
         </View>
-        <AppActivityIndicator isLoading={false} />
+        {/* <AppActivityIndicator isLoading={false} /> */}
       </View>
     </View>
   );

@@ -14,7 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import { getAllWallets } from "../../../../services/walletQueries";
+import { getAllWalletsWithBalance } from "../../../../services/walletQueries";
 import { setSelectedWallet } from "app/services/userQueries";
 import { Wallet } from "db";
 
@@ -27,10 +27,10 @@ const WalletList: React.FC = () => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
-  const { data: wallets } = useLiveQuery(getAllWallets());
   const onWalletChange = async (item: Wallet) => {
     await setSelectedWallet(item.walletId);
   };
+  const { data: wallets } = useLiveQuery(getAllWalletsWithBalance());
 
   const onBalancePress = (walletId: number) => {
     showBalancePrompt((value: string) => {});
