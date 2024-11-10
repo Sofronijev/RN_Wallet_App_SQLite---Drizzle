@@ -2,30 +2,23 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React, { useState } from "react";
 import Label from "components/Label";
 import colors from "constants/colors";
-import { apiIsoFormat, getMonthAndYear } from "modules/timeAndDate";
+import { getMonthAndYear } from "modules/timeAndDate";
 import { formatDecimalDigits } from "modules/numbers";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { transactionStrings } from "constants/strings";
-import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import { getMonthlyBalance } from "app/services/transactionQueries";
-import { addMonths, format, isSameMonth, subMonths } from "date-fns";
+import { addMonths, isSameMonth, subMonths } from "date-fns";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
+import useGetMonthlyBalance from "../../hooks/useGetMonthlyBalance";
 
 const TODAY = new Date();
 
 const MonthlyBalance: React.FC = () => {
-  const { selectedWalletId } = useGetSelectedWallet();
-
-  const walletId = selectedWalletId ?? 1;
   const [selectedDate, setSelectedDate] = useState(TODAY);
+  const { selectedWalletId } = useGetSelectedWallet();
+  const { balance, expense, income } = useGetMonthlyBalance(selectedWalletId, selectedDate);
 
-  const { data } = useLiveQuery(getMonthlyBalance(walletId, format(selectedDate, apiIsoFormat)), [
-    walletId,
-    selectedDate,
-  ]);
-  const { balance, expense, income } = data[0] ? data[0] : { balance: 0, expense: 0, income: 0 };
   const formattedMonth = getMonthAndYear(selectedDate);
   const isCurrentMonth = isSameMonth(selectedDate, TODAY);
 

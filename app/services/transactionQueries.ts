@@ -21,8 +21,10 @@ export const getTransactions = (walletId: number | null, limit?: number) => {
 export const addTransaction = (transaction: NewTransaction) =>
   db.insert(transactions).values(transaction);
 
-export const getMonthlyBalance = (walletId: number, date: string) =>
-  db
+export const getMonthlyBalance = (walletId: number | null, date: string) => {
+  if (!walletId) return skipQuery(transactions);
+
+  return db
     .select({
       expense:
         sql`SUM(CASE WHEN ${transactions.amount} < 0 THEN ${transactions.amount} ELSE 0 END)`.mapWith(
@@ -43,3 +45,4 @@ export const getMonthlyBalance = (walletId: number, date: string) =>
       )
     )
     .groupBy(transactions.wallet_id);
+};
