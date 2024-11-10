@@ -38,14 +38,14 @@ export const wallet = sqliteTable("Wallet", {
       onDelete: "cascade",
       onUpdate: "cascade",
     })
-    .default(DEFAULT_USER_ID),
-  startingBalance: real("startingBalance").default(0),
-  walletName: text("walletName", { length: 255 }).default("My custom wallet"),
-  currencyCode: text("currencyCode", { length: 3 }).default("EUR"),
-  currencySymbol: text("currencySymbol", { length: 3 }).default("€"),
-  type: text("type", { length: 255, enum: ["custom", "system"] }).default("custom"),
-  color: text("color", { length: 7 }).default("#3EB489"),
-  createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`),
+    .default(DEFAULT_USER_ID).notNull(),
+  startingBalance: real("startingBalance").default(0).notNull(),
+  walletName: text("walletName", { length: 255 }).default("My custom wallet").notNull(),
+  currencyCode: text("currencyCode", { length: 3 }).default("EUR").notNull(),
+  currencySymbol: text("currencySymbol", { length: 3 }).default("€").notNull(),
+  type: text("type", { length: 255, enum: ["custom", "system"] }).default("custom").notNull(),
+  color: text("color", { length: 7 }).default("#3EB489").notNull(),
+  createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 // Transactions Table
