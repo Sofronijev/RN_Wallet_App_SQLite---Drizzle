@@ -7,12 +7,13 @@ import RecentTransactions from "app/features/balance/ui/BalanceTab/RecentTransac
 import NullScreen from "components/NullScreen";
 import { showStartingBalancePrompt } from "app/features/settings/modules";
 import MonthlyBalance from "./MonthlyBalance";
+import { useLiveQuery } from "drizzle-orm/expo-sqlite";
+import { getSelectedWalletInfo } from "app/services/userQueries";
 
 const BalanceScreen: React.FC = () => {
-  const activeWallet = {};
-
-  const walletId = activeWallet?.walletId;
-  const hasStartingBalance = !!activeWallet?.startingBalance;
+  const { data } = useLiveQuery(getSelectedWalletInfo());
+  const walletId = data?.selectedWalletId;
+  const hasStartingBalance = !!data?.selectedWallet?.startingBalance;
 
   const onChangeStartingBalance = () => {
     if (!walletId) return;
