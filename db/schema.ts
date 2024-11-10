@@ -38,44 +38,58 @@ export const wallet = sqliteTable("Wallet", {
       onDelete: "cascade",
       onUpdate: "cascade",
     })
-    .default(DEFAULT_USER_ID).notNull(),
+    .default(DEFAULT_USER_ID)
+    .notNull(),
   startingBalance: real("startingBalance").default(0).notNull(),
   walletName: text("walletName", { length: 255 }).default("My custom wallet").notNull(),
   currencyCode: text("currencyCode", { length: 3 }).default("EUR").notNull(),
   currencySymbol: text("currencySymbol", { length: 3 }).default("€").notNull(),
-  type: text("type", { length: 255, enum: ["custom", "system"] }).default("custom").notNull(),
+  type: text("type", { length: 255, enum: ["custom", "system"] })
+    .default("custom")
+    .notNull(),
   color: text("color", { length: 7 }).default("#3EB489").notNull(),
-  createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  createdAt: text("createdAt")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 });
 
 // Transactions Table
 export const transactions = sqliteTable("Transactions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  amount: real("amount"),
+  amount: real("amount").notNull(),
   description: text("description", { length: 255 }),
-  date: text("date").default(sql`CURRENT_TIMESTAMP`),
+  date: text("date").default(sql`CURRENT_TIMESTAMP`).notNull(),
   user_id: integer("user_id")
     .references(() => users.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     })
-    .default(DEFAULT_USER_ID),
-  type_id: integer("type_id").references(() => types.id, { onUpdate: "cascade" }),
-  categoryId: integer("categoryId").references(() => categories.id, { onUpdate: "cascade" }),
-  wallet_id: integer("wallet_id").references(() => wallet.walletId, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
+    .default(DEFAULT_USER_ID)
+    .notNull(),
+  type_id: integer("type_id")
+    .references(() => types.id, { onUpdate: "cascade" })
+    .notNull(),
+  categoryId: integer("categoryId")
+    .references(() => categories.id, { onUpdate: "cascade" })
+    .notNull(),
+  wallet_id: integer("wallet_id")
+    .references(() => wallet.walletId, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .notNull(),
 });
 
 // Transfer Table
 export const transfer = sqliteTable("Transfer", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   date: text("date").default(sql`CURRENT_TIMESTAMP`),
-  userId: integer("userId").references(() => users.id, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }).default(DEFAULT_USER_ID),
+  userId: integer("userId")
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .default(DEFAULT_USER_ID),
   fromWalletId: integer("fromWalletId").references(() => wallet.walletId, {
     onDelete: "cascade",
     onUpdate: "cascade",
