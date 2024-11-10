@@ -1,12 +1,15 @@
 import { db, NewTransaction } from "db";
 import { transactions } from "db/schema";
 import { and, eq, sql, sum } from "drizzle-orm";
+import { skipQuery } from "./helpers";
 
-export const getTransactions = (walletId?: number | null, limit?: number) => {
+export const getTransactions = (walletId: number | null, limit?: number) => {
+  if (!walletId) return skipQuery(transactions);
+
   const query = db
     .select()
     .from(transactions)
-    .where(and(walletId ? eq(transactions.wallet_id, walletId) : undefined));
+    .where(and(eq(transactions.wallet_id, walletId)));
 
   if (limit) {
     query.limit(limit);

@@ -8,9 +8,8 @@ import ButtonText from "components/ButtonText";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
-import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import { getTransactions } from "app/services/transactionQueries";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
+import useGetTransactions from "../../hooks/useGetTransactions";
 
 type RecentTransactionsProps = {
   isLoading: boolean;
@@ -24,11 +23,8 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   nullScreen,
 }) => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
-  const { selectedWalletId, selectedWallet } = useGetSelectedWallet();
-
-  const { data: transactions } = useLiveQuery(getTransactions(selectedWalletId, 5), [
-    selectedWalletId,
-  ]);
+  const { selectedWalletId } = useGetSelectedWallet();
+  const transactions = useGetTransactions(selectedWalletId, 5);
 
   const loading = isLoading || false;
   const hasTransactions = !!transactions?.length;
