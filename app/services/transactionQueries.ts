@@ -50,3 +50,7 @@ export const getMonthlyBalance = (walletId: number | null, date: string) => {
 export const getTransactionById = (id: number | undefined | null) => {
   return db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
 };
+
+export const deleteTransaction = (id: number) => {
+  return db.delete(transactions).where(eq(transactions.id, id));
+};

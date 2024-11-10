@@ -30,7 +30,7 @@ import {
 import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
-import { addTransaction } from "app/services/transactionQueries";
+import { addTransaction, deleteTransaction } from "app/services/transactionQueries";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
 import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
 import { getCategoryIcon } from "components/CategoryIcon";
@@ -77,8 +77,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const onDeleteTransaction = async () => {
     try {
-      if (editedTransaction) {
-        // todo
+      if (editTransactionId) {
+        await deleteTransaction(editTransactionId);
       }
       navigation.goBack();
     } catch (error) {
@@ -88,7 +88,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const onDelete = async () => {
     Keyboard.dismiss();
-
     deleteTransactionAlert(onDeleteTransaction);
   };
 

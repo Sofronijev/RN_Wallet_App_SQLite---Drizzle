@@ -16,7 +16,6 @@ type Props = {
 
 const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   if (!transaction) return null;
-  console.log("TRANSACTION", transaction.date);
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
   const category = transactionCategories[transaction.categoryId];
   const type = category.types[transaction.type_id];
