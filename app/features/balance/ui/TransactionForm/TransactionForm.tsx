@@ -32,8 +32,8 @@ import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { getAllWallets } from "app/services/walletQueries";
-import { getSelectedWalletInfo } from "app/services/userQueries";
 import { addTransaction } from "app/services/transactionQueries";
+import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -44,11 +44,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const editData = route.params?.editData;
   const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
+  const { selectedWalletId, selectedWallet } = useGetSelectedWallet();
 
-  const { data: userWallet } = useLiveQuery(getSelectedWalletInfo());
   const { data: wallets } = useLiveQuery(getAllWallets());
-  const selectedWallet = userWallet?.selectedWallet;
-  const walletId = selectedWallet?.walletId;
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
@@ -98,7 +96,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const formik = useFormik<TransactionFromInputs>({
-    initialValues: { ...initialTransactionFormValues, walletId: `${walletId}` },
+    initialValues: { ...initialTransactionFormValues, walletId: `${selectedWalletId}` },
     validationSchema: transactionValidationSchema,
     validateOnChange: hasSubmittedForm,
     onSubmit: onTransactionSubmit,

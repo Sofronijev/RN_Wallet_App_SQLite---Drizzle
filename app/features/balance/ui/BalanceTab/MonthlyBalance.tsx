@@ -10,20 +10,21 @@ import { FontAwesome } from "@expo/vector-icons";
 import { transactionStrings } from "constants/strings";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { getMonthlyBalance } from "app/services/transactionQueries";
-import { getSelectedWalletInfo } from "app/services/userQueries";
 import { addMonths, format, isSameMonth, subMonths } from "date-fns";
+import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
 
 const TODAY = new Date();
 
 const MonthlyBalance: React.FC = () => {
-  const { data: selectedWallet } = useLiveQuery(getSelectedWalletInfo());
-  const selectedWalletId = selectedWallet?.selectedWalletId ?? 1;
+  const { selectedWalletId } = useGetSelectedWallet();
+
+  const walletId = selectedWalletId ?? 1;
   const [selectedDate, setSelectedDate] = useState(TODAY);
 
-  const { data } = useLiveQuery(
-    getMonthlyBalance(selectedWalletId, format(selectedDate, apiIsoFormat)),
-    [selectedWalletId, selectedDate]
-  );
+  const { data } = useLiveQuery(getMonthlyBalance(walletId, format(selectedDate, apiIsoFormat)), [
+    walletId,
+    selectedDate,
+  ]);
   const { balance, expense, income } = data[0] ? data[0] : { balance: 0, expense: 0, income: 0 };
   const formattedMonth = getMonthAndYear(selectedDate);
   const isCurrentMonth = isSameMonth(selectedDate, TODAY);

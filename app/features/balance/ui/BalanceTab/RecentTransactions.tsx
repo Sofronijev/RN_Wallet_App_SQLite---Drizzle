@@ -10,7 +10,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite";
 import { getTransactions } from "app/services/transactionQueries";
-import { getSelectedWalletInfo } from "app/services/userQueries";
+import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
 
 type RecentTransactionsProps = {
   isLoading: boolean;
@@ -24,13 +24,11 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   nullScreen,
 }) => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const { selectedWalletId, selectedWallet } = useGetSelectedWallet();
 
-  const { data: userWallet } = useLiveQuery(getSelectedWalletInfo());
-
-  const { data: transactions } = useLiveQuery(getTransactions(userWallet?.selectedWalletId, 5), [
-    userWallet?.selectedWalletId,
+  const { data: transactions } = useLiveQuery(getTransactions(selectedWalletId, 5), [
+    selectedWalletId,
   ]);
-  const activeWallet = userWallet?.selectedWallet;
 
   const loading = isLoading || false;
   const hasTransactions = !!transactions?.length;
