@@ -33,6 +33,7 @@ import WalletPicker from "./WalletPicker";
 import { addTransaction } from "app/services/transactionQueries";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
 import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
+import { getCategoryIcon } from "components/CategoryIcon";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -104,7 +105,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const pickedWallet = wallets.find((wallet) => wallet.walletId === +formik.values.walletId);
 
-  const walletName = pickedWallet?.walletName;
   const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
 
   useEffect(() => {
@@ -151,6 +151,16 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     formik.handleSubmit();
   };
 
+  const getCategoryInputIcon = formik.values.category ? (
+    getCategoryIcon({
+      type: formik.values.category.name,
+      colored: true,
+      iconSize: 24,
+    }).icon
+  ) : (
+    <MaterialIcons name='category' size={24} color={colors.greenMint} />
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.inputsContainer}>
@@ -159,6 +169,10 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           maximumDate={new Date()}
           onDateSelect={onDateChange}
         />
+        <View style={styles.walletPicker}>
+          <WalletPicker selected={+formik.values.walletId} onSelect={onWalletSelect} />
+          <InputErrorLabel text={formik.errors.walletId} isVisible={!!formik.errors.walletId} />
+        </View>
         <StyledLabelInput
           value={formattedAmount}
           placeholder='Amount'
@@ -170,27 +184,21 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           rightText={walletCurrency}
         />
         <InputErrorLabel text={formik.errors.amount} isVisible={!!formik.errors.amount} />
-        <View style={styles.flexRow}>
-          <View style={styles.flex}>
-            <TouchableOpacity onPress={openSheet}>
-              <StyledLabelInput
-                value={setCategoryText()}
-                icon={<MaterialIcons name='category' size={24} color={colors.greenMint} />}
-                disabled
-                placeholder='Category'
-                style={styles.input}
-                inputStyle={styles.category}
-              />
-            </TouchableOpacity>
-            <InputErrorLabel
-              text={formik.errors.category}
-              isVisible={!!formik.errors.category || !!formik.errors.type}
+        <View>
+          <TouchableOpacity onPress={openSheet}>
+            <StyledLabelInput
+              value={setCategoryText()}
+              icon={getCategoryInputIcon}
+              disabled
+              placeholder='Category'
+              style={styles.input}
+              inputStyle={styles.category}
             />
-          </View>
-          <View style={styles.flex}>
-            <WalletPicker value={walletName} style={styles.input} onSelect={onWalletSelect} />
-            <InputErrorLabel text={formik.errors.walletId} isVisible={!!formik.errors.walletId} />
-          </View>
+          </TouchableOpacity>
+          <InputErrorLabel
+            text={formik.errors.category}
+            isVisible={!!formik.errors.category || !!formik.errors.type}
+          />
         </View>
         <StyledLabelInput
           placeholder='Transaction comment'
@@ -221,7 +229,6 @@ const styles = StyleSheet.create({
   },
   flexRow: {
     flexDirection: "row",
-    columnGap: 10,
   },
   flex: {
     flex: 1,
@@ -236,5 +243,8 @@ const styles = StyleSheet.create({
   },
   category: {
     color: colors.black,
+  },
+  walletPicker: {
+    paddingTop: 20,
   },
 });

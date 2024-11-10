@@ -9,7 +9,7 @@ type StyledLabelInputType = TextInputProps & {
   style?: StyleProp<TextStyle>;
   inputStyle?: StyleProp<TextStyle>;
   disabled?: boolean;
-  rightText?: string;
+  rightText?: string | null;
 };
 
 const StyledLabelInput: React.FC<StyledLabelInputType> = ({
@@ -50,6 +50,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   rightText: {
-    paddingRight: 5,
+    paddingRight: 12,
   }
 });

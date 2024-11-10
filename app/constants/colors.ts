@@ -27,6 +27,7 @@ const colors = {
   danger: "#DB3545",
   delete: "#FF5366",
   transfer: "#86A789",
+  greenLight: "#E6F5E8",
 };
 
 export default colors;

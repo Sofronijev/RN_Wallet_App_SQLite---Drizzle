@@ -1,6 +1,6 @@
 import { openDatabaseSync } from "expo-sqlite/next";
 import { drizzle } from "drizzle-orm/expo-sqlite";
-import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, InferModelFromColumns } from "drizzle-orm";
 import * as schema from "./schema";
 
 const expo = openDatabaseSync("db.db", { enableChangeListener: true });

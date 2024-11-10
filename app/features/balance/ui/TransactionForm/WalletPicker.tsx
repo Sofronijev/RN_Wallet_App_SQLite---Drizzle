@@ -1,87 +1,53 @@
-import {
-  FlatList,
-  Keyboard,
-  StyleProp,
-  StyleSheet,
-  TextStyle,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import {
-  Menu,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
-  MenuOptionCustomStyle,
-  renderers,
-  MenuTriggerProps,
-} from "react-native-popup-menu";
+import { FlatList, ListRenderItem, StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
-import StyledLabelInput from "components/StyledLabelInput";
-import { Ionicons } from "@expo/vector-icons";
 import colors from "constants/colors";
+import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
+import Label from "components/Label";
+import { WalletType } from "../../modules/types";
 
 type Props = {
-  value: string | undefined;
-  style?: StyleProp<TextStyle>;
+  selected: number;
   onSelect: (walletId: number) => void;
 };
 
-const customOptionStyles: MenuOptionCustomStyle = {
-  optionText: {
-    fontSize: 15,
-    padding: 15,
-  },
-};
-
-const customTriggerStyle: MenuTriggerProps["customStyles"] = {
-  TriggerTouchableComponent: TouchableOpacity,
-};
-
-const WalletPicker: React.FC<Props> = ({ value, onSelect, style }) => {
-  const wallets = [];
-
-  return (
-    <View>
-      <Menu
-        onSelect={onSelect}
-        renderer={renderers.Popover}
-        rendererProps={{
-          placement: "auto",
-          preferredPlacement: "bottom",
-        }}
+const WalletPicker: React.FC<Props> = ({ selected, onSelect }) => {
+  const wallets = useGetWalletsWithBalance();
+  const renderItem: ListRenderItem<WalletType> = ({ item }) => {
+    const isSelected = selected === item.walletId;
+    const onPress = () => onSelect(item.walletId);
+    return (
+      <TouchableOpacity
+        style={[
+          styles.walletContainer,
+          { borderColor: item.color },
+          isSelected && {
+            backgroundColor: colors.greenLight,
+          },
+        ]}
+        onPress={onPress}
       >
-        <MenuTrigger customStyles={customTriggerStyle} onPress={Keyboard.dismiss}>
-          <StyledLabelInput
-            value={value}
-            disabled
-            style={style}
-            // placeholder='Wallet'
-            inputStyle={styles.text}
-            icon={<Ionicons name='wallet' size={24} color={colors.greenMint} />}
-          />
-        </MenuTrigger>
-        <MenuOptions>
-          <FlatList
-            data={wallets}
-            renderItem={({ item }) => (
-              <MenuOption
-                text={item.walletName}
-                value={item.walletId}
-                customStyles={customOptionStyles}
-              />
-            )}
-          />
-        </MenuOptions>
-      </Menu>
-    </View>
-  );
+        <Label style={styles.text}>{`${item.walletName} (${
+          item.currencySymbol || item.currencyCode
+        })`}</Label>
+      </TouchableOpacity>
+    );
+  };
+
+  return <FlatList data={wallets} horizontal renderItem={renderItem} />;
 };
 
 export default WalletPicker;
 
 const styles = StyleSheet.create({
+  walletContainer: {
+    borderColor: colors.grey3,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginRight: 10,
+  },
   text: {
-    color: colors.black,
+    fontSize: 15,
   },
 });
