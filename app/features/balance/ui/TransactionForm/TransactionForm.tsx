@@ -30,10 +30,9 @@ import {
 import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
-import { useLiveQuery } from "drizzle-orm/expo-sqlite";
-import { getAllWallets } from "app/services/walletQueries";
 import { addTransaction } from "app/services/transactionQueries";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
+import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -44,9 +43,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const editData = route.params?.editData;
   const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
-  const { selectedWalletId, selectedWallet } = useGetSelectedWallet();
+  const { selectedWalletId } = useGetSelectedWallet();
 
-  const { data: wallets } = useLiveQuery(getAllWallets());
+  const wallets = useGetWalletsWithBalance();
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
