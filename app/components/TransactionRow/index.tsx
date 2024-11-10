@@ -5,7 +5,7 @@ import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import { formatDecimalDigits } from "modules/numbers";
 import { CategoryNumber, transactionCategories } from "modules/transactionCategories";
-import { formatDayString } from "modules/timeAndDate";
+import { formatDayString, formatIsoDate } from "modules/timeAndDate";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
@@ -16,7 +16,7 @@ type Props = {
 
 const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   if (!transaction) return null;
-
+  console.log("TRANSACTION", transaction.date);
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
   const category = transactionCategories[transaction.categoryId];
   const type = category.types[transaction.type_id];
@@ -41,15 +41,7 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
       });
     } else {
       navigation.navigate("Transaction", {
-        editData: {
-          id: transaction.id,
-          date: transaction.date.toDateString(),
-          amount: `${Math.abs(transaction.amount)}`,
-          description: transaction.description,
-          category,
-          type,
-          walletId: `${transaction.wallet_id}`,
-        },
+        id: transaction.id,
       });
     }
   };

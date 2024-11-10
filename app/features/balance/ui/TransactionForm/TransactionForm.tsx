@@ -5,7 +5,7 @@ import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
 import TransactionBottomSheet from "../TransactionBottomSheet";
-import { Category, Transaction } from "modules/transactionCategories";
+import { Category, Transaction, transactionCategories } from "modules/transactionCategories";
 import { TransactionBottomSheetType } from "../../modules/transactionBottomSheet";
 import colors from "constants/colors";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -34,6 +34,8 @@ import { addTransaction } from "app/services/transactionQueries";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
 import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
 import { getCategoryIcon } from "components/CategoryIcon";
+import useGetTransactionById from "../../hooks/useGetTransactionById";
+import { TransactionType } from "db";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -41,12 +43,14 @@ type Props = {
 };
 
 const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
-  const editData = route.params?.editData;
+  const editTransactionId = route.params?.id;
   const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const { selectedWalletId } = useGetSelectedWallet();
-
+  const editedTransaction = useGetTransactionById(editTransactionId);
   const wallets = useGetWalletsWithBalance();
+
+  const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
@@ -60,7 +64,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           categoryId: values.category.id,
           wallet_id: Number(values.walletId),
         };
-        if (editData) {
+        if (editedTransaction) {
         } else {
           await addTransaction(transactionData);
         }
@@ -73,7 +77,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const onDeleteTransaction = async () => {
     try {
-      if (editData) {
+      if (editedTransaction) {
         // todo
       }
       navigation.goBack();
@@ -88,6 +92,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     deleteTransactionAlert(onDeleteTransaction);
   };
 
+  // TODO - Move sheet to separate component at the parent
+  // if screen is set to ScrollView there is a bug, sheet doesn't come from the bottom
   const openSheet = () => {
     if (sheetRef?.current) {
       Keyboard.dismiss();
@@ -95,8 +101,24 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
+  const formatEditInitialValues = (transaction: TransactionType) => {
+    const category = transactionCategories[transaction.categoryId];
+    const type = category.types[transaction.type_id];
+
+    return {
+      date: formatIsoDate(transaction.date),
+      amount: `${Math.abs(transaction.amount)}`,
+      description: transaction.description ?? "",
+      category,
+      type,
+      walletId: `${transaction.wallet_id}`,
+    };
+  };
+
   const formik = useFormik<TransactionFromInputs>({
-    initialValues: { ...initialTransactionFormValues, walletId: `${selectedWalletId}` },
+    initialValues: editedTransaction
+      ? formatEditInitialValues(editedTransaction)
+      : { ...initialTransactionFormValues, walletId: `${selectedWalletId}` },
     validationSchema: transactionValidationSchema,
     validateOnChange: hasSubmittedForm,
     onSubmit: onTransactionSubmit,
@@ -106,11 +128,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const pickedWallet = wallets.find((wallet) => wallet.walletId === +formik.values.walletId);
 
   const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
-
   useEffect(() => {
-    if (editData) {
-      const { id, ...data } = editData;
-      formik.setValues(data);
+    if (editedTransaction) {
       navigation.setOptions({
         title: transactionStrings.editTransaction,
         headerRight: () => (
@@ -120,7 +139,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         ),
       });
     }
-  }, [editData]);
+  }, [editedTransaction]);
 
   const onSelectCategory = (category: Category, type: Transaction) => {
     formik.setFieldValue("category", category);
@@ -170,7 +189,11 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           onDateSelect={onDateChange}
         />
         <View style={styles.walletPicker}>
-          <WalletPicker selected={+formik.values.walletId} onSelect={onWalletSelect} />
+          <WalletPicker
+            wallets={wallets}
+            selected={+formik.values.walletId}
+            onSelect={onWalletSelect}
+          />
           <InputErrorLabel text={formik.errors.walletId} isVisible={!!formik.errors.walletId} />
         </View>
         <StyledLabelInput
@@ -180,7 +203,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           keyboardType='decimal-pad'
           style={styles.input}
           icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
-          autoFocus={!editData}
+          autoFocus={!editTransactionId}
           rightText={walletCurrency}
         />
         <InputErrorLabel text={formik.errors.amount} isVisible={!!formik.errors.amount} />
@@ -210,7 +233,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         <CustomButton title='Submit' onPress={onSubmit} style={styles.button} />
       </View>
       <TransactionBottomSheet ref={sheetRef} onSelect={onSelectCategory} />
-      <AppActivityIndicator isLoading={false} />
+      <AppActivityIndicator hideScreen isLoading={isLoading} />
     </View>
   );
 };

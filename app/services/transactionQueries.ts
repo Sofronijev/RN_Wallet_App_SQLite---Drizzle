@@ -46,3 +46,7 @@ export const getMonthlyBalance = (walletId: number | null, date: string) => {
     )
     .groupBy(transactions.wallet_id);
 };
+
+export const getTransactionById = (id: number | undefined | null) => {
+  return db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
+};

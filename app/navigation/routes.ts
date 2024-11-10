@@ -8,7 +8,7 @@ export type HomeStackParamList = {
 
 export type AppStackParamList = {
   Home: undefined;
-  Transaction: { editData: TransactionFromInputs & { id: number } } | undefined;
+  Transaction: { id: number } | undefined;
   TransactionSearch: undefined;
   WalletSettings: undefined;
   TransferForm: {
