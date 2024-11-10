@@ -30,7 +30,11 @@ import {
 import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
-import { addTransaction, deleteTransaction } from "app/services/transactionQueries";
+import {
+  addTransaction,
+  deleteTransaction,
+  editTransaction,
+} from "app/services/transactionQueries";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
 import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
 import { getCategoryIcon } from "components/CategoryIcon";
@@ -64,12 +68,14 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           categoryId: values.category.id,
           wallet_id: Number(values.walletId),
         };
-        if (editedTransaction) {
+        if (editTransactionId) {
+          await editTransaction(editTransactionId, transactionData);
         } else {
           await addTransaction(transactionData);
         }
         navigation.goBack();
       }
+      // TODO - FIX Errors (check data from service call)
     } catch (error) {
       handleTransactionError(error);
     }

@@ -1,4 +1,4 @@
-import { db, NewTransaction } from "db";
+import { db, NewTransaction, TransactionType } from "db";
 import { transactions } from "db/schema";
 import { and, eq, sql, sum } from "drizzle-orm";
 import { skipQuery } from "./helpers";
@@ -53,4 +53,8 @@ export const getTransactionById = (id: number | undefined | null) => {
 
 export const deleteTransaction = (id: number) => {
   return db.delete(transactions).where(eq(transactions.id, id));
+};
+
+export const editTransaction = (id: number, data: Partial<TransactionType>) => {
+  return db.update(transactions).set(data).where(eq(transactions.id, id));
 };
