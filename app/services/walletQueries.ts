@@ -25,3 +25,6 @@ export const getAllWalletsWithBalance = () =>
       wallet.currencySymbol,
       wallet.type
     );
+
+export const setWalletStartingBalance = (walletId: number, amount: number) =>
+  db.update(wallet).set({ startingBalance: amount }).where(eq(wallet.walletId, walletId));

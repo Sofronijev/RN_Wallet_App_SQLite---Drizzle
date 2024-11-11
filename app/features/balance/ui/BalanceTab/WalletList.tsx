@@ -13,6 +13,7 @@ import { AppStackParamList } from "navigation/routes";
 import { setSelectedWallet } from "app/services/userQueries";
 import { Wallet } from "db";
 import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
+import { setWalletStartingBalance } from "app/services/walletQueries";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -30,7 +31,9 @@ const WalletList: React.FC = () => {
   };
 
   const onBalancePress = (walletId: number) => {
-    showBalancePrompt((value: string) => {});
+    showBalancePrompt(async (value: string) => {
+      await setWalletStartingBalance(walletId, +value);
+    });
   };
 
   const walletWidth = width - HORIZONTAL_PADDING * 2;
