@@ -80,7 +80,6 @@ const WalletList: React.FC = () => {
 export default WalletList;
 
 const walletStyle = {
-  marginVertical: 20,
   padding: 10,
   borderRadius: 20,
   backgroundColor: colors.white,
@@ -90,27 +89,22 @@ const walletStyle = {
 const styles = StyleSheet.create({
   walletCarousel: {
     paddingHorizontal: HORIZONTAL_PADDING,
-    height: walletStyle.height + 40,
+    height: walletStyle.height,
   },
   walletContainer: {
     ...walletStyle,
     borderLeftWidth: 5,
     borderRightWidth: 5,
-  },
-  nullWallet: {
-    ...walletStyle,
-    marginHorizontal: HORIZONTAL_PADDING,
+    justifyContent: "space-between",
   },
   walletValue: {
     fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
-    paddingBottom: 20,
   },
   walletName: {
     fontSize: 23,
     fontWeight: "bold",
-    paddingBottom: 20,
     paddingLeft: 10,
   },
   transactionContainer: {

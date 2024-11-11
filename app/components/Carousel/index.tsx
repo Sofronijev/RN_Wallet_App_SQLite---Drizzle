@@ -78,6 +78,9 @@ const Carousel: React.FC<CarouselProps> = ({
       ItemSeparatorComponent={itemSeparator}
       contentContainerStyle={style}
       onMomentumScrollEnd={onScrollEnd}
+      bounces={false}
+      alwaysBounceHorizontal={false}
+      overScrollMode="never"
     />
   );
 };

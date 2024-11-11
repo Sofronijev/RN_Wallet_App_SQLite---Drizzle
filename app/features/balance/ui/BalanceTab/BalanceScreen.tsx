@@ -52,6 +52,7 @@ export default BalanceScreen;
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 100,
+    paddingTop: 16,
   },
   itemContainer: {
     marginHorizontal: 16,
