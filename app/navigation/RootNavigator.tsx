@@ -5,13 +5,12 @@ import { Alert, View } from "react-native";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "../../drizzle/migrations";
 import { db } from "db";
-import useDrizzleStudio from "db/useDrizzleStudio";
+import DrizzleStudio from "db/DrizzleStudio";
 
 SplashScreen.preventAutoHideAsync();
 
 const RootNavigator: React.FC = () => {
   const { success, error } = useMigrations(db, migrations);
-  useDrizzleStudio();
 
   useEffect(() => {
     if (error) {
@@ -28,8 +27,11 @@ const RootNavigator: React.FC = () => {
     }
   }, [success]);
 
+  if (!success) return null;
+
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      {__DEV__ && <DrizzleStudio />}
       <AppNavigator />
     </View>
   );

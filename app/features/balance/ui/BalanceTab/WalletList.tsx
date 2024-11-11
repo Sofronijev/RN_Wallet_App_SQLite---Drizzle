@@ -17,16 +17,17 @@ import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
 
-const walletKeyExtractor = (item: unknown) => `${item.walletId}`;
+// TODO - FIX THIS TYPE
+const walletKeyExtractor = (item: any) => `${item.walletId}`;
 
 const WalletList: React.FC = () => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const wallets = useGetWalletsWithBalance();
 
   const onWalletChange = async (item: Wallet) => {
     await setSelectedWallet(item.walletId);
   };
-  const wallets = useGetWalletsWithBalance();
 
   const onBalancePress = (walletId: number) => {
     showBalancePrompt((value: string) => {});
@@ -34,12 +35,14 @@ const WalletList: React.FC = () => {
 
   const walletWidth = width - HORIZONTAL_PADDING * 2;
 
-  const renderWallet: ListRenderItem = ({ item }) => {
+  // TODO - FIX this
+  const renderWallet: ListRenderItem<any> = ({ item }) => {
     return (
       <View style={[styles.walletContainer, { borderColor: item.color }]}>
         <Label style={styles.walletName}>{item.walletName}</Label>
-        <Label style={styles.balanceText}>Available balance</Label>
-        <Label style={styles.walletValue}>{formatDecimalDigits(item.currentBalance)}</Label>
+        <Label style={styles.walletValue}>{`${formatDecimalDigits(item.currentBalance)} ${
+          item.currencySymbol || item.currencyCode
+        }`}</Label>
         <View style={styles.row}>
           <ButtonText
             title='Transfer funds'
@@ -56,21 +59,19 @@ const WalletList: React.FC = () => {
     );
   };
 
+  if (!wallets.length) return null;
+
   return (
     <>
-      {!wallets.length ? (
-        <View style={[styles.nullWallet, { width: walletWidth }]}></View>
-      ) : (
-        <Carousel
-          data={wallets}
-          renderItem={renderWallet}
-          keyExtractor={walletKeyExtractor}
-          itemWidth={walletWidth}
-          itemSpacing={WALLET_SPACING}
-          style={styles.walletCarousel}
-          onSnapToItem={onWalletChange}
-        />
-      )}
+      <Carousel
+        data={wallets}
+        renderItem={renderWallet}
+        keyExtractor={walletKeyExtractor}
+        itemWidth={walletWidth}
+        itemSpacing={WALLET_SPACING}
+        style={styles.walletCarousel}
+        onSnapToItem={onWalletChange}
+      />
       <AppActivityIndicator isLoading={false} />
     </>
   );
@@ -100,15 +101,11 @@ const styles = StyleSheet.create({
     ...walletStyle,
     marginHorizontal: HORIZONTAL_PADDING,
   },
-  balanceText: {
-    textAlign: "center",
-    color: colors.grey2,
-  },
   walletValue: {
     fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
-    paddingBottom: 10,
+    paddingBottom: 20,
   },
   walletName: {
     fontSize: 23,
