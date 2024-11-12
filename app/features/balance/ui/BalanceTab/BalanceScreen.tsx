@@ -8,14 +8,17 @@ import NullScreen from "components/NullScreen";
 import { showStartingBalancePrompt } from "app/features/settings/modules";
 import MonthlyBalance from "./MonthlyBalance";
 import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
+import { setWalletStartingBalance } from "app/services/walletQueries";
 
 const BalanceScreen: React.FC = () => {
   const { selectedWallet, selectedWalletId } = useGetSelectedWallet();
   const hasStartingBalance = !!selectedWallet?.startingBalance;
-
+  
   const onChangeStartingBalance = () => {
     if (!selectedWalletId) return;
-    showStartingBalancePrompt((text: string) => console.log(text));
+    showStartingBalancePrompt(async (newBalance: string) => {
+      await setWalletStartingBalance(selectedWalletId, +newBalance);
+    });
   };
 
   return (

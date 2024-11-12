@@ -13,7 +13,7 @@ import { AppStackParamList } from "navigation/routes";
 import { setSelectedWallet } from "app/services/userQueries";
 import { Wallet } from "db";
 import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
-import { setWalletStartingBalance } from "app/services/walletQueries";
+import { changeCurrentBalance, setWalletStartingBalance } from "app/services/walletQueries";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -30,9 +30,9 @@ const WalletList: React.FC = () => {
     await setSelectedWallet(item.walletId);
   };
 
-  const onBalancePress = (walletId: number) => {
-    showBalancePrompt(async (value: string) => {
-      await setWalletStartingBalance(walletId, +value);
+  const onBalancePress = (walletId: number, balance: number) => {
+    showBalancePrompt(async (newBalance: string) => {
+      await changeCurrentBalance(walletId, balance, +newBalance);
     });
   };
 
@@ -54,7 +54,7 @@ const WalletList: React.FC = () => {
           />
           <ButtonText
             title='Adjust balance'
-            onPress={() => onBalancePress(item.walletId)}
+            onPress={() => onBalancePress(item.walletId, item.currentBalance)}
             style={styles.button}
           />
         </View>

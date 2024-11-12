@@ -1,6 +1,9 @@
 import { db } from "db";
 import { transactions, wallet } from "db/schema";
 import { eq, getTableColumns, sql } from "drizzle-orm";
+import { addTransaction } from "./transactionQueries";
+import { formatIsoDate } from "modules/timeAndDate";
+import { CategoryNumber, typeId } from "modules/transactionCategories";
 
 export const getAllWallets = () => {
   return db.select().from(wallet);
@@ -28,3 +31,18 @@ export const getAllWalletsWithBalance = () =>
 
 export const setWalletStartingBalance = (walletId: number, amount: number) =>
   db.update(wallet).set({ startingBalance: amount }).where(eq(wallet.walletId, walletId));
+
+export const changeCurrentBalance = (
+  wallet_id: number,
+  currentBalance: number,
+  newBalance: number
+) => {
+  const balanceDifference = newBalance - currentBalance;
+  return addTransaction({
+    amount: balanceDifference,
+    date: formatIsoDate(new Date()),
+    categoryId: CategoryNumber.balanceAdjust,
+    type_id: typeId.balanceAdjust,
+    wallet_id,
+  });
+};
