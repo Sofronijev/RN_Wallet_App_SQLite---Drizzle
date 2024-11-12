@@ -12,6 +12,7 @@ const initialState: Prompt = {
   keyboardType: "default",
   placeholder: "",
 };
+// TODO - ADD validation to prompt typing
 
 const AlertPrompt: React.FC = () => {
   const [data, setData] = useState<Prompt>(initialState);

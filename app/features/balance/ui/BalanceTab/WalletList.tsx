@@ -38,9 +38,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   };
 
   const onBalancePress = (walletId: number, balance: number) => {
-    showBalancePrompt(async (newBalance: string) => {
-      await changeCurrentBalance(walletId, balance, +newBalance);
-    });
+    showBalancePrompt(walletId, balance);
   };
 
   const walletWidth = width - HORIZONTAL_PADDING * 2;

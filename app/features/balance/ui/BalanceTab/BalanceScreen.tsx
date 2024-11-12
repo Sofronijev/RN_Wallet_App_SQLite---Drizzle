@@ -16,9 +16,7 @@ const BalanceScreen: React.FC = () => {
 
   const onChangeStartingBalance = () => {
     if (!selectedWalletId) return;
-    showStartingBalancePrompt(async (newBalance: string) => {
-      await setWalletStartingBalance(selectedWalletId, +newBalance);
-    });
+    showStartingBalancePrompt(selectedWalletId);
   };
 
   return (
