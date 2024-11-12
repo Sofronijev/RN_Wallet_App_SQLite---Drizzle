@@ -19,6 +19,7 @@ type CarouselProps<ItemT = any> = {
   itemSpacing?: number;
   style?: StyleProp<ViewStyle>;
   onSnapToItem?: (item: ItemT) => void;
+  initialIndex?: number;
 };
 
 const Carousel: React.FC<CarouselProps> = ({
@@ -29,9 +30,10 @@ const Carousel: React.FC<CarouselProps> = ({
   itemSpacing,
   style,
   onSnapToItem = () => undefined,
+  initialIndex,
 }) => {
-  const indexRef = useRef(0);
-
+  // NOTE: indexRef can be undefined on the initial render
+  const indexRef = useRef(initialIndex);
   const { width } = useWindowDimensions();
   const snapInterval = itemWidth + (itemSpacing ?? 0);
 
@@ -39,9 +41,7 @@ const Carousel: React.FC<CarouselProps> = ({
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const index = event.nativeEvent.contentOffset.x / width;
       const roundIndex = Math.round(index);
-
       const distance = Math.abs(roundIndex - index);
-
       // Prevent one pixel triggering setIndex in the middle
       // of the transition. With this we have to scroll a bit
       // more to trigger the index change.
@@ -55,7 +55,7 @@ const Carousel: React.FC<CarouselProps> = ({
         indexRef.current = roundIndex;
       }
     },
-    [data]
+    [data, initialIndex]
   );
 
   const itemSeparator = () => itemSpacing && <View style={{ width: itemSpacing }}></View>;
@@ -80,7 +80,13 @@ const Carousel: React.FC<CarouselProps> = ({
       onMomentumScrollEnd={onScrollEnd}
       bounces={false}
       alwaysBounceHorizontal={false}
-      overScrollMode="never"
+      overScrollMode='never'
+      initialScrollIndex={initialIndex}
+      getItemLayout={(_, index) => ({
+        length: snapInterval,
+        offset: snapInterval * index,
+        index,
+      })}
     />
   );
 };

@@ -13,7 +13,7 @@ import { AppStackParamList } from "navigation/routes";
 import { setSelectedWallet } from "app/services/userQueries";
 import { Wallet } from "db";
 import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
-import { changeCurrentBalance, setWalletStartingBalance } from "app/services/walletQueries";
+import { changeCurrentBalance } from "app/services/walletQueries";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -21,10 +21,17 @@ const HORIZONTAL_PADDING = 16;
 // TODO - FIX THIS TYPE
 const walletKeyExtractor = (item: any) => `${item.walletId}`;
 
-const WalletList: React.FC = () => {
+type WalletListProps = { selectedWalletId?: number | null };
+
+const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
   const wallets = useGetWalletsWithBalance();
+
+  const startingIndex =
+    wallets.length && selectedWalletId
+      ? wallets.findIndex((wallet) => wallet.walletId === selectedWalletId)
+      : undefined;
 
   const onWalletChange = async (item: Wallet) => {
     await setSelectedWallet(item.walletId);
@@ -74,6 +81,7 @@ const WalletList: React.FC = () => {
         itemSpacing={WALLET_SPACING}
         style={styles.walletCarousel}
         onSnapToItem={onWalletChange}
+        initialIndex={startingIndex}
       />
       <AppActivityIndicator isLoading={false} />
     </>

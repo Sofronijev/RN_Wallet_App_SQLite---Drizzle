@@ -13,7 +13,7 @@ import { setWalletStartingBalance } from "app/services/walletQueries";
 const BalanceScreen: React.FC = () => {
   const { selectedWallet, selectedWalletId } = useGetSelectedWallet();
   const hasStartingBalance = !!selectedWallet?.startingBalance;
-  
+
   const onChangeStartingBalance = () => {
     if (!selectedWalletId) return;
     showStartingBalancePrompt(async (newBalance: string) => {
@@ -24,7 +24,7 @@ const BalanceScreen: React.FC = () => {
   return (
     <>
       <ScrollView style={styles.container}>
-        <WalletList />
+        <WalletList selectedWalletId={selectedWalletId} />
         <View style={styles.itemContainer}>
           <MonthlyBalance />
         </View>
