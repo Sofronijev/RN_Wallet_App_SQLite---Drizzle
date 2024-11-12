@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import React from "react";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import SettingsListItem from "./SettingsListItem";
@@ -28,10 +28,10 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
     ));
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {renderItems()}
       <AppActivityIndicator isLoading={false} />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -39,6 +39,8 @@ export default SettingsScreen;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    backgroundColor: colors.white,
   },
 });
