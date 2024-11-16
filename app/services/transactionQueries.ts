@@ -1,21 +1,37 @@
 import { db, NewTransaction, TransactionType } from "db";
 import { transactions } from "db/schema";
-import { and, eq, sql, sum } from "drizzle-orm";
-import { skipQuery } from "./helpers";
+import { and, count, desc, eq, sql, sum } from "drizzle-orm";
+import { skipCount, skipQuery } from "./helpers";
 
-export const getTransactions = (walletId: number | null, limit?: number) => {
+export const getTransactions = (walletId: number | null, limit?: number, offset?: number) => {
   if (!walletId) return skipQuery(transactions);
 
   const query = db
     .select()
     .from(transactions)
-    .where(and(eq(transactions.wallet_id, walletId)));
+    .where(eq(transactions.wallet_id, walletId))
+    .orderBy(desc(transactions.date));
 
   if (limit) {
     query.limit(limit);
   }
 
+  if (offset) {
+    query.offset(offset);
+  }
+
   return query;
+};
+
+export const getTransactionsCount = (walletId: number | null) => {
+  if (!walletId) return skipCount(transactions);
+
+  const countQuery = db
+    .select({ count: count() })
+    .from(transactions)
+    .where(eq(transactions.wallet_id, walletId));
+
+  return countQuery;
 };
 
 export const addTransaction = (transaction: NewTransaction) =>

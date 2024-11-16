@@ -4,19 +4,21 @@ import TransactionsRow from "components/TransactionRow";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import colors from "constants/colors";
 import NullScreen from "components/NullScreen";
+import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
+import useGetTransactions from "../../hooks/useGetTransactions";
+import { TransactionType } from "db";
 
 const TransactionSearch = () => {
-  const userId = 1;
-  const activeWallet = {};
-  const walletId = activeWallet?.walletId;
-
-  const transactions = [];
-  const count = 1;
-  const transactionNumber = 1;
+  const { selectedWalletId } = useGetSelectedWallet();
+  const [limit, setLimit] = useState(15);
+  const { data: transactions, count } = useGetTransactions(selectedWalletId, limit);
   const searchMoreTransactions = () => {
+    if (transactions.length < count) {
+      setLimit((prevLimit) => prevLimit + 15);
+    }
   };
 
-  if (!transactionNumber) {
+  if (!count) {
     return (
       <NullScreen
         icon='wallet'
@@ -27,7 +29,7 @@ const TransactionSearch = () => {
     );
   }
 
-  const renderItem = ({ item }: { item: unknown }) => (
+  const renderItem = ({ item }: { item: TransactionType }) => (
     <TransactionsRow key={item.id} transaction={item} />
   );
 
@@ -38,7 +40,7 @@ const TransactionSearch = () => {
         renderItem={renderItem}
         style={styles.flatList}
         onEndReached={searchMoreTransactions}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.2}
       />
       <AppActivityIndicator isLoading={false} />
     </View>

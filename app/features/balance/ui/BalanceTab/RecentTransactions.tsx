@@ -24,7 +24,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
 }) => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
   const { selectedWalletId } = useGetSelectedWallet();
-  const transactions = useGetTransactions(selectedWalletId, 5);
+  const { data: transactions } = useGetTransactions(selectedWalletId, 5);
 
   const loading = isLoading || false;
   const hasTransactions = !!transactions?.length;
