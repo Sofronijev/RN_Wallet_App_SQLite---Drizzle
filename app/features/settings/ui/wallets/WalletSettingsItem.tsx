@@ -4,8 +4,8 @@ import colors from "constants/colors";
 import { formatDecimalDigits } from "modules/numbers";
 import ButtonText from "components/ButtonText";
 import { showBalancePrompt, showStartingBalancePrompt } from "app/features/settings/modules";
-import { WalletType } from "app/features/balance/modules/types";
 import Label from "components/Label";
+import { WalletType } from "app/queries/wallets";
 
 type Props = {
   wallet: WalletType;

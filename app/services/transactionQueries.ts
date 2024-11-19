@@ -3,9 +3,7 @@ import { transactions } from "db/schema";
 import { and, count, desc, eq, sql, sum } from "drizzle-orm";
 import { skipCount, skipQuery } from "./helpers";
 
-export const getTransactions = (walletId: number | null, limit?: number, offset?: number) => {
-  if (!walletId) return skipQuery(transactions);
-
+export const getTransactions = (walletId: number, limit?: number, offset?: number) => {
   const query = db
     .select()
     .from(transactions)
@@ -20,7 +18,12 @@ export const getTransactions = (walletId: number | null, limit?: number, offset?
     query.offset(offset);
   }
 
-  return query;
+  const countQuery = db
+    .select({ count: count() })
+    .from(transactions)
+    .where(eq(transactions.wallet_id, walletId));
+
+  return Promise.all([query, countQuery]);
 };
 
 export const getTransactionsCount = (walletId: number | null) => {
@@ -37,10 +40,8 @@ export const getTransactionsCount = (walletId: number | null) => {
 export const addTransaction = (transaction: NewTransaction) =>
   db.insert(transactions).values(transaction);
 
-export const getMonthlyBalance = (walletId: number | null, date: string) => {
-  if (!walletId) return skipQuery(transactions);
-
-  return db
+export const getMonthlyBalance = async (walletId: number, date: string) =>
+  await db
     .select({
       expense:
         sql`SUM(CASE WHEN ${transactions.amount} < 0 THEN ${transactions.amount} ELSE 0 END)`.mapWith(
@@ -61,9 +62,8 @@ export const getMonthlyBalance = (walletId: number | null, date: string) => {
       )
     )
     .groupBy(transactions.wallet_id);
-};
 
-export const getTransactionById = (id: number | undefined | null) => {
+export const getTransactionById = (id: number) => {
   return db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
 };
 

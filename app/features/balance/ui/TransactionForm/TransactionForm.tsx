@@ -35,11 +35,10 @@ import {
   deleteTransaction,
   editTransaction,
 } from "app/services/transactionQueries";
-import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
-import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
 import { getCategoryIcon } from "components/CategoryIcon";
-import useGetTransactionById from "../../hooks/useGetTransactionById";
 import { TransactionType } from "db";
+import { useGetTransactionByIdQuery } from "app/queries/transactions";
+import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -50,9 +49,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const editTransactionId = route.params?.id;
   const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
-  const { selectedWalletId } = useGetSelectedWallet();
-  const editedTransaction = useGetTransactionById(editTransactionId);
-  const wallets = useGetWalletsWithBalance();
+  const { data: selectedWallet } = useGetSelectedWalletQuery();
+  const { data: editedTransaction } = useGetTransactionByIdQuery(editTransactionId);
+  const { data: wallets } = useGetWalletsWithBalance();
 
   const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
 
@@ -123,7 +122,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const formik = useFormik<TransactionFromInputs>({
     initialValues: editedTransaction
       ? formatEditInitialValues(editedTransaction)
-      : { ...initialTransactionFormValues, walletId: `${selectedWalletId}` },
+      : { ...initialTransactionFormValues, walletId: `${selectedWallet?.walletId}` },
     validationSchema: transactionValidationSchema,
     validateOnChange: hasSubmittedForm,
     onSubmit: onTransactionSubmit,

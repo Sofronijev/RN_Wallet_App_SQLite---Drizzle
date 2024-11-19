@@ -2,7 +2,7 @@ import { FlatList, ListRenderItem, StyleSheet, TouchableOpacity, View } from "re
 import React from "react";
 import colors from "constants/colors";
 import Label from "components/Label";
-import { WalletType } from "../../modules/types";
+import { WalletType } from "app/queries/wallets";
 
 type Props = {
   selected: number;

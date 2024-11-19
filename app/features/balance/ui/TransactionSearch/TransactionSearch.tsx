@@ -4,14 +4,15 @@ import TransactionsRow from "components/TransactionRow";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import colors from "constants/colors";
 import NullScreen from "components/NullScreen";
-import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
-import useGetTransactions from "../../hooks/useGetTransactions";
 import { TransactionType } from "db";
+import { useGetTransactionsQuery } from "app/queries/transactions";
+import { useGetSelectedWalletQuery } from "app/queries/wallets";
 
 const TransactionSearch = () => {
-  const { selectedWalletId } = useGetSelectedWallet();
+  const { data: selectedWallet } = useGetSelectedWalletQuery();
   const [limit, setLimit] = useState(15);
-  const { data: transactions, count } = useGetTransactions(selectedWalletId, limit);
+  const { data } = useGetTransactionsQuery(selectedWallet?.walletId, limit);
+  const { transactions, count } = data;
   const searchMoreTransactions = () => {
     if (transactions.length < count) {
       setLimit((prevLimit) => prevLimit + 15);

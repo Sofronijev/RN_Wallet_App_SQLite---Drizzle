@@ -8,8 +8,8 @@ import ButtonText from "components/ButtonText";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
-import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
-import useGetTransactions from "../../hooks/useGetTransactions";
+import { useGetTransactionsQuery } from "app/queries/transactions";
+import { useGetSelectedWalletQuery } from "app/queries/wallets";
 
 type RecentTransactionsProps = {
   isLoading: boolean;
@@ -23,8 +23,9 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   nullScreen,
 }) => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
-  const { selectedWalletId } = useGetSelectedWallet();
-  const { data: transactions } = useGetTransactions(selectedWalletId, 5);
+  const { data: selectedWallet } = useGetSelectedWalletQuery();
+  const { data } = useGetTransactionsQuery(selectedWallet?.walletId, 5);
+  const { transactions } = data;
 
   const loading = isLoading || false;
   const hasTransactions = !!transactions?.length;
