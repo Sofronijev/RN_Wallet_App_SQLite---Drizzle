@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSelectedWalletInfo } from "app/services/userQueries";
 import { getAllWalletsWithBalance } from "app/services/walletQueries";
+import { queryKeys } from ".";
 
 export const useGetSelectedWalletQuery = () => {
   const { data, isLoading, isFetching, isError } = useQuery({
-    queryKey: ["selectedWallet"],
+    queryKey: [queryKeys.selectedWallet],
     queryFn: getSelectedWalletInfo,
   });
 
@@ -17,7 +18,7 @@ export const useGetSelectedWalletQuery = () => {
 
 export const useGetWalletsWithBalance = () => {
   const { data, isLoading, isFetching, isError } = useQuery({
-    queryKey: ["wallets"],
+    queryKey: [queryKeys.wallets],
     queryFn: getAllWalletsWithBalance,
   });
 

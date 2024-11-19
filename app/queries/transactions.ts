@@ -6,12 +6,16 @@ import {
 } from "app/services/transactionQueries";
 import { format } from "date-fns";
 import { apiIsoFormat } from "modules/timeAndDate";
+import { queryKeys } from ".";
 
-export const useGetMonthlyBalanceQuery = (walletId: number | null | undefined, date: number | Date) => {
+export const useGetMonthlyBalanceQuery = (
+  walletId: number | null | undefined,
+  date: number | Date
+) => {
   const { data, isError, isLoading, isFetching } = useQuery({
     enabled: !!walletId && !!date,
     // staleTime: 1000 * 60 * 5,
-    queryKey: ["monthlyBalance", walletId, date],
+    queryKey: [queryKeys.monthlyBalance, walletId, date],
     queryFn: walletId ? () => getMonthlyBalance(walletId, format(date, apiIsoFormat)) : skipToken,
   });
   const monthlyBalance = data?.[0] ? data[0] : { balance: 0, expense: 0, income: 0 };
@@ -31,7 +35,7 @@ export const useGetTransactionsQuery = (
   const { data, isError, isLoading, isFetching } = useQuery({
     enabled: !!walletId,
     // staleTime: 1000 * 60 * 5,
-    queryKey: ["transactions", walletId, limit, offset],
+    queryKey: [queryKeys.transactions, walletId, limit, offset],
     queryFn: walletId ? () => getTransactions(walletId, limit, offset) : skipToken,
   });
   const transactions = data?.[0] ? data[0] : [];
@@ -50,7 +54,7 @@ export const useGetTransactionsQuery = (
 export const useGetTransactionByIdQuery = (transactionId: number | null | undefined) => {
   const { data, isLoading, isFetching, isError } = useQuery({
     enabled: !!transactionId,
-    queryKey: ["transactionId", transactionId],
+    queryKey: [queryKeys.transactionId, transactionId],
     queryFn: transactionId ? () => getTransactionById(transactionId) : skipToken,
   });
   return {
