@@ -70,7 +70,7 @@ export const useGetTransactionByIdQuery = (transactionId: number | null | undefi
 
 export const addTransactionMutation = () => {
   const clientQuery = useQueryClient();
-  const { mutate, isPending, isError, status } = useMutation({
+  const { mutate, isPending, isError } = useMutation({
     mutationFn: (transaction: NewTransaction) => addTransaction(transaction),
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
@@ -88,7 +88,7 @@ export const addTransactionMutation = () => {
 
 export const editTransactionMutation = () => {
   const clientQuery = useQueryClient();
-  const { mutate, isPending, isError, status } = useMutation({
+  const { mutate, isPending, isError } = useMutation({
     mutationFn: ({ id, transaction }: { id: number; transaction: Partial<TransactionType> }) =>
       editTransaction(id, transaction),
     onSuccess: () => {
@@ -106,7 +106,7 @@ export const editTransactionMutation = () => {
 
 export const deleteTransactionMutation = () => {
   const clientQuery = useQueryClient();
-  const { mutate, isPending, isError, status } = useMutation({
+  const { mutate, isPending, isError } = useMutation({
     mutationFn: (id: number) => deleteTransaction(id),
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
@@ -114,7 +114,7 @@ export const deleteTransactionMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
     },
   });
-  console.log(status);
+
   return {
     deleteTransaction: mutate,
     isLoading: isPending,

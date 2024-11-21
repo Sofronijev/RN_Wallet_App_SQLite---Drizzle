@@ -10,10 +10,8 @@ import { showBalancePrompt } from "app/features/settings/modules";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
-import { setSelectedWallet } from "app/services/userQueries";
 import { Wallet } from "db";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useGetWalletsWithBalance } from "app/queries/wallets";
+import { setSelectedWalletMutation, useGetWalletsWithBalance } from "app/queries/wallets";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -27,13 +25,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
   const { data: wallets } = useGetWalletsWithBalance();
-  const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: (id: number) => setSelectedWallet(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["selectedWallet"] });
-    },
-  });
+  const { setSelectedWallet } = setSelectedWalletMutation();
 
   const startingIndex =
     wallets.length && selectedWalletId
@@ -41,7 +33,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
       : undefined;
 
   const onWalletChange = (item: Wallet) => {
-    mutation.mutate(item.walletId);
+    setSelectedWallet(item.walletId);
   };
 
   const onBalancePress = (walletId: number, balance: number) => {
@@ -88,7 +80,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
         onSnapToItem={onWalletChange}
         initialIndex={startingIndex}
       />
-      <AppActivityIndicator isLoading={mutation.isPending} />
+      {/* <AppActivityIndicator isLoading={mutation.isPending} /> */}
     </>
   );
 };
