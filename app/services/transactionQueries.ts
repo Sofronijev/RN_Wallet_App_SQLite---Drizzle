@@ -1,7 +1,6 @@
 import { db, NewTransaction, TransactionType } from "db";
 import { transactions } from "db/schema";
 import { and, count, desc, eq, sql, sum } from "drizzle-orm";
-import { skipCount, skipQuery } from "./helpers";
 
 export const getTransactions = (walletId: number, limit?: number, offset?: number) => {
   const query = db
@@ -24,17 +23,6 @@ export const getTransactions = (walletId: number, limit?: number, offset?: numbe
     .where(eq(transactions.wallet_id, walletId));
 
   return Promise.all([query, countQuery]);
-};
-
-export const getTransactionsCount = (walletId: number | null) => {
-  if (!walletId) return skipCount(transactions);
-
-  const countQuery = db
-    .select({ count: count() })
-    .from(transactions)
-    .where(eq(transactions.wallet_id, walletId));
-
-  return countQuery;
 };
 
 export const addTransaction = (transaction: NewTransaction) =>

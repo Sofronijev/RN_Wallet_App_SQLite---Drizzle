@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSelectedWalletInfo } from "app/services/userQueries";
 import { getAllWalletsWithBalance } from "app/services/walletQueries";
-import { queryKeys } from ".";
+import { queryKeys } from "./index";
 
 export const useGetSelectedWalletQuery = () => {
   const { data, isLoading, isFetching, isError } = useQuery({

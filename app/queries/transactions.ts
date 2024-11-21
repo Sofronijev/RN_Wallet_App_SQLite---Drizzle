@@ -6,7 +6,7 @@ import {
 } from "app/services/transactionQueries";
 import { format } from "date-fns";
 import { apiIsoFormat } from "modules/timeAndDate";
-import { queryKeys } from ".";
+import { queryKeys } from "./index";
 
 export const useGetMonthlyBalanceQuery = (
   walletId: number | null | undefined,
