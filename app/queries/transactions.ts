@@ -1,5 +1,8 @@
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addTransaction,
+  deleteTransaction,
+  editTransaction,
   getMonthlyBalance,
   getTransactionById,
   getTransactions,
@@ -7,6 +10,7 @@ import {
 import { format } from "date-fns";
 import { apiIsoFormat } from "modules/timeAndDate";
 import { queryKeys } from "./index";
+import { NewTransaction, TransactionType } from "db";
 
 export const useGetMonthlyBalanceQuery = (
   walletId: number | null | undefined,
@@ -64,14 +68,56 @@ export const useGetTransactionByIdQuery = (transactionId: number | null | undefi
   };
 };
 
-// export const useGetTransactionByIdMutation = () => {
-//   const { mutate, isPending, isError } = useMutation({
-//     mutationFn: (id: number) => getTransactionById(id),
-//   });
+export const addTransactionMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError, status } = useMutation({
+    mutationFn: (transaction: NewTransaction) => addTransaction(transaction),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+    },
+  });
 
-//   return {
-//     getTransactionById: mutate,
-//     isLoading: isPending,
-//     isError,
-//   };
-// };
+  return {
+    addTransaction: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const editTransactionMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError, status } = useMutation({
+    mutationFn: ({ id, transaction }: { id: number; transaction: Partial<TransactionType> }) =>
+      editTransaction(id, transaction),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+    },
+  });
+  return {
+    editTransaction: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const deleteTransactionMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError, status } = useMutation({
+    mutationFn: (id: number) => deleteTransaction(id),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+    },
+  });
+  console.log(status);
+  return {
+    deleteTransaction: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};

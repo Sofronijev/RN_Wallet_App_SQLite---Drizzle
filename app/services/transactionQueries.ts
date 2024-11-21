@@ -25,9 +25,6 @@ export const getTransactions = (walletId: number, limit?: number, offset?: numbe
   return Promise.all([query, countQuery]);
 };
 
-export const addTransaction = (transaction: NewTransaction) =>
-  db.insert(transactions).values(transaction);
-
 export const getMonthlyBalance = async (walletId: number, date: string) =>
   await db
     .select({
@@ -51,14 +48,14 @@ export const getMonthlyBalance = async (walletId: number, date: string) =>
     )
     .groupBy(transactions.wallet_id);
 
-export const getTransactionById = (id: number) => {
-  return db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
-};
+export const getTransactionById = (id: number) =>
+  db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
 
-export const deleteTransaction = (id: number) => {
-  return db.delete(transactions).where(eq(transactions.id, id));
-};
+export const addTransaction = (transaction: NewTransaction) =>
+  db.insert(transactions).values(transaction);
 
-export const editTransaction = (id: number, data: Partial<TransactionType>) => {
-  return db.update(transactions).set(data).where(eq(transactions.id, id));
-};
+export const deleteTransaction = (id: number) =>
+  db.delete(transactions).where(eq(transactions.id, id));
+
+export const editTransaction = (id: number, data: Partial<TransactionType>) =>
+  db.update(transactions).set(data).where(eq(transactions.id, id));
