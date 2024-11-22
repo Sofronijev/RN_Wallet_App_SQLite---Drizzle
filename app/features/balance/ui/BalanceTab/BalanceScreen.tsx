@@ -7,15 +7,18 @@ import RecentTransactions from "app/features/balance/ui/BalanceTab/RecentTransac
 import NullScreen from "components/NullScreen";
 import { showStartingBalancePrompt } from "app/features/settings/modules";
 import MonthlyBalance from "./MonthlyBalance";
-import { useGetSelectedWalletQuery } from "app/queries/wallets";
+import { setStartingBalanceMutation, useGetSelectedWalletQuery } from "app/queries/wallets";
 
 const BalanceScreen: React.FC = () => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
+  const { setStartingBalance } = setStartingBalanceMutation();
   const hasStartingBalance = !!selectedWallet?.startingBalance;
 
   const onChangeStartingBalance = () => {
     if (!selectedWallet) return;
-    showStartingBalancePrompt(selectedWallet.walletId);
+    showStartingBalancePrompt((amount: number) =>
+      setStartingBalance({ id: selectedWallet.walletId, amount })
+    );
   };
 
   return (

@@ -11,7 +11,11 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { Wallet } from "db";
-import { setSelectedWalletMutation, useGetWalletsWithBalance } from "app/queries/wallets";
+import {
+  changeCurrentBalanceMutation,
+  setSelectedWalletMutation,
+  useGetWalletsWithBalance,
+} from "app/queries/wallets";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -26,6 +30,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
   const { data: wallets } = useGetWalletsWithBalance();
   const { setSelectedWallet } = setSelectedWalletMutation();
+  const { changeCurrentBalance } = changeCurrentBalanceMutation();
 
   const startingIndex =
     wallets.length && selectedWalletId
@@ -37,7 +42,10 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   };
 
   const onBalancePress = (walletId: number, balance: number) => {
-    showBalancePrompt(walletId, balance);
+    showBalancePrompt((newAmount: number) => {
+      console.log({ id: walletId, currentAmount: balance, newAmount });
+      return changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount });
+    });
   };
 
   const walletWidth = width - HORIZONTAL_PADDING * 2;

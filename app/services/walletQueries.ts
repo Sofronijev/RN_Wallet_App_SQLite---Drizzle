@@ -5,10 +5,6 @@ import { addTransaction } from "./transactionQueries";
 import { formatIsoDate } from "modules/timeAndDate";
 import { CategoryNumber, typeId } from "modules/transactionCategories";
 
-export const getAllWallets = () => {
-  return db.select().from(wallet);
-};
-
 export const getAllWalletsWithBalance = () =>
   db
     .select({
@@ -38,6 +34,10 @@ export const changeCurrentBalance = (
   newBalance: number
 ) => {
   const balanceDifference = newBalance - currentBalance;
+  console.log(currentBalance)
+  console.log(newBalance)
+  console.log(balanceDifference)
+
   return addTransaction({
     amount: balanceDifference,
     date: formatIsoDate(new Date()),
