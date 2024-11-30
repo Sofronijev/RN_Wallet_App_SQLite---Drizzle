@@ -1,13 +1,15 @@
+import { format } from "date-fns";
 import { db, NewTransaction, TransactionType } from "db";
 import { transactions } from "db/schema";
 import { and, count, desc, eq, sql, sum } from "drizzle-orm";
+import { apiIsoFormat } from "modules/timeAndDate";
 
 export const getTransactions = (walletId: number, limit?: number, offset?: number) => {
   const query = db
     .select()
     .from(transactions)
     .where(eq(transactions.wallet_id, walletId))
-    .orderBy(desc(transactions.date));
+    .orderBy(desc(sql`strftime('%Y-%m-%dT%H:%M:%S', ${transactions.date})`));
 
   if (limit) {
     query.limit(limit);
@@ -75,7 +77,7 @@ export const getTransactionById = (id: number) =>
   db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
 
 export const addTransaction = (transaction: NewTransaction) =>
-  db.insert(transactions).values(transaction);
+  db.insert(transactions).values({ ...transaction, date: format(new Date(), apiIsoFormat) });
 
 export const deleteTransaction = (id: number) =>
   db.delete(transactions).where(eq(transactions.id, id));

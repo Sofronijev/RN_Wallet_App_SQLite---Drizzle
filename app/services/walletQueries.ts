@@ -34,13 +34,9 @@ export const changeCurrentBalance = (
   newBalance: number
 ) => {
   const balanceDifference = newBalance - currentBalance;
-  console.log(currentBalance)
-  console.log(newBalance)
-  console.log(balanceDifference)
 
   return addTransaction({
     amount: balanceDifference,
-    date: formatIsoDate(new Date()),
     categoryId: CategoryNumber.balanceAdjust,
     type_id: typeId.balanceAdjust,
     wallet_id,
