@@ -25,6 +25,29 @@ export const getTransactions = (walletId: number, limit?: number, offset?: numbe
   return Promise.all([query, countQuery]);
 };
 
+export const getInfiniteTransactions = async (walletId: number, page: number, pageSize: number) => {
+  const countQuery = await db
+    .select({ count: count() })
+    .from(transactions)
+    .where(eq(transactions.wallet_id, walletId));
+
+  const data = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.wallet_id, walletId))
+    .orderBy(desc(transactions.date))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+
+  const hasNextPage = page * pageSize <= countQuery[0].count;
+
+  return {
+    data,
+    nextPage: hasNextPage ? page + 1 : undefined,
+    previousPage: page > 1 ? page - 1 : undefined,
+  };
+};
+
 export const getMonthlyBalance = async (walletId: number, date: string) =>
   await db
     .select({

@@ -1,8 +1,15 @@
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  skipToken,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   addTransaction,
   deleteTransaction,
   editTransaction,
+  getInfiniteTransactions,
   getMonthlyBalance,
   getTransactionById,
   getTransactions,
@@ -52,6 +59,38 @@ export const useGetTransactionsQuery = (
     isError,
     isLoading,
     isFetching,
+  };
+};
+
+type InfiniteTransactionsReturn = Awaited<ReturnType<typeof getInfiniteTransactions>>;
+
+export const useGetTransactionsInfiniteQuery = (
+  walletId: number | null | undefined,
+  pageSize = 30
+) => {
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isError, isLoading } =
+    useInfiniteQuery({
+      enabled: !!walletId,
+      queryKey: [queryKeys.transactions, walletId, pageSize],
+      getNextPageParam: (prevData: InfiniteTransactionsReturn) => {
+        return prevData?.nextPage;
+      },
+      queryFn: walletId
+        ? ({ pageParam }) => getInfiniteTransactions(walletId, pageParam, pageSize)
+        : skipToken,
+      initialPageParam: 1,
+      // staleTime: 1000 * 60 * 5,
+    });
+  const transactions = data?.pages?.flatMap((page) => page.data) ?? [];
+
+  return {
+    data: transactions,
+    isError,
+    isLoading,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 };
 
