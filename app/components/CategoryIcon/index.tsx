@@ -171,10 +171,10 @@ export const getCategoryIcon = ({
           <MaterialCommunityIcons
             name='auto-fix'
             size={iconSize ?? ICON_SIZE}
-            color={colored ? colors.otherCategory : colors.white}
+            color={colored ? colors.balanceAdjust : colors.white}
           />
         ),
-        backgroundColor: colors.otherCategory,
+        backgroundColor: colors.balanceAdjust,
       };
     case "transfer":
       return {
