@@ -186,7 +186,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       <View style={styles.inputsContainer}>
         <DatePickerInput
           date={new Date(formik.values.date)}
-          maximumDate={new Date()}
           onDateSelect={onDateChange}
         />
         <View style={styles.walletPicker}>

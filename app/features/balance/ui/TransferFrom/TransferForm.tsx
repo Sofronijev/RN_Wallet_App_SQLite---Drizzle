@@ -17,6 +17,7 @@ import { AppStackParamList } from "navigation/routes";
 import Label from "components/Label";
 
 import { errorStrings } from "constants/strings";
+import { useGetWalletsWithBalance } from "app/queries/wallets";
 
 export type TransferFromInputs = {
   date: string;
@@ -66,8 +67,7 @@ const TransferForm: React.FC = () => {
   const walletIdFromParam = params.walletId;
   const editData = params.editData;
   const navigation = useNavigation();
-  const wallets = {};
-  const userId = 1;
+  const { data: wallets } = useGetWalletsWithBalance();
 
   const onTransferSubmit = async (values: TransferFromInputs) => {
     Keyboard.dismiss();
@@ -78,7 +78,6 @@ const TransferForm: React.FC = () => {
         amountFrom: Number(values.amountFrom),
         walletIdTo: Number(values.walletIdTo),
         walletIdFrom: Number(values.walletIdFrom),
-        userId,
       };
 
       if (editData) {

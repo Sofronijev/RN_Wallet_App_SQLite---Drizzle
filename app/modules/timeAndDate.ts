@@ -17,6 +17,8 @@ export const getFormattedDate = (date: Date | string | number, dateFormat = date
 
 export const formatIsoDate = (date: Date | string | number) => formatISO(new Date(date));
 
+export const formatTime = (date: Date | string | number) => format(new Date(date), "HH:mm");
+
 export const formatDayString = (date: Date | string | number) => {
   const getDate = new Date(date);
   if (isToday(getDate)) return dateAndTimeStrings.today;

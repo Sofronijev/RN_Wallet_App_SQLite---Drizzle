@@ -43,7 +43,6 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
 
   const onBalancePress = (walletId: number, balance: number) => {
     showBalancePrompt((newAmount: number) => {
-      console.log({ id: walletId, currentAmount: balance, newAmount });
       return changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount });
     });
   };
