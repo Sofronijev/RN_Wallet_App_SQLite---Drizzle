@@ -77,7 +77,7 @@ export const getTransactionById = (id: number) =>
   db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
 
 export const addTransaction = (transaction: NewTransaction) =>
-  db.insert(transactions).values({ ...transaction, date: format(new Date(), apiIsoFormat) });
+  db.insert(transactions).values(transaction);
 
 export const deleteTransaction = (id: number) =>
   db.delete(transactions).where(eq(transactions.id, id));

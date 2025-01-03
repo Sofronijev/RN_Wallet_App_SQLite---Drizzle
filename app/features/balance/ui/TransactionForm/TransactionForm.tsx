@@ -127,8 +127,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   });
 
   const pickedWallet = wallets.find((wallet) => wallet.walletId === +formik.values.walletId);
-
   const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
+
   useEffect(() => {
     if (editedTransaction) {
       navigation.setOptions({
@@ -184,10 +184,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.inputsContainer}>
-        <DatePickerInput
-          date={new Date(formik.values.date)}
-          onDateSelect={onDateChange}
-        />
+        <DatePickerInput date={new Date(formik.values.date)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>
           <WalletPicker
             wallets={wallets}

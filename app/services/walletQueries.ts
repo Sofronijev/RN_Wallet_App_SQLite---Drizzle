@@ -40,5 +40,6 @@ export const changeCurrentBalance = (
     categoryId: CategoryNumber.balanceAdjust,
     type_id: typeId.balanceAdjust,
     wallet_id,
+    date: formatIsoDate(new Date()),
   });
 };
