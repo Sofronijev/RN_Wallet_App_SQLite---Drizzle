@@ -13,3 +13,6 @@ export type Wallet = InferSelectModel<typeof schema.wallet>;
 
 export type TransactionType = InferSelectModel<typeof schema.transactions>;
 export type NewTransaction = InferInsertModel<typeof schema.transactions>;
+
+export type TransferType = InferSelectModel<typeof schema.transfer>;
+export type NewTransfer = InferInsertModel<typeof schema.transfer>;

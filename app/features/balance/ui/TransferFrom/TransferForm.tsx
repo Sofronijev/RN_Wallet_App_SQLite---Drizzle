@@ -1,23 +1,28 @@
-import { Alert, Keyboard, StyleSheet, View } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import React, { useState } from "react";
 import { useFormik } from "formik";
-import * as Yup from "yup";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import { formatIsoDate } from "modules/timeAndDate";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import WalletPicker from "app/features/balance/ui/TransactionForm/WalletPicker";
 import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
 import { FontAwesome5 } from "@expo/vector-icons";
-
-import AppActivityIndicator from "components/AppActivityIndicator";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { AppStackParamList } from "navigation/routes";
 import Label from "components/Label";
-
 import { errorStrings } from "constants/strings";
-import { useGetWalletsWithBalance } from "app/queries/wallets";
+import { useGetWalletsWithBalance, WalletType } from "app/queries/wallets";
+import { initialTransferFormValues, transactionValidationSchema } from "../../modules/transfer";
+import { addTransferMutation } from "app/queries/transfers";
 
 export type TransferFromInputs = {
   date: string;
@@ -26,68 +31,34 @@ export type TransferFromInputs = {
   walletIdTo: string;
   walletIdFrom: string;
 };
-
-export const initialTransferFormValues = {
-  date: formatIsoDate(new Date()),
-  amountTo: "",
-  amountFrom: "",
-  walletIdTo: "",
-  walletIdFrom: "",
-};
-
-export const transactionValidationSchema = (isSameCurrency: boolean) =>
-  Yup.object({
-    date: Yup.string().required().label("Date"),
-    amountTo: isSameCurrency
-      ? Yup.number()
-      : Yup.number()
-          .typeError("Please enter a valid number for the amount")
-          .required("Please enter the amount to transfer")
-          .moreThan(0, "Amount must be greater than 0")
-          .label("Amount"),
-    amountFrom: Yup.number()
-      .typeError("Please enter a valid number for the amount")
-      .required("Please enter the amount to transfer")
-      .moreThan(0, "Amount must be greater than 0")
-      .label("Amount"),
-    walletIdTo: Yup.number().required("Please select the wallet").label("Wallet"),
-    walletIdFrom: Yup.number()
-      .required("Please select the wallet")
-      .label("Wallet")
-      .test("notEqual", "Can't transfer funds to the same wallet", function (value) {
-        const { walletIdTo } = this.parent;
-        return value !== walletIdTo;
-      }),
-  });
+const getWalletById = (wallets: WalletType[], walletId: number | null) =>
+  wallets.find((wallet) => wallet.walletId === walletId);
 
 const TransferForm: React.FC = () => {
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
-  const [isSameCurrency, setIsSameCurrency] = useState(true);
   const { params } = useRoute<RouteProp<AppStackParamList, "TransferForm">>();
+  const { addTransfer } = addTransferMutation();
   const walletIdFromParam = params.walletId;
   const editData = params.editData;
   const navigation = useNavigation();
   const { data: wallets } = useGetWalletsWithBalance();
-
   const onTransferSubmit = async (values: TransferFromInputs) => {
     Keyboard.dismiss();
-    try {
-      const transferData = {
-        date: formatIsoDate(values.date),
-        amountTo: isSameCurrency ? Number(values.amountFrom) : Number(values.amountTo),
-        amountFrom: Number(values.amountFrom),
-        walletIdTo: Number(values.walletIdTo),
-        walletIdFrom: Number(values.walletIdFrom),
-      };
 
-      if (editData) {
-      } else {
-      }
+    const transferData = {
+      date: values.date,
+      walletIdFrom: Number(values.walletIdFrom),
+      amountFrom: -Math.abs(Number(values.amountFrom)),
+      walletIdTo: Number(values.walletIdTo),
+      amountTo: Math.abs(Number(values.amountTo)),
+    };
 
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert(errorStrings.problem, errorStrings.tryAgain);
+    if (editData) {
+    } else {
+      addTransfer(transferData);
     }
+
+    navigation.goBack();
   };
 
   const onDelete = async () => {
@@ -98,107 +69,107 @@ const TransferForm: React.FC = () => {
     }
   };
 
-  const formik = useFormik<TransferFromInputs>({
-    initialValues: { ...initialTransferFormValues, walletIdFrom: `${walletIdFromParam}` },
-    validationSchema: transactionValidationSchema(isSameCurrency),
-    validateOnChange: hasSubmittedForm,
-    onSubmit: (values) => onTransferSubmit(values),
-  });
+  const { values, setFieldValue, handleSubmit, handleChange, errors } =
+    useFormik<TransferFromInputs>({
+      initialValues: {
+        ...initialTransferFormValues,
+        walletIdFrom: `${walletIdFromParam}`,
+      },
+      validationSchema: transactionValidationSchema,
+      validateOnChange: hasSubmittedForm,
+      onSubmit: (values) => onTransferSubmit(values),
+    });
+  const walletFrom = getWalletById(wallets, +values.walletIdFrom);
+  const walletTo = getWalletById(wallets, +values.walletIdTo);
 
-  useEffect(() => {
-    const walletFrom = {};
-    const walletTo = {};
-    if (walletFrom && walletTo) {
-      setIsSameCurrency(walletFrom?.currencyCode === walletTo?.currencyCode);
-    }
-  }, [formik.values.walletIdFrom, formik.values.walletIdTo]);
+  const isDifferentCurrency = walletTo && walletFrom?.currencyCode !== walletTo?.currencyCode;
 
   const onDateChange = (date: string) => {
-    formik.setFieldValue("date", date);
+    setFieldValue("date", date);
   };
+
   // In case amount is negative, remove minus sign for preview
   // TODO - add validation while typing
   const formattedAmount = (amount: string) => amount.replace("-", "");
 
-  const walletName = (walledValue: string) => "wallets[walledValue]?.walletName";
-  const walletCurrency = (walledValue: string) => "currencySymbol ||currencyCode";
-
   const onWalletSelect = (fieldName: string) => (walletId: number) => {
-    formik.setFieldValue(fieldName, walletId);
+    setFieldValue(fieldName, walletId);
   };
 
   const onSubmit = () => {
     setHasSubmittedForm(true);
-    formik.handleSubmit();
+    handleSubmit();
+  };
+
+  const onSetAmountFrom = (event: string | React.ChangeEvent<any>) => {
+    handleChange("amountFrom")(event);
+    if (!isDifferentCurrency) {
+      handleChange("amountTo")(event);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <DatePickerInput
-        date={new Date(formik.values.date)}
-        maximumDate={new Date()}
-        onDateSelect={onDateChange}
-      />
-
-      <View style={styles.row}>
-        <View style={styles.flex}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView style={styles.container}>
+        <View style={styles.inputContainer}>
+          <DatePickerInput date={new Date(values.date)} onDateSelect={onDateChange} />
+          <View>
+            <Label style={styles.transferText}>Transfer from</Label>
+            <WalletPicker
+              wallets={wallets}
+              selected={+values.walletIdFrom}
+              onSelect={onWalletSelect("walletIdFrom")}
+            />
+          </View>
+          <View>
+            <Label style={styles.transferText}>Transfer to</Label>
+            <WalletPicker
+              wallets={wallets}
+              selected={+values.walletIdTo}
+              onSelect={onWalletSelect("walletIdTo")}
+            />
+          </View>
           <StyledLabelInput
-            value={formattedAmount(formik.values.amountFrom)}
-            placeholder={isSameCurrency ? "Amount" : "Sending"}
-            onChangeText={formik.handleChange("amountFrom")}
+            value={formattedAmount(values.amountFrom)}
+            placeholder={isDifferentCurrency ? "Amount from" : "Amount"}
+            onChangeText={onSetAmountFrom}
             keyboardType='decimal-pad'
             style={styles.input}
             icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
-            rightText={walletCurrency(formik.values.walletIdFrom)}
+            rightText={walletFrom?.currencySymbol || walletFrom?.currencyCode}
           />
-        </View>
-        {!isSameCurrency && (
-          <View style={styles.flex}>
+          {isDifferentCurrency && (
             <StyledLabelInput
-              value={formattedAmount(formik.values.amountTo)}
-              placeholder='Receiving'
-              onChangeText={formik.handleChange("amountTo")}
+              value={formattedAmount(values.amountTo)}
+              placeholder='Amount to'
+              onChangeText={handleChange("amountTo")}
               keyboardType='decimal-pad'
               style={styles.input}
               icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
-              rightText={walletCurrency(formik.values.walletIdTo)}
+              rightText={walletTo?.currencySymbol || walletTo?.currencyCode}
             />
-          </View>
+          )}
+        </View>
+        {isDifferentCurrency && (
+          <Label style={styles.differentCurrency}>
+            The currencies between wallets do not match. Please manually enter both amounts for the
+            transfer.
+          </Label>
         )}
-      </View>
-      <InputErrorLabel
-        text={formik.errors.amountTo || formik.errors.amountFrom}
-        isVisible={!!formik.errors.amountTo || !!formik.errors.amountFrom}
-      />
-      {!isSameCurrency && (
-        <Label style={styles.differentCurrency}>
-          The currencies between wallets do not match. Please manually enter both amounts for the
-          transfer.
-        </Label>
-      )}
-      <View style={styles.row}>
-        <View style={styles.flex}>
-          <WalletPicker
-            value={walletName(formik.values.walletIdFrom)}
-            style={styles.input}
-            onSelect={onWalletSelect("walletIdFrom")}
-          />
-        </View>
-        <View style={styles.flex}>
-          <WalletPicker
-            value={walletName(formik.values.walletIdTo)}
-            style={styles.input}
-            onSelect={onWalletSelect("walletIdTo")}
-          />
-        </View>
-      </View>
-      <InputErrorLabel
-        text={formik.errors.walletIdFrom || formik.errors.walletIdTo}
-        isVisible={!!formik.errors.walletIdFrom || !!formik.errors.walletIdTo}
-      />
-      <CustomButton title='Submit' onPress={onSubmit} style={styles.submitBtn} />
-      <AppActivityIndicator isLoading={false} />
-    </View>
+        <InputErrorLabel
+          text={errors.amountTo || errors.amountFrom}
+          isVisible={!!errors.amountTo || !!errors.amountFrom}
+        />
+        <InputErrorLabel
+          text={errors.walletIdFrom || errors.walletIdTo}
+          isVisible={!!errors.walletIdFrom || !!errors.walletIdTo}
+        />
+        <CustomButton title='Submit' onPress={onSubmit} style={styles.submitBtn} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -208,15 +179,13 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
     marginTop: 20,
-  },
-  row: {
-    flexDirection: "row",
-    marginTop: 20,
-    alignItems: "center",
-    columnGap: 10,
-  },
-  flex: {
     flex: 1,
+  },
+  inputContainer: {
+    gap: 20,
+  },
+  transferText: {
+    fontWeight: "bold",
   },
   submitBtn: {
     marginTop: 20,
@@ -225,7 +194,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   differentCurrency: {
+    paddingTop: 5,
     color: colors.grey2,
     fontSize: 13,
+    textAlign: "justify",
   },
 });

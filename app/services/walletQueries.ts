@@ -43,3 +43,9 @@ export const changeCurrentBalance = (
     date: formatIsoDate(new Date()),
   });
 };
+
+export const getWalletInfo = (walletId: number) => {
+  return db.query.wallet.findFirst({
+    where: eq(wallet.walletId, walletId),
+  });
+};
