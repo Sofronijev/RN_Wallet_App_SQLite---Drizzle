@@ -18,7 +18,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ item, onPress }) => {
       <View style={styles.icon}>
         <CategoryIcon categoryName={item.name} iconSize={40} />
       </View>
-      <Text style={styles.label}>{item.label}</Text>
+      <Text numberOfLines={1} style={styles.label}>
+        {item.label}
+      </Text>
     </TouchableOpacity>
   );
 };
