@@ -120,8 +120,8 @@ const balanceAdjust = {
 };
 
 export const transfer = {
-  69: { name: "transfer_send", id: 69, label: "Transfer" },
-  70: { name: "transfer_received", id: 70, label: "Transfer" },
+  69: { name: "transfer_send", id: 69, label: "Transfer out" },
+  70: { name: "transfer_received", id: 70, label: "Transfer in" },
 };
 
 export enum CategoryNumber {
