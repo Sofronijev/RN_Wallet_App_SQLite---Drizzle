@@ -23,6 +23,8 @@ type EditTransfer = AddTransfer & {
   transferId: number;
 };
 
+type DeleteTransfer = { transferId: number; fromTransactionId: number; toTransactionId: number };
+
 export const addTransferMutation = () => {
   const clientQuery = useQueryClient();
 
@@ -56,6 +58,25 @@ export const editTransferMutation = () => {
 
   return {
     editTransfer: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const deleteTransferMutation = () => {
+  const clientQuery = useQueryClient();
+
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (data: DeleteTransfer) => deleteTransferTransactions(data),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+    },
+  });
+
+  return {
+    deleteTransfer: mutate,
     isLoading: isPending,
     isError,
   };
@@ -131,6 +152,15 @@ const editTransferTransactions = async (transferData: EditTransfer) => {
       .update(transactions)
       .set({ date: formatIsoDate(date), wallet_id: walletIdTo, amount: Math.abs(amountTo) })
       .where(eq(transactions.id, toTransactionId));
+  });
+};
+
+const deleteTransferTransactions = async (data: DeleteTransfer) => {
+  const { transferId, fromTransactionId, toTransactionId } = data;
+  await db.transaction(async (trx) => {
+    await trx.delete(transactions).where(eq(transactions.id, fromTransactionId));
+    await trx.delete(transactions).where(eq(transactions.id, toTransactionId));
+    await trx.delete(transfer).where(eq(transfer.id, transferId));
   });
 };
 

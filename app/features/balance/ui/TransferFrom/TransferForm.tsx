@@ -28,6 +28,7 @@ import {
 } from "../../modules/transfer";
 import {
   addTransferMutation,
+  deleteTransferMutation,
   editTransferMutation,
   useGetTransferByIdQuery,
 } from "app/queries/transfers";
@@ -50,6 +51,7 @@ const TransferForm: React.FC = () => {
   const { walletId, editTransferId } = params;
   const { addTransfer } = addTransferMutation();
   const { editTransfer } = editTransferMutation();
+  const { deleteTransfer } = deleteTransferMutation();
   const navigation = useNavigation();
   const { data: wallets } = useGetWalletsWithBalance();
   const { data: editTransferData, isLoading: isFetchingEditData } =
@@ -97,10 +99,17 @@ const TransferForm: React.FC = () => {
   };
 
   const onDelete = async () => {
-    try {
+    if (
+      editTransferData &&
+      editTransferData.toTransactionId &&
+      editTransferData.fromTransactionId
+    ) {
+      deleteTransfer({
+        transferId: editTransferData.id,
+        fromTransactionId: editTransferData.fromTransactionId,
+        toTransactionId: editTransferData.toTransactionId,
+      });
       navigation.goBack();
-    } catch (error) {
-      Alert.alert(errorStrings.problem, errorStrings.tryAgain);
     }
   };
 
