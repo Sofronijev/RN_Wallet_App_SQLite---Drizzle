@@ -4,4 +4,5 @@ export const queryKeys = {
   monthlyBalance: "monthlyBalance",
   selectedWallet: "selectedWallet",
   wallets: "wallets",
+  transferId: "transferId",
 } as const;

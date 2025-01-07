@@ -7,7 +7,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
 import StyledLabelInput from "components/StyledLabelInput";
@@ -15,14 +15,24 @@ import InputErrorLabel from "components/InputErrorLabel";
 import WalletPicker from "app/features/balance/ui/TransactionForm/WalletPicker";
 import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { AppStackParamList } from "navigation/routes";
 import Label from "components/Label";
-import { errorStrings } from "constants/strings";
+import { errorStrings, transferStrings } from "constants/strings";
 import { useGetWalletsWithBalance, WalletType } from "app/queries/wallets";
-import { initialTransferFormValues, transactionValidationSchema } from "../../modules/transfer";
-import { addTransferMutation } from "app/queries/transfers";
+import {
+  formatInitialTransferEditData,
+  initialTransferFormValues,
+  transactionValidationSchema,
+} from "../../modules/transfer";
+import {
+  addTransferMutation,
+  editTransferMutation,
+  useGetTransferByIdQuery,
+} from "app/queries/transfers";
+import HeaderIcon from "components/HeaderIcon";
+import AppActivityIndicator from "components/AppActivityIndicator";
 
 export type TransferFromInputs = {
   date: string;
@@ -37,14 +47,29 @@ const getWalletById = (wallets: WalletType[], walletId: number | null) =>
 const TransferForm: React.FC = () => {
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const { params } = useRoute<RouteProp<AppStackParamList, "TransferForm">>();
+  const { walletId, editTransferId } = params;
   const { addTransfer } = addTransferMutation();
-  const walletIdFromParam = params.walletId;
-  const editData = params.editData;
+  const { editTransfer } = editTransferMutation();
   const navigation = useNavigation();
   const { data: wallets } = useGetWalletsWithBalance();
+  const { data: editTransferData, isLoading: isFetchingEditData } =
+    useGetTransferByIdQuery(editTransferId);
+
+  useEffect(() => {
+    if (editTransferData) {
+      navigation.setOptions({
+        title: transferStrings.editTransfer,
+        headerRight: () => (
+          <HeaderIcon onPress={onDelete}>
+            <Ionicons name='trash-sharp' size={24} color={colors.white} />
+          </HeaderIcon>
+        ),
+      });
+    }
+  }, [editTransferData]);
+
   const onTransferSubmit = async (values: TransferFromInputs) => {
     Keyboard.dismiss();
-
     const transferData = {
       date: values.date,
       walletIdFrom: Number(values.walletIdFrom),
@@ -53,11 +78,21 @@ const TransferForm: React.FC = () => {
       amountTo: Math.abs(Number(values.amountTo)),
     };
 
-    if (editData) {
+    if (
+      editTransferData &&
+      editTransferData.fromTransactionId &&
+      editTransferData.toTransactionId
+    ) {
+      const { id, fromTransactionId, toTransactionId } = editTransferData;
+      editTransfer({
+        ...transferData,
+        fromTransactionId: fromTransactionId,
+        toTransactionId: toTransactionId,
+        transferId: id,
+      });
     } else {
       addTransfer(transferData);
     }
-
     navigation.goBack();
   };
 
@@ -71,13 +106,16 @@ const TransferForm: React.FC = () => {
 
   const { values, setFieldValue, handleSubmit, handleChange, errors } =
     useFormik<TransferFromInputs>({
-      initialValues: {
-        ...initialTransferFormValues,
-        walletIdFrom: `${walletIdFromParam}`,
-      },
+      initialValues: editTransferData
+        ? formatInitialTransferEditData(editTransferData)
+        : {
+            ...initialTransferFormValues,
+            walletIdFrom: `${walletId}`,
+          },
       validationSchema: transactionValidationSchema,
       validateOnChange: hasSubmittedForm,
       onSubmit: (values) => onTransferSubmit(values),
+      enableReinitialize: true,
     });
   const walletFrom = getWalletById(wallets, +values.walletIdFrom);
   const walletTo = getWalletById(wallets, +values.walletIdTo);
@@ -169,6 +207,7 @@ const TransferForm: React.FC = () => {
         />
         <CustomButton title='Submit' onPress={onSubmit} style={styles.submitBtn} />
       </ScrollView>
+      <AppActivityIndicator isLoading={isFetchingEditData} hideScreen />
     </KeyboardAvoidingView>
   );
 };

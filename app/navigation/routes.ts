@@ -13,6 +13,6 @@ export type AppStackParamList = {
   WalletSettings: undefined;
   TransferForm: {
     walletId: number;
-    editData?: { amount: number; transactionIdFrom?: number; transactionIdTo?: number };
+    editTransferId?: number;
   };
 };

@@ -32,7 +32,11 @@ export const transactionStrings = {
   editTransaction: "Edit transaction",
   addTransaction: "Add transaction",
   transactionSearch: "All transactions",
+};
+
+export const transferStrings = {
   createTransfer: "Create transfer",
+  editTransfer: "Edit transfer",
 };
 
 export const logoutAlertStrings = {

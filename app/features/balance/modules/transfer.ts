@@ -1,3 +1,4 @@
+import { TransferWithTransactions } from "db";
 import { formatIsoDate } from "modules/timeAndDate";
 import * as Yup from "yup";
 
@@ -28,3 +29,13 @@ export const transactionValidationSchema = Yup.object({
       return value !== walletIdTo;
     }),
 });
+
+export const formatInitialTransferEditData = (transfer: TransferWithTransactions) => {
+  return {
+    date: formatIsoDate(transfer.date ?? new Date()),
+    walletIdFrom: transfer.fromWalletId?.toString() ?? "",
+    amountFrom: Math.abs(Number(transfer.fromTransaction?.amount ?? 0)).toString(),
+    walletIdTo: transfer.toWalletId?.toString() || "",
+    amountTo: Math.abs(Number(transfer.toTransaction?.amount ?? 0)).toString(),
+  };
+};
