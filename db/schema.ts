@@ -57,7 +57,7 @@ export const wallet = sqliteTable("Wallet", {
 export const transactions = sqliteTable("Transactions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   amount: real("amount").notNull(),
-  description: text("description", { length: 255 }),
+  description: text("description", { length: 300 }),
   date: text("date")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -80,10 +80,10 @@ export const transactions = sqliteTable("Transactions", {
       onUpdate: "cascade",
     })
     .notNull(),
-  // transfer_id: integer("transfer_id").references(() => transfer.id, {
-  //   onDelete: "cascade",
-  //   onUpdate: "cascade",
-  // }),
+  transfer_id: integer("transfer_id").references(() => transfer.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
 });
 
 // Transfer Table
@@ -157,10 +157,10 @@ export const transactionsRelations = relations(transactions, ({ one, many }) => 
     fields: [transactions.wallet_id],
     references: [wallet.walletId],
   }),
-  // transfer: one(transfer, {
-  //   fields: [transactions.transfer_id],
-  //   references: [transfer.id],
-  // }),
+  transfer: one(transfer, {
+    fields: [transactions.transfer_id],
+    references: [transfer.id],
+  }),
 }));
 
 export const transferRelations = relations(transfer, ({ one }) => ({
