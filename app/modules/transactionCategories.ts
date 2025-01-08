@@ -107,7 +107,7 @@ const other = {
   67: { name: "expenses_other", id: 67, label: "Other" },
 };
 
-export const transfer = {
+export const balanceCorrection = {
   69: { name: "transfer_send", id: 69, label: "Transfer out" },
   70: { name: "transfer_received", id: 70, label: "Transfer in" },
 };
@@ -125,7 +125,7 @@ export enum CategoryNumber {
   "obligation" = 11,
   "entertainment" = 12,
   "other" = 13,
-  "transfer" = 15,
+  "balanceCorrection" = 15,
 }
 
 export const typeIds = {
@@ -259,10 +259,10 @@ export const transactionCategories: CategoriesType = {
     types: entertainment,
   },
   [CategoryNumber.other]: { name: "other", id: CategoryNumber.other, label: "Other", types: other },
-  [CategoryNumber.transfer]: {
-    name: "transfer",
-    id: CategoryNumber.transfer,
+  [CategoryNumber.balanceCorrection]: {
+    name: "balanceCorrection",
+    id: CategoryNumber.balanceCorrection,
     label: "Balance correction",
-    types: transfer,
+    types: balanceCorrection,
   },
 };

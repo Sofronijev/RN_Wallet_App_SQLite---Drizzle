@@ -27,7 +27,7 @@ export const formatFormAmountValue = (amount: string, categoryId: number, typeId
   const amountNumber = Math.abs(Number(amount));
   const isIncome =
     categoryId === CategoryNumber.income ||
-    (categoryId === CategoryNumber.transfer && typeId === typeIds.transfer_received);
+    (categoryId === CategoryNumber.balanceCorrection && typeId === typeIds.transfer_received);
 
   return isIncome ? amountNumber : -amountNumber;
 };
