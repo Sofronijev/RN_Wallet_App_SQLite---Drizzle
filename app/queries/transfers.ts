@@ -4,7 +4,7 @@ import { db } from "db";
 import { addTransfer, getTransferId } from "app/services/transferQueries";
 import { addTransaction } from "app/services/transactionQueries";
 import { formatIsoDate } from "modules/timeAndDate";
-import { CategoryNumber, typeId } from "modules/transactionCategories";
+import { CategoryNumber, typeIds } from "modules/transactionCategories";
 import { getWalletInfo } from "app/services/walletQueries";
 import { transactions, transfer } from "db/schema";
 import { eq } from "drizzle-orm";
@@ -92,7 +92,7 @@ const addTransferTransactions = async (transferData: AddTransfer) => {
     const transferFrom = await trx.insert(transactions).values({
       amount: -Math.abs(amountFrom),
       date: formatIsoDate(date),
-      type_id: typeId.transfer_send,
+      type_id: typeIds.transfer_send,
       categoryId: CategoryNumber.transfer,
       wallet_id: walletIdFrom,
       description: `Transfer to ${walletTo?.walletName ?? ""}`,
@@ -101,7 +101,7 @@ const addTransferTransactions = async (transferData: AddTransfer) => {
     const transferTo = await trx.insert(transactions).values({
       amount: Math.abs(amountTo),
       date: formatIsoDate(date),
-      type_id: typeId.transfer_received,
+      type_id: typeIds.transfer_received,
       categoryId: CategoryNumber.transfer,
       wallet_id: walletIdTo,
       description: `Transfer from ${walletFrom?.walletName ?? ""}`,

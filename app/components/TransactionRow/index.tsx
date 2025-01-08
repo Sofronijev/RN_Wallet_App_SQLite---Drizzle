@@ -4,7 +4,7 @@ import colors from "constants/colors";
 import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import { formatDecimalDigits } from "modules/numbers";
-import { CategoryNumber, transactionCategories, typeId } from "modules/transactionCategories";
+import { CategoryNumber, transactionCategories, typeIds } from "modules/transactionCategories";
 import { formatDayString } from "modules/timeAndDate";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -23,7 +23,7 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   const hasDescription = !!transaction.description;
   const transactionId = transaction.id;
   const transferId = transaction.transfer_id;
-  const transactionReceivedId = typeId.transfer_received;
+  const transactionReceivedId = typeIds.transfer_received;
 
   const isIncome =
     transaction.categoryId === CategoryNumber.income ||

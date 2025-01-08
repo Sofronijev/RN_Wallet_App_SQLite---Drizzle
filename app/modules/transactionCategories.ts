@@ -17,14 +17,6 @@ export const income = {
   6: { name: "income_other", id: 6, label: "Other" },
 };
 
-// Not used for now
-// const saving = {
-//   7: { name: "saving_emergency", id: 7, label: "Emergency" },
-//   8: { name: "saving_retirement", id: 8, label: "Retirement" },
-//   9: { name: "saving_vacation", id: 9, label: "Vacation" },
-//   10: { name: "saving_others", id: 10, label: "Other" },
-// };
-
 const gifts = {
   11: { name: "charity_donations", id: 11, label: "Donation" },
   12: { name: "gifts", id: 12, label: "Gifts" },
@@ -115,10 +107,6 @@ const other = {
   67: { name: "expenses_other", id: 67, label: "Other" },
 };
 
-const balanceAdjust = {
-  68: { name: "balanceAdjust", id: 68, label: "Adjust balance" },
-};
-
 export const transfer = {
   69: { name: "transfer_send", id: 69, label: "Transfer out" },
   70: { name: "transfer_received", id: 70, label: "Transfer in" },
@@ -126,7 +114,6 @@ export const transfer = {
 
 export enum CategoryNumber {
   "income" = 1,
-  "saving" = 2,
   "gifts" = 3,
   "housing" = 4,
   "utilities" = 5,
@@ -138,11 +125,10 @@ export enum CategoryNumber {
   "obligation" = 11,
   "entertainment" = 12,
   "other" = 13,
-  "balanceAdjust" = 14,
   "transfer" = 15,
 }
 
-export const typeId = {
+export const typeIds = {
   income_wage: 1,
   income_interests: 2,
   income_gifts: 3,
@@ -206,7 +192,6 @@ export const typeId = {
   entertainment_gadgets: 65,
   entertainment_other: 66,
   expenses_other: 67,
-  balanceAdjust: 68,
   transfer_send: 69,
   transfer_received: 70,
 };
@@ -218,8 +203,6 @@ export const transactionCategories: CategoriesType = {
     label: "Income",
     types: income,
   },
-  // TODO: Hide Saving until feature for handling savings is added
-  // [CategoryNumber.saving]: { name: "saving", id: CategoryNumber.saving, label: "Saving", types: saving },
   [CategoryNumber.gifts]: {
     name: "gifts",
     id: CategoryNumber.gifts,
@@ -276,16 +259,10 @@ export const transactionCategories: CategoriesType = {
     types: entertainment,
   },
   [CategoryNumber.other]: { name: "other", id: CategoryNumber.other, label: "Other", types: other },
-  [CategoryNumber.balanceAdjust]: {
-    name: "balanceAdjust",
-    id: CategoryNumber.balanceAdjust,
-    label: "Adjust balance",
-    types: balanceAdjust,
-  },
   [CategoryNumber.transfer]: {
     name: "transfer",
     id: CategoryNumber.transfer,
-    label: "Transfer",
+    label: "Balance correction",
     types: transfer,
   },
 };

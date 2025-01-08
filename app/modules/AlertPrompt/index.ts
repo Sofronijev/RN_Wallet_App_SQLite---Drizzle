@@ -8,12 +8,13 @@ export type PromptOptions = {
   defaultValue?: string;
   keyboardType?: KeyboardTypeOptions;
   placeholder?: string;
+  validator?: (text: string) => boolean;
 };
 
 export type PromptButtons = {
   label: string;
   onPress?: (value?: string) => void;
-  type?: 'default' | 'cancel' | 'destructive';
+  type?: "default" | "cancel" | "destructive";
   disabled?: boolean;
 };
 
@@ -24,6 +25,7 @@ export type Prompt = {
   defaultValue: string;
   keyboardType: KeyboardTypeOptions;
   placeholder: string;
+  validator: (text: string) => boolean;
 };
 
 const prompt = (
@@ -32,7 +34,12 @@ const prompt = (
   callbackOrButtons?: ((text: string) => void) | PromptButtons[],
   options?: PromptOptions
 ) => {
-  const { defaultValue = "", keyboardType = "default", placeholder = "" } = options || {};
+  const {
+    defaultValue = "",
+    keyboardType = "default",
+    placeholder = "",
+    validator = () => true,
+  } = options || {};
   AlertEmitter.emit("prompt", {
     title,
     message,
@@ -40,6 +47,7 @@ const prompt = (
     defaultValue,
     keyboardType,
     placeholder,
+    validator,
   });
 };
 

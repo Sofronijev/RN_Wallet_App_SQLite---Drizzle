@@ -1,4 +1,4 @@
-import { Keyboard, Platform, StyleSheet, Text, View } from "react-native";
+import { Keyboard, Platform, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import Dialog from "react-native-dialog";
 import { AlertEmitter, Prompt, PromptButtons } from "./index";
@@ -11,6 +11,7 @@ const initialState: Prompt = {
   defaultValue: "",
   keyboardType: "default",
   placeholder: "",
+  validator: () => true,
 };
 // TODO - ADD validation to prompt typing
 
@@ -49,7 +50,8 @@ const AlertPrompt: React.FC = () => {
     );
   };
 
-  const isValid = !!value;
+  const isValid = !!value && data.validator(value);
+
   const buttonColor = !isValid ? colors.disabled : undefined;
 
   const onSave = () => {

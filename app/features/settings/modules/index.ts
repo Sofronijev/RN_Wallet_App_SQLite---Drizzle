@@ -1,5 +1,6 @@
 import { alertButtonStrings, deleteUserDataStrings, logoutAlertStrings } from "constants/strings";
 import AlertPrompt from "modules/AlertPrompt";
+import { isNumber } from "modules/numbers";
 import { Alert } from "react-native";
 
 export const showLogoutAlert = (onLogout: () => void) => {
@@ -45,13 +46,13 @@ export const showStartingBalancePrompt = (onSubmit: (amount: number) => void) =>
   AlertPrompt.prompt(
     "Change starting balance",
     "Enter the amount you want to use as a starting balance. This change will also affect your current balance",
-    async (newBalance) => {
+    (newBalance) => {
       const balanceNumber = +newBalance;
-      if (!isNaN(balanceNumber)) {
+      if (isNumber(balanceNumber)) {
         onSubmit(balanceNumber);
       }
     },
-    { keyboardType: "numeric" }
+    { keyboardType: "numeric", validator: isNumber }
   );
 };
 
@@ -59,12 +60,12 @@ export const showBalancePrompt = (onSubmit: (newBalance: number) => void) => {
   AlertPrompt.prompt(
     "Adjust balance",
     "Enter the correct balance. A correction transaction will be created to adjust it accordingly",
-    async (newBalance) => {
+    (newBalance) => {
       const balanceNumber = +newBalance;
-      if (!isNaN(balanceNumber)) {
+      if (isNumber(balanceNumber)) {
         onSubmit(balanceNumber);
       }
     },
-    { keyboardType: "numeric" }
+    { keyboardType: "numeric", validator: isNumber }
   );
 };

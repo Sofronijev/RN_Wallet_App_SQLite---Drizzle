@@ -6,3 +6,5 @@ export const formatDecimalDigits = (number: number) => {
   const thousands = /\B(?=(\d{3})+(?!\d))/g;
   return numberPart.replace(thousands, ".") + (decimalPart ? "," + decimalPart : "");
 };
+
+export const isNumber = (value: string | number) => !isNaN(+value);
