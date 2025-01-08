@@ -42,8 +42,8 @@ export const wallet = sqliteTable("Wallet", {
     .notNull(),
   startingBalance: real("startingBalance").default(0).notNull(),
   walletName: text("walletName", { length: 255 }).default("My custom wallet").notNull(),
-  currencyCode: text("currencyCode", { length: 3 }).default("EUR").notNull(),
-  currencySymbol: text("currencySymbol", { length: 3 }).default("€").notNull(),
+  currencyCode: text("currencyCode", { length: 10 }),
+  currencySymbol: text("currencySymbol", { length: 10 }),
   type: text("type", { length: 255, enum: ["custom", "system"] })
     .default("custom")
     .notNull(),
