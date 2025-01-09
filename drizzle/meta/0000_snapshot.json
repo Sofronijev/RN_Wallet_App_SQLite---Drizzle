@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "3d9b30ef-59ab-47c5-843a-2668565d3a03",
+  "id": "d6c9c865-a9eb-46ca-b89d-1d8e0953ed72",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "Categories": {
@@ -50,12 +50,12 @@
           "name": "amount",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "description": {
           "name": "description",
-          "type": "text(255)",
+          "type": "text(300)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -64,7 +64,7 @@
           "name": "date",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
@@ -72,25 +72,33 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
         },
         "type_id": {
           "name": "type_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "categoryId": {
           "name": "categoryId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "wallet_id": {
           "name": "wallet_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transfer_id": {
+          "name": "transfer_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -150,6 +158,19 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
+        },
+        "Transactions_transfer_id_Transfer_id_fk": {
+          "name": "Transactions_transfer_id_Transfer_id_fk",
+          "tableFrom": "Transactions",
+          "tableTo": "Transfer",
+          "columnsFrom": [
+            "transfer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -179,7 +200,8 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": 1
         },
         "fromWalletId": {
           "name": "fromWalletId",
@@ -247,32 +269,6 @@
           ],
           "columnsTo": [
             "walletId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "Transfer_fromTransactionId_Transactions_id_fk": {
-          "name": "Transfer_fromTransactionId_Transactions_id_fk",
-          "tableFrom": "Transfer",
-          "tableTo": "Transactions",
-          "columnsFrom": [
-            "fromTransactionId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "Transfer_toTransactionId_Transactions_id_fk": {
-          "name": "Transfer_toTransactionId_Transactions_id_fk",
-          "tableFrom": "Transfer",
-          "tableTo": "Transactions",
-          "columnsFrom": [
-            "toTransactionId"
-          ],
-          "columnsTo": [
-            "id"
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
@@ -412,14 +408,15 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
         },
         "startingBalance": {
           "name": "startingBalance",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 0
         },
@@ -427,31 +424,31 @@
           "name": "walletName",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "'My custom wallet'"
         },
         "currencyCode": {
           "name": "currencyCode",
-          "type": "text(3)",
+          "type": "text(10)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": "'EUR'"
+          "default": "''"
         },
         "currencySymbol": {
           "name": "currencySymbol",
-          "type": "text(3)",
+          "type": "text(10)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": "'€'"
+          "default": "''"
         },
         "type": {
           "name": "type",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "'custom'"
         },
@@ -459,7 +456,7 @@
           "name": "color",
           "type": "text(7)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "'#3EB489'"
         },
@@ -467,7 +464,7 @@
           "name": "createdAt",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
