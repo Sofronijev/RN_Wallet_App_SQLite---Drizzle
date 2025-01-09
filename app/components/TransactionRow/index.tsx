@@ -4,12 +4,13 @@ import colors from "constants/colors";
 import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import { formatDecimalDigits } from "modules/numbers";
-import { CategoryNumber, transactionCategories } from "modules/transactionCategories";
-import { formatDayString, formatIsoDate } from "modules/timeAndDate";
+import { CategoryNumber, transactionCategories, typeIds } from "modules/transactionCategories";
+import { formatDayString } from "modules/timeAndDate";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 
+// TODO - FIX
 type Props = {
   transaction: any;
 };
@@ -20,27 +21,23 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   const category = transactionCategories[transaction.categoryId];
   const type = category.types[transaction.type_id];
   const hasDescription = !!transaction.description;
-  // TODO!! get type from modules
-  const transactionReceivedId = 70;
-  const transactionSentId = 69;
+  const transactionId = transaction.id;
+  const transferId = transaction.transfer_id;
+  const transactionReceivedId = typeIds.transfer_received;
+
   const isIncome =
     transaction.categoryId === CategoryNumber.income ||
     transaction.type_id === transactionReceivedId;
 
   const openEditTransaction = () => {
-    if (transaction.categoryId === CategoryNumber.transfer) {
+    if (transferId) {
       navigation.navigate("TransferForm", {
         walletId: transaction.wallet_id,
-        editData: {
-          amount: transaction.amount,
-          transactionIdFrom: transaction.type_id === transactionSentId ? transaction.id : undefined,
-          transactionIdTo:
-            transaction.type_id === transactionReceivedId ? transaction.id : undefined,
-        },
+        editTransferId: transferId,
       });
     } else {
       navigation.navigate("Transaction", {
-        id: transaction.id,
+        id: transactionId,
       });
     }
   };

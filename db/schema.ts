@@ -42,8 +42,8 @@ export const wallet = sqliteTable("Wallet", {
     .notNull(),
   startingBalance: real("startingBalance").default(0).notNull(),
   walletName: text("walletName", { length: 255 }).default("My custom wallet").notNull(),
-  currencyCode: text("currencyCode", { length: 3 }).default("EUR").notNull(),
-  currencySymbol: text("currencySymbol", { length: 3 }).default("€").notNull(),
+  currencyCode: text("currencyCode", { length: 10 }).default(""),
+  currencySymbol: text("currencySymbol", { length: 10 }).default(""),
   type: text("type", { length: 255, enum: ["custom", "system"] })
     .default("custom")
     .notNull(),
@@ -57,8 +57,10 @@ export const wallet = sqliteTable("Wallet", {
 export const transactions = sqliteTable("Transactions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   amount: real("amount").notNull(),
-  description: text("description", { length: 255 }),
-  date: text("date").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  description: text("description", { length: 300 }),
+  date: text("date")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
   user_id: integer("user_id")
     .references(() => users.id, {
       onDelete: "cascade",
@@ -78,6 +80,10 @@ export const transactions = sqliteTable("Transactions", {
       onUpdate: "cascade",
     })
     .notNull(),
+  transfer_id: integer("transfer_id").references(() => transfer.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
 });
 
 // Transfer Table
@@ -99,15 +105,8 @@ export const transfer = sqliteTable("Transfer", {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
-
-  fromTransactionId: integer("fromTransactionId").references(() => transactions.id, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
-  toTransactionId: integer("toTransactionId").references(() => transactions.id, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
+  fromTransactionId: integer("fromTransactionId"),
+  toTransactionId: integer("toTransactionId"),
 });
 
 //Relations
@@ -158,8 +157,10 @@ export const transactionsRelations = relations(transactions, ({ one, many }) => 
     fields: [transactions.wallet_id],
     references: [wallet.walletId],
   }),
-  transfersFrom: many(transfer),
-  transfersTo: many(transfer),
+  transfer: one(transfer, {
+    fields: [transactions.transfer_id],
+    references: [transfer.id],
+  }),
 }));
 
 export const transferRelations = relations(transfer, ({ one }) => ({
@@ -178,9 +179,11 @@ export const transferRelations = relations(transfer, ({ one }) => ({
   fromTransaction: one(transactions, {
     fields: [transfer.fromTransactionId],
     references: [transactions.id],
+    relationName: "fromTransaction",
   }),
   toTransaction: one(transactions, {
     fields: [transfer.toTransactionId],
     references: [transactions.id],
+    relationName: "toTransaction",
   }),
 }));

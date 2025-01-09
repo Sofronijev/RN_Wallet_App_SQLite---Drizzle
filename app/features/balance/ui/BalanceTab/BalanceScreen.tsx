@@ -7,22 +7,24 @@ import RecentTransactions from "app/features/balance/ui/BalanceTab/RecentTransac
 import NullScreen from "components/NullScreen";
 import { showStartingBalancePrompt } from "app/features/settings/modules";
 import MonthlyBalance from "./MonthlyBalance";
-import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
-import { setWalletStartingBalance } from "app/services/walletQueries";
+import { setStartingBalanceMutation, useGetSelectedWalletQuery } from "app/queries/wallets";
 
 const BalanceScreen: React.FC = () => {
-  const { selectedWallet, selectedWalletId } = useGetSelectedWallet();
+  const { data: selectedWallet } = useGetSelectedWalletQuery();
+  const { setStartingBalance } = setStartingBalanceMutation();
   const hasStartingBalance = !!selectedWallet?.startingBalance;
 
   const onChangeStartingBalance = () => {
-    if (!selectedWalletId) return;
-    showStartingBalancePrompt(selectedWalletId);
+    if (!selectedWallet) return;
+    showStartingBalancePrompt((amount: number) =>
+      setStartingBalance({ id: selectedWallet.walletId, amount })
+    );
   };
 
   return (
     <>
       <ScrollView style={styles.container}>
-        <WalletList selectedWalletId={selectedWalletId} />
+        <WalletList selectedWalletId={selectedWallet?.walletId} />
         <View style={styles.itemContainer}>
           <MonthlyBalance />
         </View>

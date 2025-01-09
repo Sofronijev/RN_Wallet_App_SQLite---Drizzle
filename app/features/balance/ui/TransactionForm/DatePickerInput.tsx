@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { Keyboard, Platform, StyleSheet, TextStyle, TouchableOpacity, View } from "react-native";
-import DateTimePicker, { Event } from "@react-native-community/datetimepicker";
-import { calendarDateFormat, formatIsoDate, getFormattedDate } from "modules/timeAndDate";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import {
+  calendarDateFormat,
+  formatIsoDate,
+  formatTime,
+  getFormattedDate,
+} from "modules/timeAndDate";
 import colors from "constants/colors";
 import StyledLabelInput from "components/StyledLabelInput";
 import { FontAwesome } from "@expo/vector-icons";
@@ -21,40 +26,70 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
   maximumDate,
   minimumDate,
   onDateSelect,
-  style,
 }) => {
   const value = date || new Date();
-  const [show, setShow] = useState(isIosDevice);
+  const [showDate, setShowDate] = useState(isIosDevice);
+  const [showTime, setShowTime] = useState(isIosDevice);
 
-  const onChange = (event: Event, selectedDate?: Date) => {
+  const onChangeDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate ?? new Date();
-    setShow(isIosDevice);
+    setShowDate(isIosDevice);
     if (typeof onDateSelect === "function") onDateSelect(formatIsoDate(currentDate));
   };
+
+  const onChangeTime = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    const currentDate = selectedDate ?? new Date();
+    setShowTime(isIosDevice);
+    if (typeof onDateSelect === "function") onDateSelect(formatIsoDate(currentDate));
+  };
+
   const showCalendar = () => {
     Keyboard.dismiss();
-    setShow(true);
+    setShowDate(true);
+  };
+  const showClock = () => {
+    Keyboard.dismiss();
+    setShowTime(true);
   };
   // BUG - IOS BUG - Calendar for IOS doesn't look good
   return (
     <View>
       {!isIosDevice && (
-        <TouchableOpacity onPress={showCalendar} style={styles.dateLabel}>
-          <StyledLabelInput
-            value={getFormattedDate(value, calendarDateFormat)}
-            icon={<FontAwesome name='calendar' size={24} color={colors.greenMint} />}
-            editable={false}
-            inputStyle={styles.dateLabel}
-          />
-        </TouchableOpacity>
+        <View style={styles.container}>
+          <TouchableOpacity onPress={showCalendar} style={styles.dateLabel}>
+            <StyledLabelInput
+              value={getFormattedDate(value, calendarDateFormat)}
+              icon={<FontAwesome name='calendar' size={24} color={colors.greenMint} />}
+              editable={false}
+              inputStyle={styles.dateLabel}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={showClock} style={styles.dateLabel}>
+            <StyledLabelInput
+              value={formatTime(value)}
+              icon={<FontAwesome name='calendar' size={24} color={colors.greenMint} />}
+              editable={false}
+              inputStyle={styles.dateLabel}
+            />
+          </TouchableOpacity>
+        </View>
       )}
-      {show && (
+      {showDate && (
         <DateTimePicker
-          testID='dateTimePicker'
           value={value}
-          mode='date'
-          is24Hour={true}
-          onChange={onChange}
+          mode={isIosDevice ? "datetime" : "date"}
+          is24Hour={!isIosDevice}
+          onChange={onChangeDate}
+          maximumDate={maximumDate}
+          minimumDate={minimumDate}
+        />
+      )}
+      {showTime && !isIosDevice && (
+        <DateTimePicker
+          value={value}
+          mode='time'
+          is24Hour
+          onChange={onChangeTime}
           maximumDate={maximumDate}
           minimumDate={minimumDate}
         />
@@ -66,9 +101,15 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
 export default DatePickerInput;
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    columnGap: 16,
+  },
   dateLabel: {
     color: colors.black,
     backgroundColor: colors.white,
     borderRadius: 10,
+    flex: 1,
   },
 });

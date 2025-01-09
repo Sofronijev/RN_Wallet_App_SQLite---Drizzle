@@ -64,6 +64,34 @@
       "when": 1731243840024,
       "tag": "0008_early_purifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1736240621076,
+      "tag": "0009_puzzling_stardust",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1736241078130,
+      "tag": "0010_famous_quicksilver",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1736371043464,
+      "tag": "0011_foamy_banshee",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1736371404156,
+      "tag": "0012_glamorous_jack_power",
+      "breakpoints": true
     }
   ]
 }

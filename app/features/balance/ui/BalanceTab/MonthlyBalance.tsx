@@ -9,15 +9,16 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { transactionStrings } from "constants/strings";
 import { addMonths, isSameMonth, subMonths } from "date-fns";
-import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
-import useGetMonthlyBalance from "../../hooks/useGetMonthlyBalance";
+import { useGetMonthlyBalanceQuery } from "app/queries/transactions";
+import { useGetSelectedWalletQuery } from "app/queries/wallets";
 
 const TODAY = new Date();
 
 const MonthlyBalance: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(TODAY);
-  const { selectedWalletId } = useGetSelectedWallet();
-  const { balance, expense, income } = useGetMonthlyBalance(selectedWalletId, selectedDate);
+  const { data: selectedWallet, isLoading: selectedWalletLoading } = useGetSelectedWalletQuery();
+  const { data, isLoading } = useGetMonthlyBalanceQuery(selectedWallet?.walletId, selectedDate);
+  const { balance, expense, income } = data;
 
   const formattedMonth = getMonthAndYear(selectedDate);
   const isCurrentMonth = isSameMonth(selectedDate, TODAY);
@@ -69,7 +70,7 @@ const MonthlyBalance: React.FC = () => {
           <Label style={styles.label}>{transactionStrings.expenses}</Label>
           <Label style={styles.transactions}>{formatDecimalDigits(expense)}</Label>
         </View>
-        {/* <AppActivityIndicator isLoading={false} /> */}
+        <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
       </View>
     </View>
   );

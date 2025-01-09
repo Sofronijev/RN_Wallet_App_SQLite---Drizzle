@@ -1,24 +1,28 @@
 import { FlatList, StyleSheet, View } from "react-native";
-import React, { useState } from "react";
+import React from "react";
 import TransactionsRow from "components/TransactionRow";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import colors from "constants/colors";
 import NullScreen from "components/NullScreen";
-import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
-import useGetTransactions from "../../hooks/useGetTransactions";
 import { TransactionType } from "db";
+import { useGetTransactionsInfiniteQuery } from "app/queries/transactions";
+import { useGetSelectedWalletQuery } from "app/queries/wallets";
 
 const TransactionSearch = () => {
-  const { selectedWalletId } = useGetSelectedWallet();
-  const [limit, setLimit] = useState(15);
-  const { data: transactions, count } = useGetTransactions(selectedWalletId, limit);
+  const { data: selectedWallet } = useGetSelectedWalletQuery();
+  const {
+    data: transactions,
+    fetchNextPage,
+    hasNextPage,
+  } = useGetTransactionsInfiniteQuery(selectedWallet?.walletId);
+
   const searchMoreTransactions = () => {
-    if (transactions.length < count) {
-      setLimit((prevLimit) => prevLimit + 15);
+    if (hasNextPage) {
+      fetchNextPage();
     }
   };
 
-  if (!count) {
+  if (!transactions.length) {
     return (
       <NullScreen
         icon='wallet'

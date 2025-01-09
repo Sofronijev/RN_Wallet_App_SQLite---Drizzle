@@ -7,9 +7,6 @@ export const setSelectedWallet = (selectedWalletId: number) => {
 
 export const getSelectedWalletInfo = () => {
   return db.query.users.findFirst({
-    columns: {
-      selectedWalletId: true,
-    },
     with: {
       selectedWallet: true,
     },

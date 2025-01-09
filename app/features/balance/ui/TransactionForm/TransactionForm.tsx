@@ -30,16 +30,15 @@ import {
 import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
-import {
-  addTransaction,
-  deleteTransaction,
-  editTransaction,
-} from "app/services/transactionQueries";
-import useGetSelectedWallet from "../../hooks/useGetSelectedWallet";
-import useGetWalletsWithBalance from "../../hooks/useGetWalletsWithBalance";
 import { getCategoryIcon } from "components/CategoryIcon";
-import useGetTransactionById from "../../hooks/useGetTransactionById";
 import { TransactionType } from "db";
+import {
+  addTransactionMutation,
+  deleteTransactionMutation,
+  editTransactionMutation,
+  useGetTransactionByIdQuery,
+} from "app/queries/transactions";
+import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -50,41 +49,38 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const editTransactionId = route.params?.id;
   const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
-  const { selectedWalletId } = useGetSelectedWallet();
-  const editedTransaction = useGetTransactionById(editTransactionId);
-  const wallets = useGetWalletsWithBalance();
-
+  const { data: selectedWallet } = useGetSelectedWalletQuery();
+  const { data: editedTransaction } = useGetTransactionByIdQuery(editTransactionId);
+  const { data: wallets } = useGetWalletsWithBalance();
+  const { addTransaction, isLoading: addTransactionLoading } = addTransactionMutation();
+  const { editTransaction } = editTransactionMutation();
+  const { deleteTransaction } = deleteTransactionMutation();
   const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
-    try {
-      if (values.type && values.category && values.walletId) {
-        const transactionData = {
-          amount: formatFormAmountValue(values.amount, values.category.id, values.type.id),
-          description: values.description,
-          date: formatIsoDate(values.date),
-          type_id: values.type.id,
-          categoryId: values.category.id,
-          wallet_id: Number(values.walletId),
-        };
-        if (editTransactionId) {
-          await editTransaction(editTransactionId, transactionData);
-        } else {
-          await addTransaction(transactionData);
-        }
-        navigation.goBack();
+    if (values.type && values.category && values.walletId) {
+      const transactionData = {
+        amount: formatFormAmountValue(values.amount, values.category.id, values.type.id),
+        description: values.description,
+        date: formatIsoDate(values.date),
+        type_id: values.type.id,
+        categoryId: values.category.id,
+        wallet_id: Number(values.walletId),
+      };
+      if (editTransactionId) {
+        editTransaction({ id: editTransactionId, transaction: transactionData });
+      } else {
+        addTransaction(transactionData);
       }
-      // TODO - FIX Errors (check data from service call)
-    } catch (error) {
-      handleTransactionError(error);
+      navigation.goBack();
     }
   };
 
   const onDeleteTransaction = async () => {
     try {
       if (editTransactionId) {
-        await deleteTransaction(editTransactionId);
+        deleteTransaction(editTransactionId);
       }
       navigation.goBack();
     } catch (error) {
@@ -123,7 +119,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const formik = useFormik<TransactionFromInputs>({
     initialValues: editedTransaction
       ? formatEditInitialValues(editedTransaction)
-      : { ...initialTransactionFormValues, walletId: `${selectedWalletId}` },
+      : { ...initialTransactionFormValues, walletId: `${selectedWallet?.walletId}` },
     validationSchema: transactionValidationSchema,
     validateOnChange: hasSubmittedForm,
     onSubmit: onTransactionSubmit,
@@ -131,8 +127,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   });
 
   const pickedWallet = wallets.find((wallet) => wallet.walletId === +formik.values.walletId);
-
   const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
+
   useEffect(() => {
     if (editedTransaction) {
       navigation.setOptions({
@@ -188,11 +184,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.inputsContainer}>
-        <DatePickerInput
-          date={new Date(formik.values.date)}
-          maximumDate={new Date()}
-          onDateSelect={onDateChange}
-        />
+        <DatePickerInput date={new Date(formik.values.date)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>
           <WalletPicker
             wallets={wallets}

@@ -2,11 +2,11 @@ import { FlatList, View, StyleSheet } from "react-native";
 import React from "react";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import WalletSettingsItem from "./WalletSettingsItem";
-import useGetWalletsWithBalance from "app/features/balance/hooks/useGetWalletsWithBalance";
 import colors from "constants/colors";
+import { useGetWalletsWithBalance } from "app/queries/wallets";
 
 const WalletSettings: React.FC = () => {
-  const wallets = useGetWalletsWithBalance();
+  const { data: wallets } = useGetWalletsWithBalance();
 
   return (
     <View style={styles.container}>

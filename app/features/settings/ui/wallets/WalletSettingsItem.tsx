@@ -4,22 +4,31 @@ import colors from "constants/colors";
 import { formatDecimalDigits } from "modules/numbers";
 import ButtonText from "components/ButtonText";
 import { showBalancePrompt, showStartingBalancePrompt } from "app/features/settings/modules";
-import { WalletType } from "app/features/balance/modules/types";
 import Label from "components/Label";
+import {
+  changeCurrentBalanceMutation,
+  setStartingBalanceMutation,
+  WalletType,
+} from "app/queries/wallets";
 
 type Props = {
   wallet: WalletType;
 };
 
 const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
-  if (!wallet) return null;
+  const { setStartingBalance } = setStartingBalanceMutation();
+  const { changeCurrentBalance } = changeCurrentBalanceMutation();
 
+  if (!wallet) return null;
+  const { walletId, currentBalance } = wallet;
   const onStartingBalancePress = () => {
-    showStartingBalancePrompt(wallet.walletId);
+    showStartingBalancePrompt((amount: number) => setStartingBalance({ id: walletId, amount }));
   };
 
   const onBalancePress = () => {
-    showBalancePrompt(wallet.walletId, wallet.currentBalance);
+    showBalancePrompt((newAmount: number) =>
+      changeCurrentBalance({ id: walletId, currentAmount: currentBalance, newAmount })
+    );
   };
 
   return (

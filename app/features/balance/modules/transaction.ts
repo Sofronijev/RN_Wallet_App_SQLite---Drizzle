@@ -1,5 +1,5 @@
 import { alertButtonStrings, errorStrings, transactionStrings } from "constants/strings";
-import { CategoryNumber } from "modules/transactionCategories";
+import { CategoryNumber, typeIds } from "modules/transactionCategories";
 import { ResponseError } from "modules/types";
 import { Alert } from "react-native";
 
@@ -25,9 +25,9 @@ export const deleteTransactionAlert = (onPress: () => void) => {
 
 export const formatFormAmountValue = (amount: string, categoryId: number, typeId: number) => {
   const amountNumber = Math.abs(Number(amount));
-  // Database saves income as positive number and expenses as negative
-  if (categoryId === CategoryNumber.income) {
-    return amountNumber;
-  }
-  return amountNumber * -1;
+  const isIncome =
+    categoryId === CategoryNumber.income ||
+    (categoryId === CategoryNumber.balanceCorrection && typeId === typeIds.transfer_received);
+
+  return isIncome ? amountNumber : -amountNumber;
 };

@@ -4,7 +4,7 @@ import HomeNavigator from "./HomeNavigator";
 import colors from "constants/colors";
 import { AppStackParamList } from "./routes";
 import TransactionForm from "app/features/balance/ui/TransactionForm/TransactionForm";
-import { transactionStrings } from "constants/strings";
+import { transactionStrings, transferStrings } from "constants/strings";
 import HeaderIcon from "components/HeaderIcon";
 import { Ionicons } from "@expo/vector-icons";
 import WalletSettings from "app/features/settings/ui/wallets";
@@ -62,7 +62,7 @@ const AppNavigator: React.FC = () => {
         component={TransferForm}
         options={{
           animation: "slide_from_bottom",
-          title: transactionStrings.createTransfer,
+          title: transferStrings.createTransfer,
         }}
       />
     </Stack.Navigator>
