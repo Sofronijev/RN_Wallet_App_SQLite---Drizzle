@@ -93,7 +93,7 @@ const addTransferTransactions = async (transferData: AddTransfer) => {
       amount: -Math.abs(amountFrom),
       date: formatIsoDate(date),
       type_id: typeIds.transfer_send,
-      categoryId: CategoryNumber.transfer,
+      categoryId: CategoryNumber.balanceCorrection,
       wallet_id: walletIdFrom,
       description: `Transfer to ${walletTo?.walletName ?? ""}`,
     });
@@ -102,7 +102,7 @@ const addTransferTransactions = async (transferData: AddTransfer) => {
       amount: Math.abs(amountTo),
       date: formatIsoDate(date),
       type_id: typeIds.transfer_received,
-      categoryId: CategoryNumber.transfer,
+      categoryId: CategoryNumber.balanceCorrection,
       wallet_id: walletIdTo,
       description: `Transfer from ${walletFrom?.walletName ?? ""}`,
     });

@@ -13,15 +13,15 @@ import colors from "constants/colors";
 const ICON_SIZE = 28;
 
 export const getCategoryIcon = ({
-  type,
+  category,
   iconSize,
   colored,
 }: {
-  type: string;
+  category: string;
   iconSize?: number;
   colored?: boolean;
 }) => {
-  switch (type) {
+  switch (category) {
     case "income":
       return {
         icon: (
@@ -165,18 +165,7 @@ export const getCategoryIcon = ({
         ),
         backgroundColor: colors.otherCategory,
       };
-    case "balanceAdjust":
-      return {
-        icon: (
-          <MaterialCommunityIcons
-            name='auto-fix'
-            size={iconSize ?? ICON_SIZE}
-            color={colored ? colors.balanceAdjust : colors.white}
-          />
-        ),
-        backgroundColor: colors.balanceAdjust,
-      };
-    case "transfer":
+    case "balanceCorrection":
       return {
         icon: (
           <Fontisto
@@ -207,7 +196,7 @@ type Props = {
 };
 
 const CategoryIcon: React.FC<Props> = ({ categoryName, iconSize }) => {
-  const { icon, backgroundColor } = getCategoryIcon({ type: categoryName, iconSize });
+  const { icon, backgroundColor } = getCategoryIcon({ category: categoryName, iconSize });
 
   return <View style={[styles.container, { backgroundColor }]}>{icon}</View>;
 };
