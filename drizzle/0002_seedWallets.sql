@@ -1,3 +1,4 @@
+-- Custom SQL migration file, put you code below! --
 INSERT
     OR IGNORE INTO Wallet (walletId, user_id, walletName, type, color)
 VALUES

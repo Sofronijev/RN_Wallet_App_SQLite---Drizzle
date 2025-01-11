@@ -14,6 +14,7 @@ const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect }) => {
   const renderItem: ListRenderItem<WalletType> = ({ item }) => {
     const isSelected = selected === item.walletId;
     const onPress = () => onSelect(item.walletId);
+    const currency = item.currencySymbol || item.currencyCode;
     return (
       <TouchableOpacity
         style={[
@@ -25,9 +26,10 @@ const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect }) => {
         ]}
         onPress={onPress}
       >
-        <Label style={styles.text}>{`${item.walletName} (${
-          item.currencySymbol || item.currencyCode
-        })`}</Label>
+        <Label>
+          <Label style={styles.text}>{`${item.walletName}`}</Label>
+          {currency && <Label>{` (${currency})`}</Label>}
+        </Label>
       </TouchableOpacity>
     );
   };

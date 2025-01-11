@@ -6,32 +6,32 @@ CREATE TABLE `Categories` (
 --> statement-breakpoint
 CREATE TABLE `Transactions` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`amount` real,
-	`description` text(255),
-	`date` text DEFAULT CURRENT_TIMESTAMP,
-	`user_id` integer,
-	`type_id` integer,
-	`categoryId` integer,
-	`wallet_id` integer,
+	`amount` real NOT NULL,
+	`description` text(300),
+	`date` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`user_id` integer DEFAULT 1 NOT NULL,
+	`type_id` integer NOT NULL,
+	`categoryId` integer NOT NULL,
+	`wallet_id` integer NOT NULL,
+	`transfer_id` integer,
 	FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`type_id`) REFERENCES `Types`(`id`) ON UPDATE cascade ON DELETE no action,
 	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE no action,
-	FOREIGN KEY (`wallet_id`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade
+	FOREIGN KEY (`wallet_id`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`transfer_id`) REFERENCES `Transfer`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `Transfer` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`date` text DEFAULT CURRENT_TIMESTAMP,
-	`userId` integer,
+	`userId` integer DEFAULT 1,
 	`fromWalletId` integer,
 	`toWalletId` integer,
 	`fromTransactionId` integer,
 	`toTransactionId` integer,
 	FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`fromWalletId`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`toWalletId`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`fromTransactionId`) REFERENCES `Transactions`(`id`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`toTransactionId`) REFERENCES `Transactions`(`id`) ON UPDATE cascade ON DELETE cascade
+	FOREIGN KEY (`toWalletId`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `Types` (
@@ -54,13 +54,13 @@ CREATE TABLE `Users` (
 CREATE UNIQUE INDEX `Users_email_unique` ON `Users` (`email`);--> statement-breakpoint
 CREATE TABLE `Wallet` (
 	`walletId` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`user_id` integer,
-	`startingBalance` real DEFAULT 0,
-	`walletName` text(255) DEFAULT 'My custom wallet',
-	`currencyCode` text(3) DEFAULT 'EUR',
-	`currencySymbol` text(3) DEFAULT '€',
-	`type` text(255) DEFAULT 'custom',
-	`color` text(7) DEFAULT '#3EB489',
-	`createdAt` text DEFAULT CURRENT_TIMESTAMP,
+	`user_id` integer DEFAULT 1 NOT NULL,
+	`startingBalance` real DEFAULT 0 NOT NULL,
+	`walletName` text(255) DEFAULT 'My custom wallet' NOT NULL,
+	`currencyCode` text(10) DEFAULT '',
+	`currencySymbol` text(10) DEFAULT '',
+	`type` text(255) DEFAULT 'custom' NOT NULL,
+	`color` text(7) DEFAULT '#3EB489' NOT NULL,
+	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`) ON UPDATE cascade ON DELETE cascade
 );

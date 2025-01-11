@@ -173,7 +173,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const getCategoryInputIcon = formik.values.category ? (
     getCategoryIcon({
-      type: formik.values.category.name,
+      category: formik.values.category.name,
       colored: true,
       iconSize: 24,
     }).icon
