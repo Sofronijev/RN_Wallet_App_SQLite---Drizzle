@@ -41,7 +41,7 @@ export const changeCurrentBalance = (
 
   return addTransaction({
     amount: balanceDifference,
-    categoryId: CategoryNumber.transfer,
+    categoryId: CategoryNumber.balanceCorrection,
     type_id: type,
     wallet_id,
     date: formatIsoDate(new Date()),
