@@ -11,6 +11,7 @@ import { transactionStrings } from "constants/strings";
 import { addMonths, isSameMonth, subMonths } from "date-fns";
 import { useGetMonthlyBalanceQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
+import MonthlyChart from "../MonthlyChart";
 
 const TODAY = new Date();
 
@@ -72,6 +73,7 @@ const MonthlyBalance: React.FC = () => {
         </View>
         <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
       </View>
+      <MonthlyChart date={selectedDate}/>
     </View>
   );
 };
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
     marginVertical: 20,
-    paddingVertical: 20,
+    paddingVertical: 16,
     borderRadius: 10,
     overflow: "hidden",
   },
@@ -122,7 +124,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 30,
+    paddingHorizontal: 16,
     alignItems: "center",
   },
   walletName: {

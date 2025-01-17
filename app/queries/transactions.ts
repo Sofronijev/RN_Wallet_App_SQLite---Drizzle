@@ -10,6 +10,7 @@ import {
   deleteTransaction,
   editTransaction,
   getInfiniteTransactions,
+  getMonthlyAmountsByCategory,
   getMonthlyBalance,
   getTransactionById,
   getTransactions,
@@ -33,6 +34,26 @@ export const useGetMonthlyBalanceQuery = (
 
   return {
     data: monthlyBalance,
+    isLoading: isLoading || isFetching,
+    isError,
+  };
+};
+
+export const useGetMonthlyGraphDataQuery = (
+  walletId: number | null | undefined,
+  date: number | Date
+) => {
+  const { data, isError, isLoading, isFetching } = useQuery({
+    enabled: !!walletId && !!date,
+    queryKey: [queryKeys.monthlyGraph, walletId, date],
+    queryFn: walletId
+      ? () => getMonthlyAmountsByCategory(walletId, format(date, apiIsoFormat))
+      : skipToken,
+  });
+  const graphData = data ?? [];
+
+  return {
+    data: graphData,
     isLoading: isLoading || isFetching,
     isError,
   };
@@ -115,6 +136,7 @@ export const addTransactionMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
     },
   });
 
@@ -134,6 +156,7 @@ export const editTransactionMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
     },
   });
   return {
@@ -151,6 +174,7 @@ export const deleteTransactionMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
     },
   });
 
