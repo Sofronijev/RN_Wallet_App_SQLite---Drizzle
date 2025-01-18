@@ -13,7 +13,6 @@ const initialState: Prompt = {
   placeholder: "",
   validator: () => true,
 };
-// TODO - ADD validation to prompt typing
 
 const AlertPrompt: React.FC = () => {
   const [data, setData] = useState<Prompt>(initialState);

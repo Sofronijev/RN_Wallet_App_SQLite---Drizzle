@@ -1,5 +1,5 @@
 import { alertButtonStrings, deleteUserDataStrings, logoutAlertStrings } from "constants/strings";
-import AlertPrompt from "modules/AlertPrompt";
+import AlertPrompt from "components/AlertPrompt";
 import { isNumber } from "modules/numbers";
 import { Alert } from "react-native";
 

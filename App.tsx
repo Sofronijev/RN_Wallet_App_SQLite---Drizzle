@@ -5,7 +5,7 @@ import { StatusBar } from "react-native";
 import colors from "constants/colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MenuProvider } from "react-native-popup-menu";
-import AlertPromptProvider from "modules/AlertPrompt/AlertPrompt";
+import AlertPromptProvider from "components/AlertPrompt/AlertPrompt";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
