@@ -20,6 +20,12 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
 
   if (!wallet) return null;
+
+  const currency =
+    wallet.currencyCode || wallet.currencySymbol
+      ? `${wallet.currencyCode} ${wallet.currencySymbol}`
+      : "None";
+
   const { walletId, currentBalance } = wallet;
   const onStartingBalancePress = () => {
     showStartingBalancePrompt((amount: number) => setStartingBalance({ id: walletId, amount }));
@@ -52,9 +58,12 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
       </View>
       <View style={styles.row}>
         <Label>Currency:</Label>
-        <Label>
-          {wallet.currencyCode} {wallet.currencySymbol}
-        </Label>
+        <ButtonText
+          title={currency}
+          type='link'
+          onPress={() => undefined}
+          disabled
+        />
       </View>
       <View style={styles.row}>
         <Label>Color:</Label>

@@ -2,6 +2,7 @@ import { TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import React from "react";
 import { buttonColor, ButtonType } from "modules/buttons";
 import Label from "components/Label";
+import colors from "constants/colors";
 
 type ButtonTextProps = {
   onPress: () => void;
@@ -9,6 +10,7 @@ type ButtonTextProps = {
   style?: ViewStyle;
   type?: ButtonType;
   buttonStyle?: TextStyle;
+  disabled?: boolean;
 };
 
 const ButtonText: React.FC<ButtonTextProps> = ({
@@ -17,10 +19,11 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   style,
   buttonStyle,
   type = "primary",
+  disabled,
 }) => {
-  const color = buttonColor[type];
+  const color = disabled ? colors.disabled : buttonColor[type];
   return (
-    <TouchableOpacity onPress={onPress} style={style}>
+    <TouchableOpacity onPress={onPress} style={style} disabled={disabled}>
       <Label style={[{ color }, buttonStyle]}>{title}</Label>
     </TouchableOpacity>
   );

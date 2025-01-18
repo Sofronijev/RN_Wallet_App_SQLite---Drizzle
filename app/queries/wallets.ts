@@ -26,7 +26,7 @@ export const useGetWalletsWithBalance = () => {
     queryFn: getAllWalletsWithBalance,
   });
 
-  return { data: data ?? [], isLoading, isFetching, isError };
+  return { data: data ?? [], isLoading: isLoading || isFetching, isError };
 };
 export type WalletType = ReturnType<typeof useGetWalletsWithBalance>["data"][number];
 
