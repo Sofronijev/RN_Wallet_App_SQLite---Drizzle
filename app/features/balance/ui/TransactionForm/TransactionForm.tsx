@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import TransactionBottomSheet from "../TransactionBottomSheet";
+import TransactionBottomSheet from "../../../../components/ActionSheet/TransactionBottomSheet";
 import { Category, Transaction, transactionCategories } from "modules/transactionCategories";
 import { TransactionBottomSheetType } from "../../modules/transactionBottomSheet";
 import colors from "constants/colors";
