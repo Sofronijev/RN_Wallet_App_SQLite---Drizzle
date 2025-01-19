@@ -62,3 +62,9 @@ export const setColorCurrency = (walletId: number, color: string) =>
   db.update(wallet).set({ color }).where(eq(wallet.walletId, walletId));
 
 export const createNewWallet = (walletName: string) => db.insert(wallet).values({ walletName });
+
+export const setWalletName = (walletId: number, walletName: string) =>
+  db.update(wallet).set({ walletName }).where(eq(wallet.walletId, walletId));
+
+export const deleteWallet = (walletId: number) =>
+  db.delete(wallet).where(eq(wallet.walletId, walletId));

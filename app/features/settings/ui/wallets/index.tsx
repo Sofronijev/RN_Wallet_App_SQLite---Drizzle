@@ -10,6 +10,7 @@ import AlertPrompt from "components/AlertPrompt";
 const WalletSettings: React.FC = () => {
   const { data: wallets, isLoading: isWalletsLoading } = useGetWalletsWithBalance();
   const { createWallet, isLoading: isCreatingLoading } = createWalletMutation();
+  const canDeleteWallet = wallets.length > 1;
 
   const onAddNewPress = () => {
     AlertPrompt.prompt("Give your new wallet a name", null, (walletName) => {
@@ -19,7 +20,12 @@ const WalletSettings: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <FlatList data={wallets} renderItem={({ item }) => <WalletSettingsItem wallet={item} />} />
+      <FlatList
+        data={wallets}
+        renderItem={({ item }) => (
+          <WalletSettingsItem wallet={item} canDeleteWallet={canDeleteWallet} />
+        )}
+      />
       <TouchableOpacity style={styles.addNew} onPress={onAddNewPress}>
         <Label style={styles.addText}>Create new wallet</Label>
       </TouchableOpacity>

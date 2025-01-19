@@ -3,9 +3,11 @@ import { getSelectedWalletInfo, setSelectedWallet } from "app/services/userQueri
 import {
   changeCurrentBalance,
   createNewWallet,
+  deleteWallet,
   getAllWalletsWithBalance,
   setColorCurrency,
   setWalletCurrency,
+  setWalletName,
   setWalletStartingBalance,
 } from "app/services/walletQueries";
 import { queryKeys } from "./index";
@@ -149,6 +151,41 @@ export const createWalletMutation = () => {
 
   return {
     createWallet: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const setWalletNameMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: ({ id, walletName }: { id: number; walletName: string }) =>
+      setWalletName(id, walletName),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.selectedWallet] });
+    },
+  });
+
+  return {
+    changeWalletName: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const deleteWalletMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: ({ id }: { id: number }) => deleteWallet(id),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.selectedWallet] });
+    },
+  });
+
+  return {
+    deleteWallet: mutate,
     isLoading: isPending,
     isError,
   };

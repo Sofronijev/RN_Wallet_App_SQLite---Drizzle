@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import React from "react";
 import colors from "constants/colors";
 import { formatDecimalDigits } from "modules/numbers";
@@ -7,34 +7,45 @@ import { showBalancePrompt, showStartingBalancePrompt } from "app/features/setti
 import Label from "components/Label";
 import {
   changeCurrentBalanceMutation,
+  deleteWalletMutation,
   setColorMutation,
   setCurrencyMutation,
   setStartingBalanceMutation,
+  setWalletNameMutation,
   WalletType,
 } from "app/queries/wallets";
 import { openCurrencySheet } from "components/ActionSheet/CurrencySheet";
 import { CurrencyType } from "app/currencies/currencies";
 import { openColorSheet } from "components/ActionSheet/ColorSheet";
-import { setColorCurrency } from "app/services/walletQueries";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import AlertPrompt from "components/AlertPrompt";
 
 type Props = {
   wallet: WalletType;
+  canDeleteWallet: boolean;
 };
 
-const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
+const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   const { setStartingBalance } = setStartingBalanceMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
   const { setCurrency } = setCurrencyMutation();
   const { setColor } = setColorMutation();
+  const { changeWalletName } = setWalletNameMutation();
+  const { deleteWallet } = deleteWalletMutation();
 
   if (!wallet) return null;
+  const {
+    walletId,
+    currentBalance,
+    currencyCode,
+    currencySymbol,
+    startingBalance,
+    color,
+    walletName,
+  } = wallet;
 
-  const currency =
-    wallet.currencyCode || wallet.currencySymbol
-      ? `${wallet.currencyCode} ${wallet.currencySymbol}`
-      : "None";
+  const currency = currencyCode || currencySymbol ? `${currencyCode} ${currencySymbol}` : "None";
 
-  const { walletId, currentBalance } = wallet;
   const onStartingBalancePress = () => {
     showStartingBalancePrompt((amount: number) => setStartingBalance({ id: walletId, amount }));
   };
@@ -49,7 +60,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
     openCurrencySheet({
       onSelect: (data: CurrencyType | null) => {
         setCurrency({
-          id: wallet.walletId,
+          id: walletId,
           currencyCode: data?.currencyCode ?? "",
           currencySymbol: data?.symbolNative ?? "",
         });
@@ -60,18 +71,58 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
   const onColorPress = () => {
     openColorSheet({
       onSelect: (color: string) => {
-        setColor({ id: wallet.walletId, color });
+        setColor({ id: walletId, color });
       },
     });
   };
 
+  const onEditName = () => {
+    AlertPrompt.prompt(
+      "Give your wallet a new name",
+      null,
+      (walletName) => {
+        changeWalletName({ id: walletId, walletName });
+      },
+      { defaultValue: walletName }
+    );
+  };
+
+  const onDeleteWallet = () => {
+    Alert.alert(
+      "Are you sure you want to delete this wallet?",
+      "All transactions and data related to it will be permanently deleted.",
+      [
+        { text: "Cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteWallet({ id: walletId }),
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <Label style={styles.name}>{wallet.walletName}</Label>
+      <View style={styles.titleContainer}>
+        <Label style={styles.name}>{walletName}</Label>
+        <View style={styles.iconsContainer}>
+          <TouchableOpacity onPress={onEditName}>
+            <MaterialIcons name='edit' size={24} color={colors.black} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onDeleteWallet} disabled={!canDeleteWallet}>
+            <MaterialIcons
+              name='delete'
+              size={24}
+              color={canDeleteWallet ? colors.black : colors.disabled}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
       <View style={styles.row}>
         <Label>Balance:</Label>
         <ButtonText
-          title={formatDecimalDigits(wallet.currentBalance)}
+          title={formatDecimalDigits(currentBalance)}
           type='link'
           onPress={onBalancePress}
         />
@@ -79,7 +130,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
       <View style={styles.row}>
         <Label>Starting balance:</Label>
         <ButtonText
-          title={formatDecimalDigits(wallet.startingBalance)}
+          title={formatDecimalDigits(startingBalance)}
           type='link'
           onPress={onStartingBalancePress}
         />
@@ -91,7 +142,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
       <View style={styles.row}>
         <Label>Color:</Label>
         <TouchableOpacity
-          style={[styles.colorBox, { backgroundColor: wallet.color }]}
+          style={[styles.colorBox, { backgroundColor: color }]}
           onPress={onColorPress}
         ></TouchableOpacity>
       </View>
@@ -111,6 +162,11 @@ const styles = StyleSheet.create({
     borderColor: colors.grey,
     backgroundColor: colors.white,
   },
+  titleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  iconsContainer: { flexDirection: "row" },
   name: {
     fontSize: 20,
     fontWeight: "bold",

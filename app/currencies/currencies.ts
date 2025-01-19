@@ -1296,7 +1296,7 @@ export const currencies = {
     majorPlural: "Rupees",
     ISOnum: 144,
     symbol: "Rs.",
-    symbolNative: "රු or ரூ",
+    symbolNative: "රු",
     minorSingle: "Cent",
     minorPlural: "Cents",
     ISOdigits: 2,
