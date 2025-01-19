@@ -1,11 +1,6 @@
-import React, { FC, useCallback, useRef, useState } from "react";
+import React, { FC, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import {
-  BottomSheetBackdrop,
-  BottomSheetBackdropProps,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
+import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import colors from "constants/colors";
 import { Category, transactionCategories, Transaction } from "modules/transactionCategories";
 import Separator from "components/Separator";
@@ -18,6 +13,7 @@ import {
 import CategoriesSheetHeader from "./CategoriesSheetHeader";
 import createSheet from "../createSheet";
 import useSheetData from "../useSheetData";
+import SheetModal, { HANDLE_HEIGHT } from "../components/SheetModal";
 
 const categoriesData = Object.values(transactionCategories).map((item) => ({
   name: item.name,
@@ -25,7 +21,6 @@ const categoriesData = Object.values(transactionCategories).map((item) => ({
   label: item.label,
 }));
 
-const HANDLE_HEIGHT = 24;
 const CATEGORIES_PADDING = 10;
 
 const snapPoints = [
@@ -92,27 +87,13 @@ const TransactionBottomSheet: FC = () => {
     ));
   };
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
-    ),
-    []
-  );
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
   // BUG - when there is textInput with autofocus prop the bottom sheet will open - FIXED with setting "softwareKeyboardLayoutMode": "pan" in app.json
   return (
-    <BottomSheetModal
-      ref={sheetRef}
-      snapPoints={snapPoints}
-      enablePanDownToClose
-      onDismiss={onClose}
-      backdropComponent={renderBackdrop}
-      handleStyle={styles.handle}
-      handleHeight={HANDLE_HEIGHT}
-    >
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={onClose}>
       <CategoriesSheetHeader onBack={clearCategory} selectedCategory={selectedCategory} />
       <BottomSheetScrollView>{renderItems()}</BottomSheetScrollView>
-    </BottomSheetModal>
+    </SheetModal>
   );
 };
 
@@ -122,11 +103,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     flex: 1,
-  },
-  handle: {
-    backgroundColor: colors.grey3,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
   },
   header: {
     backgroundColor: colors.grey3,

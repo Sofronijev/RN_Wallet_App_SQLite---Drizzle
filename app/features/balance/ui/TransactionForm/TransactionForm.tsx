@@ -177,7 +177,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="always">
       <View style={styles.inputsContainer}>
         <DatePickerInput date={new Date(formik.values.date)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>
