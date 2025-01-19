@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     borderColor: colors.grey,
+    backgroundColor: colors.white,
   },
   name: {
     fontSize: 20,
