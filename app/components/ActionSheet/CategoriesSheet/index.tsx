@@ -1,19 +1,16 @@
 import React, { FC, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import colors from "constants/colors";
 import { Category, transactionCategories, Transaction } from "modules/transactionCategories";
 import Separator from "components/Separator";
 import CategoryTypeRowSelect from "./CategoryTypeRowSelect";
 import CategoryItem, { CATEGORY_ITEM_HEIGHT } from "./CategoryItem";
-import {
-  CATEGORIES_NUMBER_OF_ROWS,
-  HEADER_TEXT_HEIGH,
-} from "app/features/balance/modules/transaction";
+import { CATEGORIES_NUMBER_OF_ROWS } from "app/features/balance/modules/transaction";
 import CategoriesSheetHeader from "./CategoriesSheetHeader";
 import createSheet from "../createSheet";
 import useSheetData from "../useSheetData";
 import SheetModal, { HANDLE_HEIGHT } from "../components/SheetModal";
+import { HEADER_TEXT_HEIGH } from "../components/SheetHeader";
 
 const categoriesData = Object.values(transactionCategories).map((item) => ({
   name: item.name,
@@ -103,13 +100,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     flex: 1,
-  },
-  header: {
-    backgroundColor: colors.grey3,
-    height: HEADER_TEXT_HEIGH,
-    flexDirection: "row",
-    paddingBottom: 10,
-    justifyContent: "space-between",
   },
   categories: {
     flexDirection: "row",

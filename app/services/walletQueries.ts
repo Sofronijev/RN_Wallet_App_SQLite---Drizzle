@@ -54,3 +54,6 @@ export const getWalletInfo = (walletId: number) => {
     where: eq(wallet.walletId, walletId),
   });
 };
+
+export const setWalletCurrency = (walletId: number, currencyCode: string, currencySymbol: string) =>
+  db.update(wallet).set({ currencyCode, currencySymbol }).where(eq(wallet.walletId, walletId));

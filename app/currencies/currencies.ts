@@ -2580,3 +2580,4 @@ export const currencies = {
     currencyCode: "Artsakh",
   },
 };
+export type CurrencyType = (typeof currencies)[keyof typeof currencies];

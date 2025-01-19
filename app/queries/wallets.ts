@@ -3,6 +3,7 @@ import { getSelectedWalletInfo, setSelectedWallet } from "app/services/userQueri
 import {
   changeCurrentBalance,
   getAllWalletsWithBalance,
+  setWalletCurrency,
   setWalletStartingBalance,
 } from "app/services/walletQueries";
 import { queryKeys } from "./index";
@@ -87,6 +88,31 @@ export const changeCurrentBalanceMutation = () => {
 
   return {
     changeCurrentBalance: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const setCurrencyMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: ({
+      id,
+      currencyCode,
+      currencySymbol,
+    }: {
+      id: number;
+      currencyCode: string;
+      currencySymbol: string;
+    }) => setWalletCurrency(id, currencyCode, currencySymbol),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.selectedWallet] });
+    },
+  });
+
+  return {
+    setCurrency: mutate,
     isLoading: isPending,
     isError,
   };

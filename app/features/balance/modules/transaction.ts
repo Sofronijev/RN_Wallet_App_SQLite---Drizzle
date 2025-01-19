@@ -4,7 +4,6 @@ import { ResponseError } from "modules/types";
 import { Alert } from "react-native";
 
 export const CATEGORIES_NUMBER_OF_ROWS = 4;
-export const HEADER_TEXT_HEIGH = 35;
 
 export const handleTransactionError = (error: ResponseError) => {
   if (error.status === 422) {

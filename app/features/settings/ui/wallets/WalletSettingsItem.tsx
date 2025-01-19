@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import React from "react";
 import colors from "constants/colors";
 import { formatDecimalDigits } from "modules/numbers";
@@ -7,9 +7,12 @@ import { showBalancePrompt, showStartingBalancePrompt } from "app/features/setti
 import Label from "components/Label";
 import {
   changeCurrentBalanceMutation,
+  setCurrencyMutation,
   setStartingBalanceMutation,
   WalletType,
 } from "app/queries/wallets";
+import { openCurrencySheet } from "components/ActionSheet/CurrencySheet";
+import { CurrencyType } from "app/currencies/currencies";
 
 type Props = {
   wallet: WalletType;
@@ -18,6 +21,7 @@ type Props = {
 const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
   const { setStartingBalance } = setStartingBalanceMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
+  const { setCurrency } = setCurrencyMutation();
 
   if (!wallet) return null;
 
@@ -35,6 +39,18 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
     showBalancePrompt((newAmount: number) =>
       changeCurrentBalance({ id: walletId, currentAmount: currentBalance, newAmount })
     );
+  };
+
+  const onCurrencyPress = () => {
+    openCurrencySheet({
+      onSelect: (data: CurrencyType | null) => {
+        setCurrency({
+          id: wallet.walletId,
+          currencyCode: data?.currencyCode ?? "",
+          currencySymbol: data?.symbolNative ?? "",
+        });
+      },
+    });
   };
 
   return (
@@ -58,12 +74,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
       </View>
       <View style={styles.row}>
         <Label>Currency:</Label>
-        <ButtonText
-          title={currency}
-          type='link'
-          onPress={() => undefined}
-          disabled
-        />
+        <ButtonText title={currency} type='link' onPress={onCurrencyPress} />
       </View>
       <View style={styles.row}>
         <Label>Color:</Label>
