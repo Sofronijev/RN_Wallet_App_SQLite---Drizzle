@@ -30,7 +30,7 @@ export type Prompt = {
 
 const prompt = (
   title: string,
-  message?: string,
+  message?: string | null,
   callbackOrButtons?: ((text: string) => void) | PromptButtons[],
   options?: PromptOptions
 ) => {

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSelectedWalletInfo, setSelectedWallet } from "app/services/userQueries";
 import {
   changeCurrentBalance,
+  createNewWallet,
   getAllWalletsWithBalance,
   setColorCurrency,
   setWalletCurrency,
@@ -131,6 +132,23 @@ export const setColorMutation = () => {
 
   return {
     setColor: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const createWalletMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: ({ walletName }: { walletName: string }) => createNewWallet(walletName),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.selectedWallet] });
+    },
+  });
+
+  return {
+    createWallet: mutate,
     isLoading: isPending,
     isError,
   };
