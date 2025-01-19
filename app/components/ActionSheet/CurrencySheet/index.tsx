@@ -14,7 +14,7 @@ type Data = {
   onSelect: (currency: CurrencyType | null) => void;
 };
 
-const [emitter, openCurrencySheet, closeCurrencySheer] = createSheet<Data>();
+const [emitter, openCurrencySheet, closeCurrencySheet] = createSheet<Data>();
 
 export { openCurrencySheet };
 
@@ -26,12 +26,12 @@ const CurrencySheet: FC = () => {
 
   const onItemPress = (item: CurrencyType) => () => {
     sheetData?.onSelect(item);
-    closeCurrencySheer();
+    closeCurrencySheet();
   };
 
   const onRemoveCurrency = () => {
     sheetData?.onSelect(null);
-    closeCurrencySheer();
+    closeCurrencySheet();
   };
 
   const renderItem = useCallback(

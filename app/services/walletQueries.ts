@@ -57,3 +57,6 @@ export const getWalletInfo = (walletId: number) => {
 
 export const setWalletCurrency = (walletId: number, currencyCode: string, currencySymbol: string) =>
   db.update(wallet).set({ currencyCode, currencySymbol }).where(eq(wallet.walletId, walletId));
+
+export const setColorCurrency = (walletId: number, color: string) =>
+  db.update(wallet).set({ color }).where(eq(wallet.walletId, walletId));

@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import colors from "constants/colors";
 import { formatDecimalDigits } from "modules/numbers";
@@ -7,12 +7,15 @@ import { showBalancePrompt, showStartingBalancePrompt } from "app/features/setti
 import Label from "components/Label";
 import {
   changeCurrentBalanceMutation,
+  setColorMutation,
   setCurrencyMutation,
   setStartingBalanceMutation,
   WalletType,
 } from "app/queries/wallets";
 import { openCurrencySheet } from "components/ActionSheet/CurrencySheet";
 import { CurrencyType } from "app/currencies/currencies";
+import { openColorSheet } from "components/ActionSheet/ColorSheet";
+import { setColorCurrency } from "app/services/walletQueries";
 
 type Props = {
   wallet: WalletType;
@@ -22,6 +25,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
   const { setStartingBalance } = setStartingBalanceMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
   const { setCurrency } = setCurrencyMutation();
+  const { setColor } = setColorMutation();
 
   if (!wallet) return null;
 
@@ -53,6 +57,14 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
     });
   };
 
+  const onColorPress = () => {
+    openColorSheet({
+      onSelect: (color: string) => {
+        setColor({ id: wallet.walletId, color });
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Label style={styles.name}>{wallet.walletName}</Label>
@@ -78,7 +90,10 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet }) => {
       </View>
       <View style={styles.row}>
         <Label>Color:</Label>
-        <Label>{wallet.color}</Label>
+        <TouchableOpacity
+          style={[styles.colorBox, { backgroundColor: wallet.color }]}
+          onPress={onColorPress}
+        ></TouchableOpacity>
       </View>
     </View>
   );
@@ -105,5 +120,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingBottom: 5,
     justifyContent: "space-between",
+    alignItems: "center",
+  },
+  colorBox: {
+    height: 25,
+    width: 25,
+    borderRadius: 15,
   },
 });
