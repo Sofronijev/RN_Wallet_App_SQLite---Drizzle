@@ -1,65 +1,53 @@
-import React, { useCallback, useImperativeHandle, useRef, useState } from "react";
+import React, { FC, useCallback, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import BottomSheet, {
+import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
+  BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import colors from "constants/colors";
-import {
-  Category,
-  transactionCategories,
-  Transaction,
-} from "modules/transactionCategories";
+import { Category, transactionCategories, Transaction } from "modules/transactionCategories";
 import Separator from "components/Separator";
-import TransactionRowSelect from "./TransactionRowSelect";
-import TransactionItem, { TRANSACTION_ITEM_HEIGHT } from "./TransactionItem";
+import CategoryTypeRowSelect from "./CategoryTypeRowSelect";
+import CategoryItem, { CATEGORY_ITEM_HEIGHT } from "./CategoryItem";
 import {
   CATEGORIES_NUMBER_OF_ROWS,
   HEADER_TEXT_HEIGH,
 } from "app/features/balance/modules/transaction";
-import TransactionSheetHeader from "./TransactionSheetHeader";
+import CategoriesSheetHeader from "./CategoriesSheetHeader";
+import createSheet from "../createSheet";
+import useSheetData from "../useSheetData";
 
-const categoriesData = Object.values(transactionCategories)
-  .map((item) => ({
-    name: item.name,
-    id: item.id,
-    label: item.label,
-  }));
+const categoriesData = Object.values(transactionCategories).map((item) => ({
+  name: item.name,
+  id: item.id,
+  label: item.label,
+}));
 
 const HANDLE_HEIGHT = 24;
 const CATEGORIES_PADDING = 10;
 
 const snapPoints = [
-  TRANSACTION_ITEM_HEIGHT * CATEGORIES_NUMBER_OF_ROWS +
+  CATEGORY_ITEM_HEIGHT * CATEGORIES_NUMBER_OF_ROWS +
     HANDLE_HEIGHT +
     HEADER_TEXT_HEIGH +
     CATEGORIES_PADDING * 2,
 ];
 
-type Props = {
+type Data = {
   onSelect: (category: Category, type: Transaction) => void;
 };
 
-type refProps = {
-  openSheet: () => void;
-};
+const [emitter, openCategoriesSheet, closeCategoriesSheet] = createSheet<Data>();
 
-const TransactionBottomSheet: React.ForwardRefRenderFunction<refProps, Props> = (props, ref) => {
-  const { onSelect } = props;
-  const sheetRef = useRef<BottomSheet>(null);
+export { openCategoriesSheet };
+
+const TransactionBottomSheet: FC = () => {
+  const sheetRef = useRef<BottomSheetModal>(null);
   const [data, setData] = useState<Transaction[]>(categoriesData);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const openSheet = useCallback(() => {
-    sheetRef.current?.expand();
-  }, []);
-  const closeSheet = useCallback(() => {
-    sheetRef.current?.close();
-  }, []);
-
-  useImperativeHandle(ref, () => ({
-    openSheet: () => openSheet(),
-  }));
+  const sheetData = useSheetData<Data>(emitter, sheetRef);
 
   const setTypeData = (id: number) => {
     const types = transactionCategories[id].types ?? [];
@@ -76,8 +64,8 @@ const TransactionBottomSheet: React.ForwardRefRenderFunction<refProps, Props> = 
       setTypeData(item.id);
       setSelectedCategory(item as Category);
     } else {
-      onSelect(selectedCategory, item);
-      closeSheet();
+      sheetData?.onSelect(selectedCategory, item);
+      closeCategoriesSheet();
     }
   };
 
@@ -91,14 +79,14 @@ const TransactionBottomSheet: React.ForwardRefRenderFunction<refProps, Props> = 
       return (
         <View style={styles.categories}>
           {data.map((item) => (
-            <TransactionItem key={item.id} item={item} onPress={onRowPress} />
+            <CategoryItem key={item.id} item={item} onPress={onRowPress} />
           ))}
         </View>
       );
     }
     return data.map((item) => (
       <View key={item.id}>
-        <TransactionRowSelect item={item} onPress={onRowPress} />
+        <CategoryTypeRowSelect item={item} onPress={onRowPress} />
         <Separator offset={16} />
       </View>
     ));
@@ -113,19 +101,18 @@ const TransactionBottomSheet: React.ForwardRefRenderFunction<refProps, Props> = 
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
   // BUG - when there is textInput with autofocus prop the bottom sheet will open - FIXED with setting "softwareKeyboardLayoutMode": "pan" in app.json
   return (
-    <BottomSheet
+    <BottomSheetModal
       ref={sheetRef}
       snapPoints={snapPoints}
       enablePanDownToClose
-      index={-1}
-      onClose={onClose}
+      onDismiss={onClose}
       backdropComponent={renderBackdrop}
       handleStyle={styles.handle}
       handleHeight={HANDLE_HEIGHT}
     >
-      <TransactionSheetHeader onBack={clearCategory} selectedCategory={selectedCategory} />
+      <CategoriesSheetHeader onBack={clearCategory} selectedCategory={selectedCategory} />
       <BottomSheetScrollView>{renderItems()}</BottomSheetScrollView>
-    </BottomSheet>
+    </BottomSheetModal>
   );
 };
 
@@ -159,4 +146,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.forwardRef(TransactionBottomSheet);
+export default TransactionBottomSheet;

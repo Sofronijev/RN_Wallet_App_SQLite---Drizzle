@@ -7,13 +7,13 @@ type Props = {
   onPress: (item: Transaction | Category) => void;
 };
 
-const TransactionRowSelect: React.FC<Props> = ({ item, onPress }) => (
+const CategoryTypeRowSelect: React.FC<Props> = ({ item, onPress }) => (
   <TouchableOpacity style={styles.container} onPress={() => onPress(item)}>
     <Text style={styles.label}>{item.label}</Text>
   </TouchableOpacity>
 );
 
-export default TransactionRowSelect;
+export default CategoryTypeRowSelect;
 
 const styles = StyleSheet.create({
   container: {

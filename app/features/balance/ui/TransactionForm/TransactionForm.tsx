@@ -4,9 +4,8 @@ import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import TransactionBottomSheet from "../../../../components/ActionSheet/TransactionBottomSheet";
+import { openCategoriesSheet } from "components/ActionSheet/CategoriesSheet";
 import { Category, Transaction, transactionCategories } from "modules/transactionCategories";
-import { TransactionBottomSheetType } from "../../modules/transactionBottomSheet";
 import colors from "constants/colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { formatIsoDate } from "modules/timeAndDate";
@@ -39,6 +38,7 @@ import {
   useGetTransactionByIdQuery,
 } from "app/queries/transactions";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
+import { ScrollView } from "react-native-gesture-handler";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -47,7 +47,6 @@ type Props = {
 
 const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const editTransactionId = route.params?.id;
-  const sheetRef = useRef<TransactionBottomSheetType>(null);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data: editedTransaction } = useGetTransactionByIdQuery(editTransactionId);
@@ -93,13 +92,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     deleteTransactionAlert(onDeleteTransaction);
   };
 
-  // TODO - Move sheet to separate component at the parent
-  // if screen is set to ScrollView there is a bug, sheet doesn't come from the bottom
   const openSheet = () => {
-    if (sheetRef?.current) {
-      Keyboard.dismiss();
-      sheetRef?.current?.openSheet();
-    }
+    Keyboard.dismiss();
+    openCategoriesSheet({ onSelect: onSelectCategory });
   };
 
   const formatEditInitialValues = (transaction: TransactionType) => {
@@ -182,7 +177,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.inputsContainer}>
         <DatePickerInput date={new Date(formik.values.date)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>
@@ -229,9 +224,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         />
         <CustomButton title='Submit' onPress={onSubmit} style={styles.button} />
       </View>
-      <TransactionBottomSheet ref={sheetRef} onSelect={onSelectCategory} />
       <AppActivityIndicator hideScreen isLoading={isLoading} />
-    </View>
+    </ScrollView>
   );
 };
 

@@ -6,12 +6,12 @@ import { Category } from "modules/transactionCategories";
 import { FontAwesome } from "@expo/vector-icons";
 import Label from "components/Label";
 
-type TransactionSheetHeaderProps = {
+type CategoriesSheetHeaderProps = {
   onBack: () => void;
   selectedCategory: Category | null;
 };
 
-const TransactionSheetHeader: React.FC<TransactionSheetHeaderProps> = ({
+const CategoriesSheetHeader: React.FC<CategoriesSheetHeaderProps> = ({
   onBack,
   selectedCategory,
 }) => {
@@ -48,4 +48,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TransactionSheetHeader;
+export default CategoriesSheetHeader;

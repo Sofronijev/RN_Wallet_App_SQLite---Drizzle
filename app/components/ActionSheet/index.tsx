@@ -1,14 +1,14 @@
-import { View, Text } from "react-native";
-import React from "react";
+import React, { FC, PropsWithChildren } from "react";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import TransactionBottomSheet from "./CategoriesSheet";
 
-type Props = {};
-
-const ActionSheet = (props: Props) => {
+const ActionSheetProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <View>
-      <Text>ActionSheet</Text>
-    </View>
+    <BottomSheetModalProvider>
+      {children}
+      <TransactionBottomSheet />
+    </BottomSheetModalProvider>
   );
 };
 
-export default ActionSheet;
+export default ActionSheetProvider;
