@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MenuProvider } from "react-native-popup-menu";
 import AlertPromptProvider from "components/AlertPrompt/AlertPrompt";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ActionSheetProvider from "components/ActionSheet";
 
 const queryClient = new QueryClient();
 
@@ -14,10 +15,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <MenuProvider>
-        <NavigationContainer>
-          <StatusBar animated={true} backgroundColor={colors.greenMint} />
-          <RootNavigator />
-        </NavigationContainer>
+        <ActionSheetProvider>
+          <NavigationContainer>
+            <StatusBar animated={true} backgroundColor={colors.greenMint} />
+            <RootNavigator />
+          </NavigationContainer>
+        </ActionSheetProvider>
         <AlertPromptProvider />
       </MenuProvider>
     </GestureHandlerRootView>

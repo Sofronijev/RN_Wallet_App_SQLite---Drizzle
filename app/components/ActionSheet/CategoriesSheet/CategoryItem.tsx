@@ -1,40 +1,37 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React from "react";
 import CategoryIcon from "components/CategoryIcon";
 import { Category, Transaction } from "modules/transactionCategories";
 import { CATEGORIES_NUMBER_OF_ROWS } from "app/features/balance/modules/transaction";
 
-export const TRANSACTION_ITEM_HEIGHT = 85;
-const transactionWidth = 100 / CATEGORIES_NUMBER_OF_ROWS;
+export const CATEGORY_ITEM_HEIGHT = 85;
+const categoryWidth = 100 / CATEGORIES_NUMBER_OF_ROWS;
 
-type TransactionItemProps = {
+type CategoryItemProps = {
   item: Transaction | Category;
   onPress: (item: Transaction | Category) => void;
 };
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ item, onPress }) => {
+const CategoryItem: React.FC<CategoryItemProps> = ({ item, onPress }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={() => onPress(item)}>
-      <View style={styles.icon}>
-        <CategoryIcon categoryName={item.name} iconSize={40} />
-      </View>
+      <CategoryIcon categoryName={item.name} iconSize={40} />
       <Text numberOfLines={1} style={styles.label}>
         {item.label}
       </Text>
     </TouchableOpacity>
   );
 };
-export default TransactionItem;
+export default CategoryItem;
 
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     padding: 5,
-    height: TRANSACTION_ITEM_HEIGHT,
-    width: `${transactionWidth}%`,
+    height: CATEGORY_ITEM_HEIGHT,
+    width: `${categoryWidth}%`,
   },
   label: {
     fontSize: 13,
   },
-  icon: {},
 });
