@@ -5,7 +5,6 @@ import {
   FontAwesome5,
   MaterialCommunityIcons,
   Ionicons,
-  Fontisto,
   MaterialIcons,
 } from "@expo/vector-icons";
 import colors from "constants/colors";
@@ -58,7 +57,7 @@ export const getCategoryIcon = ({
     case "housing":
       return {
         icon: (
-          <Ionicons
+          <FontAwesome
             name='home'
             size={iconSize ?? ICON_SIZE}
             color={colored ? colors.housing : colors.white}
@@ -135,7 +134,7 @@ export const getCategoryIcon = ({
     case "obligation":
       return {
         icon: (
-          <FontAwesome5
+          <FontAwesome
             name='credit-card'
             size={iconSize ?? ICON_SIZE}
             color={colored ? colors.obligations : colors.white}
@@ -146,8 +145,8 @@ export const getCategoryIcon = ({
     case "entertainment":
       return {
         icon: (
-          <Fontisto
-            name='smiley'
+          <Ionicons
+            name='happy-outline'
             size={iconSize ?? ICON_SIZE}
             color={colored ? colors.entertainment : colors.white}
           />
@@ -168,8 +167,8 @@ export const getCategoryIcon = ({
     case "balanceCorrection":
       return {
         icon: (
-          <Fontisto
-            name='arrow-swap'
+          <MaterialCommunityIcons
+            name='swap-horizontal-bold'
             size={iconSize ?? ICON_SIZE}
             color={colored ? colors.transfer : colors.white}
           />
