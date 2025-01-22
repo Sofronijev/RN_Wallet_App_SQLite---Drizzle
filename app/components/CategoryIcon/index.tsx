@@ -70,7 +70,7 @@ export const getCategoryIcon = ({
       return {
         icon: (
           <MaterialCommunityIcons
-            name='water-pump'
+            name='lightbulb-on'
             size={iconSize ?? ICON_SIZE}
             color={colored ? colors.utilities : colors.white}
           />
