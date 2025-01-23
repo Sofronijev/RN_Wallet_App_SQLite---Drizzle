@@ -20,7 +20,10 @@ export const types = sqliteTable("Types", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name", { length: 255 }),
   type: text("type", { length: 255, enum: ["custom", "system"] }).default("custom"),
-  categoryId: integer("categoryId").references(() => categories.id, { onUpdate: "cascade" }),
+  categoryId: integer("categoryId").references(() => categories.id, {
+    onUpdate: "cascade",
+    onDelete: "cascade",
+  }),
 });
 
 // Categories Table
@@ -28,6 +31,9 @@ export const categories = sqliteTable("Categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name", { length: 255 }),
   type: text("type", { length: 255, enum: ["custom", "system"] }).default("custom"),
+  iconFamily: text("iconFamily", { length: 255 }),
+  iconName: text("iconName", { length: 255 }),
+  iconColor: text("iconColor", { length: 255 }),
 });
 
 // Wallet Table
@@ -69,10 +75,10 @@ export const transactions = sqliteTable("Transactions", {
     .default(DEFAULT_USER_ID)
     .notNull(),
   type_id: integer("type_id")
-    .references(() => types.id, { onUpdate: "cascade" })
+    .references(() => types.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
   categoryId: integer("categoryId")
-    .references(() => categories.id, { onUpdate: "cascade" })
+    .references(() => categories.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
   wallet_id: integer("wallet_id")
     .references(() => wallet.walletId, {
@@ -81,7 +87,9 @@ export const transactions = sqliteTable("Transactions", {
     })
     .notNull(),
   transfer_id: integer("transfer_id").references(() => transfer.id, {
-    onDelete: "cascade",
+    // in case transfer is deleted when wallet is deleted just set it to null
+    // in case transfer is deleted this transaction needs to be deleted manually
+    onDelete: "set null",
     onUpdate: "cascade",
   }),
 });
@@ -97,12 +105,12 @@ export const transfer = sqliteTable("Transfer", {
     })
     .default(DEFAULT_USER_ID),
   fromWalletId: integer("fromWalletId").references(() => wallet.walletId, {
-    onDelete: "cascade",
+    onDelete: "set null",
     onUpdate: "cascade",
   }),
 
   toWalletId: integer("toWalletId").references(() => wallet.walletId, {
-    onDelete: "cascade",
+    onDelete: "set null",
     onUpdate: "cascade",
   }),
   fromTransactionId: integer("fromTransactionId"),
