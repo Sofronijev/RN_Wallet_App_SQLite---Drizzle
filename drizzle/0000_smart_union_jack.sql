@@ -1,7 +1,10 @@
 CREATE TABLE `Categories` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text(255),
-	`type` text(255) DEFAULT 'custom'
+	`type` text(255) DEFAULT 'custom',
+	`iconFamily` text(255),
+	`iconName` text(255),
+	`iconColor` text(255)
 );
 --> statement-breakpoint
 CREATE TABLE `Transactions` (
@@ -15,10 +18,10 @@ CREATE TABLE `Transactions` (
 	`wallet_id` integer NOT NULL,
 	`transfer_id` integer,
 	FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`type_id`) REFERENCES `Types`(`id`) ON UPDATE cascade ON DELETE no action,
-	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE no action,
+	FOREIGN KEY (`type_id`) REFERENCES `Types`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`wallet_id`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`transfer_id`) REFERENCES `Transfer`(`id`) ON UPDATE cascade ON DELETE cascade
+	FOREIGN KEY (`transfer_id`) REFERENCES `Transfer`(`id`) ON UPDATE cascade ON DELETE set null
 );
 --> statement-breakpoint
 CREATE TABLE `Transfer` (
@@ -39,7 +42,7 @@ CREATE TABLE `Types` (
 	`name` text(255),
 	`type` text(255) DEFAULT 'custom',
 	`categoryId` integer,
-	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE no action
+	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `Users` (

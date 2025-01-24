@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d6c9c865-a9eb-46ca-b89d-1d8e0953ed72",
+  "id": "efd46257-9e61-4102-be81-887d53367f74",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "Categories": {
@@ -28,6 +28,27 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'custom'"
+        },
+        "iconFamily": {
+          "name": "iconFamily",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "iconName": {
+          "name": "iconName",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "iconColor": {
+          "name": "iconColor",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -130,7 +151,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "cascade"
         },
         "Transactions_categoryId_Categories_id_fk": {
@@ -143,7 +164,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "cascade"
         },
         "Transactions_wallet_id_Wallet_walletId_fk": {
@@ -169,7 +190,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "cascade"
         }
       },
@@ -323,7 +344,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
