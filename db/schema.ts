@@ -105,12 +105,12 @@ export const transfer = sqliteTable("Transfer", {
     })
     .default(DEFAULT_USER_ID),
   fromWalletId: integer("fromWalletId").references(() => wallet.walletId, {
-    onDelete: "set null",
+    onDelete: "cascade",
     onUpdate: "cascade",
   }),
 
   toWalletId: integer("toWalletId").references(() => wallet.walletId, {
-    onDelete: "set null",
+    onDelete: "cascade",
     onUpdate: "cascade",
   }),
   fromTransactionId: integer("fromTransactionId"),
