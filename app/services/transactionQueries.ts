@@ -92,7 +92,10 @@ export const getMonthlyAmountsByCategory = async (walletId: number, date: string
     .groupBy(transactions.categoryId);
 
 export const getTransactionById = (id: number) =>
-  db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
+  db.query.transactions.findFirst({
+    where: sql`${transactions.id} = ${id}`,
+    with: { category: true, type: true },
+  });
 
 export const addTransaction = (transaction: NewTransaction) =>
   db.insert(transactions).values(transaction);

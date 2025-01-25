@@ -1,11 +1,10 @@
 import { Keyboard, StyleSheet, View, TouchableOpacity } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
 import { openCategoriesSheet } from "components/ActionSheet/CategoriesSheet";
-import { Category, Transaction, transactionCategories } from "modules/transactionCategories";
 import colors from "constants/colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { formatIsoDate } from "modules/timeAndDate";
@@ -30,7 +29,7 @@ import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
 import { getCategoryIcon } from "components/CategoryIcon";
-import { TransactionType } from "db";
+import { Type, TransactionWithDetails, Category } from "db";
 import {
   addTransactionMutation,
   deleteTransactionMutation,
@@ -97,31 +96,29 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     openCategoriesSheet({ onSelect: onSelectCategory });
   };
 
-  const formatEditInitialValues = (transaction: TransactionType) => {
-    const category = transactionCategories[transaction.categoryId];
-    const type = category.types[transaction.type_id];
-
+  const formatEditInitialValues = (transaction: TransactionWithDetails) => {
     return {
       date: formatIsoDate(transaction.date),
       amount: `${Math.abs(transaction.amount)}`,
       description: transaction.description ?? "",
-      category,
-      type,
+      category: transaction.category,
+      type: transaction.type,
       walletId: `${transaction.wallet_id}`,
     };
   };
 
-  const formik = useFormik<TransactionFromInputs>({
-    initialValues: editedTransaction
-      ? formatEditInitialValues(editedTransaction)
-      : { ...initialTransactionFormValues, walletId: `${selectedWallet?.walletId}` },
-    validationSchema: transactionValidationSchema,
-    validateOnChange: hasSubmittedForm,
-    onSubmit: onTransactionSubmit,
-    enableReinitialize: true,
-  });
+  const { values, setFieldValue, errors, handleSubmit, handleChange } =
+    useFormik<TransactionFromInputs>({
+      initialValues: editedTransaction
+        ? formatEditInitialValues(editedTransaction)
+        : { ...initialTransactionFormValues, walletId: `${selectedWallet?.walletId}` },
+      validationSchema: transactionValidationSchema,
+      validateOnChange: hasSubmittedForm,
+      onSubmit: onTransactionSubmit,
+      enableReinitialize: true,
+    });
 
-  const pickedWallet = wallets.find((wallet) => wallet.walletId === +formik.values.walletId);
+  const pickedWallet = wallets.find((wallet) => wallet.walletId === +values.walletId);
   const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
 
   useEffect(() => {
@@ -137,68 +134,65 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [editedTransaction]);
 
-  const onSelectCategory = (category: Category, type: Transaction) => {
-    formik.setFieldValue("category", category);
-    formik.setFieldValue("type", type);
+  const onSelectCategory = (category: Category, type: Type) => {
+    setFieldValue("category", category);
+    setFieldValue("type", type);
   };
 
   const setCategoryText = () => {
-    if (!formik.values.category && !formik.values.type) {
+    if (!values.category && !values.type) {
       return "";
     }
-    return `${formik.values.category?.label}, ${formik.values.type?.label}`;
+    return `${values.category?.name}, ${values.type?.name}`;
   };
 
   // In case amount is negative, remove minus sign for preview
   // TODO - add validation while typing
-  const formattedAmount = formik.values.amount.replace("-", "");
+  const formattedAmount = values.amount.replace("-", "");
 
   const onDateChange = (date: string) => {
-    formik.setFieldValue("date", date);
+    setFieldValue("date", date);
   };
 
   const onWalletSelect = (walletId: number) => {
-    formik.setFieldValue("walletId", walletId);
+    setFieldValue("walletId", walletId);
   };
 
   const onSubmit = () => {
     setHasSubmittedForm(true);
-    formik.handleSubmit();
+    handleSubmit();
   };
 
-  const getCategoryInputIcon = formik.values.category ? (
+  const getCategoryInputIcon = values.category ? (
     getCategoryIcon({
-      category: formik.values.category.name,
-      colored: true,
+      color: values.category.iconColor,
+      iconFamily: values.category.iconFamily,
+      name: values.category.iconName,
       iconSize: 24,
-    }).icon
+    })
   ) : (
     <MaterialIcons name='category' size={24} color={colors.greenMint} />
   );
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="always">
+    <ScrollView style={styles.container} keyboardShouldPersistTaps='always'>
       <View style={styles.inputsContainer}>
-        <DatePickerInput date={new Date(formik.values.date)} onDateSelect={onDateChange} />
+        <DatePickerInput date={new Date(values.date)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>
-          <WalletPicker
-            wallets={wallets}
-            selected={+formik.values.walletId}
-            onSelect={onWalletSelect}
-          />
-          <InputErrorLabel text={formik.errors.walletId} isVisible={!!formik.errors.walletId} />
+          <WalletPicker wallets={wallets} selected={+values.walletId} onSelect={onWalletSelect} />
+          <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
         <StyledLabelInput
           value={formattedAmount}
           placeholder='Amount'
-          onChangeText={formik.handleChange("amount")}
+          onChangeText={handleChange("amount")}
           keyboardType='decimal-pad'
           style={styles.input}
           icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
           autoFocus={!editTransactionId}
           rightText={walletCurrency}
         />
-        <InputErrorLabel text={formik.errors.amount} isVisible={!!formik.errors.amount} />
+        <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
         <View>
           <TouchableOpacity onPress={openSheet}>
             <StyledLabelInput
@@ -210,17 +204,14 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
               inputStyle={styles.category}
             />
           </TouchableOpacity>
-          <InputErrorLabel
-            text={formik.errors.category}
-            isVisible={!!formik.errors.category || !!formik.errors.type}
-          />
+          <InputErrorLabel text={errors.category} isVisible={!!errors.category || !!errors.type} />
         </View>
         <StyledLabelInput
           placeholder='Transaction comment'
           style={styles.input}
           maxLength={300}
-          value={formik.values.description}
-          onChangeText={formik.handleChange("description")}
+          value={values.description}
+          onChangeText={handleChange("description")}
         />
         <CustomButton title='Submit' onPress={onSubmit} style={styles.button} />
       </View>

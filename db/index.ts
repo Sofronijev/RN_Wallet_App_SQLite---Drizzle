@@ -16,6 +16,10 @@ export type NewUser = InferInsertModel<typeof schema.users>;
 export type Wallet = InferSelectModel<typeof schema.wallet>;
 
 export type TransactionType = InferSelectModel<typeof schema.transactions>;
+export type TransactionWithDetails = InferSelectModel<typeof schema.transactions> & {
+  category: InferSelectModel<typeof schema.categories>;
+  type: InferSelectModel<typeof schema.types>;
+};
 export type NewTransaction = InferInsertModel<typeof schema.transactions>;
 
 export type TransferType = InferSelectModel<typeof schema.transfer>;
@@ -28,5 +32,5 @@ export type TransferWithTransactions = InferSelectModel<typeof schema.transfer> 
 export type CategoriesWithType = InferSelectModel<typeof schema.categories> & {
   types: InferSelectModel<typeof schema.types>[];
 };
-
-export type CategoryType = InferSelectModel<typeof schema.types>;
+export type Category = InferSelectModel<typeof schema.categories>;
+export type Type = InferSelectModel<typeof schema.types>;

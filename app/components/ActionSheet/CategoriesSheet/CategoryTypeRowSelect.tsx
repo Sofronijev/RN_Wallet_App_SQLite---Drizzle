@@ -1,11 +1,11 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React from "react";
-import { CategoryType } from "db";
+import { Type } from "db";
 import Separator from "components/Separator";
 
 type Props = {
-  item: CategoryType;
-  onPress: (item: CategoryType) => void;
+  item: Type;
+  onPress: (item: Type) => void;
 };
 
 const CategoryTypeRowSelect: React.FC<Props> = ({ item, onPress }) => (

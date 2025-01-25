@@ -3,7 +3,7 @@ import { transactions, wallet } from "db/schema";
 import { eq, getTableColumns, sql } from "drizzle-orm";
 import { addTransaction } from "./transactionQueries";
 import { formatIsoDate } from "modules/timeAndDate";
-import { CategoryNumber, typeIds } from "modules/transactionCategories";
+import { CategoryNumber, typeIds } from "modules/categories";
 import { formatDecimalDigits } from "modules/numbers";
 
 export const getAllWalletsWithBalance = () =>

@@ -181,6 +181,7 @@ export const deleteWalletMutation = () => {
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.selectedWallet] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
     },
   });
 

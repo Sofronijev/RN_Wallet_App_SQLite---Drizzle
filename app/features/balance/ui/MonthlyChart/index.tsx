@@ -6,24 +6,29 @@ import colors from "constants/colors";
 import Label from "components/Label";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import { useGetMonthlyGraphDataQuery } from "app/queries/transactions";
-import { transactionCategories } from "modules/transactionCategories";
 import { formatDecimalDigits } from "modules/numbers";
 import { GetMonthlyAmountsType } from "app/services/transactionQueries";
 import AppActivityIndicator from "components/AppActivityIndicator";
+import { useGetCategories } from "app/queries/categories";
+import { CategoriesWithType } from "db";
 
-const formatBarData = (data: GetMonthlyAmountsType): barDataItem[] => {
+const formatBarData = (
+  data: GetMonthlyAmountsType,
+  categories: Record<number, CategoriesWithType>
+): barDataItem[] => {
   return data.map((item) => {
-    const category = transactionCategories[item.categoryId].name;
+    const { iconColor, iconFamily, iconName } = categories[item.categoryId];
     const categoryVisual = getCategoryIcon({
-      category,
-      colored: true,
+      color: iconColor,
+      iconFamily: iconFamily,
+      name: iconName,
       iconSize: 17,
     });
 
     return {
       value: item.totalAmount,
-      labelComponent: () => <View style={{ alignItems: "center" }}>{categoryVisual.icon}</View>,
-      frontColor: categoryVisual.backgroundColor,
+      labelComponent: () => <View style={{ alignItems: "center" }}>{categoryVisual}</View>,
+      frontColor: iconColor,
       categoryId: item.categoryId,
     };
   });
@@ -47,6 +52,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
     selectedWallet?.walletId,
     date
   );
+  const { categoriesById } = useGetCategories();
 
   if (!formattedData.length) {
     return null;
@@ -54,7 +60,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
 
   const highestRoundedAmount =
     Math.ceil(Math.max(...formattedData.map((item) => item.totalAmount)) / 1000) * 1000;
-  const barData = formatBarData(formattedData);
+  const barData = formatBarData(formattedData, categoriesById);
 
   const formatYLabel = (label: string) => {
     const yNumber = parseFloat(label);

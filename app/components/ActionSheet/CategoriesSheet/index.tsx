@@ -13,12 +13,12 @@ import useSheetData from "../useSheetData";
 import SheetModal, { HANDLE_HEIGHT } from "../components/SheetModal";
 import { HEADER_TEXT_HEIGH } from "../components/SheetHeader";
 import { useGetCategories } from "app/queries/categories";
-import { CategoriesWithType, CategoryType } from "db";
+import { CategoriesWithType, Category, Type } from "db";
 
 const CONTAINER_PADDING = 8;
 
 type Data = {
-  onSelect: (category: CategoriesWithType, type: CategoryType) => void;
+  onSelect: (category: Category, type: Type) => void;
 };
 
 const [emitter, openCategoriesSheet, closeCategoriesSheet] = createSheet<Data>();
@@ -47,9 +47,10 @@ const TransactionBottomSheet: FC = () => {
   const onCategoryPress = (item: CategoriesWithType) => {
     setSelectedCategory(item);
   };
-  const onTypePress = (item: CategoryType) => {
+  const onTypePress = (item: Type) => {
     if (selectedCategory) {
-      sheetData?.onSelect(selectedCategory, item);
+      const { types, ...category } = selectedCategory;
+      sheetData?.onSelect(category, item);
     }
     closeCategoriesSheet();
   };

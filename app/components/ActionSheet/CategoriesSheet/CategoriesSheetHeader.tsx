@@ -2,11 +2,11 @@ import React from "react";
 import colors from "constants/colors";
 import { FontAwesome } from "@expo/vector-icons";
 import SheetHeader from "../components/SheetHeader";
-import { CategoriesWithType } from "db";
+import { Category } from "db";
 
 type CategoriesSheetHeaderProps = {
   onBack: () => void;
-  selectedCategory: CategoriesWithType | null;
+  selectedCategory: Category | null;
 };
 
 const CategoriesSheetHeader: React.FC<CategoriesSheetHeaderProps> = ({

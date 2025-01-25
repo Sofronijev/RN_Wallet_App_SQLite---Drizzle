@@ -1,5 +1,5 @@
 import { alertButtonStrings, errorStrings, transactionStrings } from "constants/strings";
-import { CategoryNumber, typeIds } from "modules/transactionCategories";
+import { CategoryNumber, typeIds } from "modules/categories";
 import { ResponseError } from "modules/types";
 import { Alert } from "react-native";
 
