@@ -4,6 +4,10 @@ import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as schema from "./schema";
 
 export const expoDb = openDatabaseSync("db.db", { enableChangeListener: true });
+
+// Turn on foreign keys, they are off by default
+expoDb.execSync("PRAGMA foreign_keys = ON;");
+
 export const db = drizzle(expoDb, { logger: false, schema });
 
 export type User = InferSelectModel<typeof schema.users>;
@@ -20,3 +24,9 @@ export type TransferWithTransactions = InferSelectModel<typeof schema.transfer> 
   fromTransaction: InferSelectModel<typeof schema.transactions> | null;
   toTransaction: InferSelectModel<typeof schema.transactions> | null;
 };
+
+export type CategoriesWithType = InferSelectModel<typeof schema.categories> & {
+  types: InferSelectModel<typeof schema.types>[];
+};
+
+export type CategoryType = InferSelectModel<typeof schema.types>;

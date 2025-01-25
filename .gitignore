@@ -18,3 +18,5 @@ web-build/
 
 android/
 ios/
+# Folder keeps creating by itself
+%ProgramData%

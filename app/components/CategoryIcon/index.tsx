@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import React from "react";
+import React, { memo, useMemo } from "react";
 import {
   FontAwesome,
   FontAwesome5,
@@ -8,6 +8,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import colors from "constants/colors";
+import { CategoriesWithType } from "db";
 
 const ICON_SIZE = 28;
 
@@ -190,17 +191,39 @@ export const getCategoryIcon = ({
 };
 
 type Props = {
-  categoryName: string;
+  iconFamily: CategoriesWithType["iconFamily"];
+  name: string;
+  color: string;
   iconSize?: number;
+  fillColor?: boolean;
 };
 
-const CategoryIcon: React.FC<Props> = ({ categoryName, iconSize }) => {
-  const { icon, backgroundColor } = getCategoryIcon({ category: categoryName, iconSize });
-
-  return <View style={[styles.container, { backgroundColor }]}>{icon}</View>;
+const iconMap: Record<string, any> = {
+  FontAwesome,
+  FontAwesome5,
+  MaterialCommunityIcons,
+  Ionicons,
 };
 
-export default CategoryIcon;
+const CategoryIcon: React.FC<Props> = ({ iconSize, iconFamily, name, color, fillColor }) => {
+  const IconComponent = useMemo(() => iconMap[iconFamily], [iconFamily]);
+
+  if (!IconComponent) {
+    return null;
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: color }]}>
+      <IconComponent
+        name={name}
+        size={iconSize ?? ICON_SIZE}
+        color={fillColor ? color : colors.white}
+      />
+    </View>
+  );
+};
+
+export default memo(CategoryIcon);
 
 const styles = StyleSheet.create({
   container: {

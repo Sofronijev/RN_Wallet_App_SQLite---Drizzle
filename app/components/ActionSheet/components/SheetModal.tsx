@@ -17,7 +17,12 @@ type Props = {
 
 export const HANDLE_HEIGHT = 24;
 
-const SheetModal: FC<PropsWithChildren<Props>> = ({ children, sheetRef, snapPoints, onDismiss }) => {
+const SheetModal: FC<PropsWithChildren<Props>> = ({
+  children,
+  sheetRef,
+  snapPoints,
+  onDismiss,
+}) => {
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />

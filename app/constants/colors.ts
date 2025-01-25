@@ -28,6 +28,7 @@ const colors = {
   delete: "#FF5366",
   transfer: "#86A789",
   greenLight: "#E6F5E8",
+  separator: "#DDDDDD",
 };
 
 export default colors;
