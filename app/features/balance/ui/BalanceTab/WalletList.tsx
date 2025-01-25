@@ -1,4 +1,4 @@
-import { ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
 import React from "react";
 import Label from "components/Label";
 import { formatDecimalDigits } from "modules/numbers";
@@ -31,6 +31,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { data: wallets } = useGetWalletsWithBalance();
   const { setSelectedWallet } = setSelectedWalletMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
+  const canTransfer = wallets.length >= 2;
 
   const startingIndex =
     wallets.length && selectedWalletId
@@ -49,8 +50,18 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
 
   const walletWidth = width - HORIZONTAL_PADDING * 2;
 
-  // TODO - FIX this
-  const renderWallet: ListRenderItem<any> = ({ item }) => {
+  const onTransfer = (walletId: number) => () => {
+    if (canTransfer) {
+      navigation.navigate("TransferForm", { walletId });
+    } else {
+      Alert.alert(
+        "Transfer not possible",
+        "To make a transfer, you need at least two wallets. Please add another wallet to continue"
+      );
+    }
+  };
+
+  const renderWallet: ListRenderItem<Wallet> = ({ item }) => {
     return (
       <View style={[styles.walletContainer, { borderColor: item.color }]}>
         <Label style={styles.walletName}>{item.walletName}</Label>
@@ -60,7 +71,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
         <View style={styles.row}>
           <ButtonText
             title='Transfer funds'
-            onPress={() => navigation.navigate("TransferForm", { walletId: item.walletId })}
+            onPress={onTransfer(item.walletId)}
             style={styles.button}
           />
           <ButtonText
