@@ -1,0 +1,85 @@
+-- Custom SQL migration file, put you code below! --
+INSERT
+    OR IGNORE INTO Types (id, name, type, categoryId) 
+VALUES
+(1, 'Wage', 'system', 1),
+(2, 'Interests', 'system', 1),
+(3, 'Gifts', 'system', 1),
+(4, 'Refunds', 'system', 1),
+(5, 'Financial aid', 'system', 1),
+
+(6, 'Transfer out', 'system', 12),
+(7, 'Transfer in', 'system', 12),
+
+(8, 'Donation', 'system', 2),
+(9, 'Gifts', 'system', 2),
+
+(10, 'Mortgage/Rent', 'system', 3),
+(11, 'Improvements', 'system', 3),
+(12, 'Supplies', 'system', 3),
+(13, 'Property tax', 'system', 3),
+(14, 'Home insurance', 'system', 3),
+
+(15, 'Electricity', 'system', 4),
+(16, 'Gas/Oil', 'system', 4),
+(17, 'Water/Sewer/Trash', 'system', 4),
+(18, 'Phone', 'system', 4),
+(19, 'Cable/Satellite', 'system', 4),
+(20, 'Internet', 'system', 4),
+(21, 'Heating', 'system', 4),
+(22, 'Waste Management', 'system', 4),
+(23, 'Subscriptions', 'system', 4),
+
+(24, 'Groceries', 'system', 5),
+(25, 'Eating out', 'system', 5),
+(26, 'Food Subscriptions', 'system', 5),
+(27, 'Takeaway', 'system', 5),
+
+(28, 'Insurance', 'system', 6),
+(29, 'Payments', 'system', 6),
+(30, 'Fuel', 'system', 6),
+(31, 'Ticket', 'system', 6),
+(32, 'Taxi', 'system', 6),
+(33, 'Repairs', 'system', 6),
+(34, 'Registration', 'system', 6),
+(35, 'Parking', 'system', 6),
+(36, 'Tolls', 'system', 6),
+
+(37, 'Insurance', 'system', 7),
+(38, 'Doctor', 'system', 7),
+(39, 'Medicine', 'system', 7),
+(40, 'Dental', 'system', 7),
+(41, 'Therapy', 'system', 7),
+
+(42, 'Education', 'system', 8),
+(43, 'Clothing', 'system', 8),
+(44, 'Personal', 'system', 8),
+(45, 'Cleaning', 'system', 8),
+(46, 'Salon/Barber', 'system', 8),
+(47, 'Hygiene', 'system', 8),
+(48, 'Technology', 'system', 8),
+
+(49, 'Clothing', 'system', 9),
+(50, 'Medical', 'system', 9),
+(51, 'School', 'system', 9),
+(52, 'Babysitting', 'system', 9),
+(53, 'Toys/Games', 'system', 9),
+(54, 'Activities', 'system', 9),
+
+(55, 'Loan', 'system', 10),
+(56, 'Credit card', 'system', 10),
+(57, 'Child support', 'system', 10),
+(58, 'Taxes', 'system', 10),
+(59, 'Mortgage', 'system', 10),
+
+(60, 'Vacation/Travel', 'system', 11),
+(61, 'Movies', 'system', 11),
+(62, 'Music', 'system', 11),
+(63, 'Games', 'system', 11),
+(64, 'Rental', 'system', 11),
+(65, 'Books', 'system', 11),
+(66, 'Hobbies', 'system', 11),
+(67, 'Sport', 'system', 11),
+(68, 'Gadgets', 'system', 11),
+(69, 'Subscriptions', 'system', 11),
+(70, 'Concerts', 'system', 11);
