@@ -64,9 +64,27 @@ const MonthlyChart: FC<Props> = ({ date }) => {
 
   const formatYLabel = (label: string) => {
     const yNumber = parseFloat(label);
-    return yNumber >= 1000
-      ? (yNumber / 1000).toFixed(yNumber % 1000 === 0 ? 0 : 2) + "k"
-      : `${yNumber}`;
+    const million = 1_000_000;
+    const thousand = 1000;
+    const toDecimal = (num: number, letter: string) => (yNumber / num).toFixed(2) + letter;
+    let formatted;
+
+    if (yNumber >= million) {
+      formatted = toDecimal(million, "m");
+    } else if (yNumber >= thousand) {
+      formatted = toDecimal(thousand, "k");
+    } else if (yNumber === 0) {
+      formatted = "";
+    } else {
+      formatted = `${yNumber}`;
+    }
+
+    formatted = formatted
+      .replace(/\.?0+([km])$/, "$1") // Remove trailing zeros after the decimal point
+      .replace(/\./g, ",") // Replace all decimal points with commas
+      .replace(/(\d),0(\d[km])/, "$1,$2"); // Handle the formatting like "1,20k" to "1,2k"
+
+    return formatted;
   };
 
   return (
