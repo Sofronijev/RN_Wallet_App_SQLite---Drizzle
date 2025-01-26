@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "efd46257-9e61-4102-be81-887d53367f74",
+  "id": "406f0e85-59fc-4acf-8515-a23803fb7668",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "Categories": {
@@ -18,14 +18,14 @@
           "name": "name",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "'custom'"
         },
@@ -33,21 +33,21 @@
           "name": "iconFamily",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "iconName": {
           "name": "iconName",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "iconColor": {
           "name": "iconColor",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
@@ -212,7 +212,7 @@
           "name": "date",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
@@ -220,7 +220,7 @@
           "name": "userId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": 1
         },
@@ -228,28 +228,28 @@
           "name": "fromWalletId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "toWalletId": {
           "name": "toWalletId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "fromTransactionId": {
           "name": "fromTransactionId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "toTransactionId": {
           "name": "toTransactionId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
@@ -313,14 +313,14 @@
           "name": "name",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text(255)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "'custom'"
         },
@@ -328,7 +328,7 @@
           "name": "categoryId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         }
       },
@@ -399,6 +399,22 @@
           "notNull": false,
           "autoincrement": false,
           "default": 1
+        },
+        "delimiter": {
+          "name": "delimiter",
+          "type": "text(5)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'.'"
+        },
+        "decimal": {
+          "name": "decimal",
+          "type": "text(5)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "','"
         }
       },
       "indexes": {
@@ -464,14 +480,6 @@
           "notNull": false,
           "autoincrement": false,
           "default": "''"
-        },
-        "type": {
-          "name": "type",
-          "type": "text(255)",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'custom'"
         },
         "color": {
           "name": "color",

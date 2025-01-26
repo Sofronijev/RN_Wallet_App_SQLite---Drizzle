@@ -24,7 +24,6 @@ export const getAllWalletsWithBalance = () =>
       wallet.walletName,
       wallet.currencyCode,
       wallet.currencySymbol,
-      wallet.type
     );
 
 export const setWalletStartingBalance = (walletId: number, amount: number) =>

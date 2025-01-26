@@ -13,27 +13,38 @@ export const users = sqliteTable("Users", {
     .notNull()
     .default(sql`(current_timestamp)`),
   selectedWalletId: integer("selectedWalletId").default(1),
+  delimiter: text("delimiter", { length: 5 }).default(".").notNull(),
+  decimal: text("decimal", { length: 5 }).default(",").notNull(),
 });
 
 // Types Table
 export const types = sqliteTable("Types", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name", { length: 255 }),
-  type: text("type", { length: 255, enum: ["custom", "system"] }).default("custom"),
-  categoryId: integer("categoryId").references(() => categories.id, {
-    onUpdate: "cascade",
-    onDelete: "cascade",
-  }),
+  name: text("name", { length: 255 }).notNull(),
+  type: text("type", { length: 255, enum: ["custom", "system"] })
+    .default("custom")
+    .notNull(),
+  categoryId: integer("categoryId")
+    .references(() => categories.id, {
+      onUpdate: "cascade",
+      onDelete: "cascade",
+    })
+    .notNull(),
 });
 
 // Categories Table
 export const categories = sqliteTable("Categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name", { length: 255 }),
-  type: text("type", { length: 255, enum: ["custom", "system"] }).default("custom"),
-  iconFamily: text("iconFamily", { length: 255 }),
-  iconName: text("iconName", { length: 255 }),
-  iconColor: text("iconColor", { length: 255 }),
+  name: text("name", { length: 255 }).notNull(),
+  type: text("type", { length: 255, enum: ["custom", "system"] })
+    .default("custom")
+    .notNull(),
+  iconFamily: text("iconFamily", {
+    length: 255,
+    enum: ["FontAwesome", "FontAwesome5", "MaterialCommunityIcons", "Ionicons"],
+  }).notNull(),
+  iconName: text("iconName", { length: 255 }).notNull(),
+  iconColor: text("iconColor", { length: 255 }).notNull(),
 });
 
 // Wallet Table
@@ -50,9 +61,6 @@ export const wallet = sqliteTable("Wallet", {
   walletName: text("walletName", { length: 255 }).default("My custom wallet").notNull(),
   currencyCode: text("currencyCode", { length: 10 }).default(""),
   currencySymbol: text("currencySymbol", { length: 10 }).default(""),
-  type: text("type", { length: 255, enum: ["custom", "system"] })
-    .default("custom")
-    .notNull(),
   color: text("color", { length: 7 }).default("#3EB489").notNull(),
   createdAt: text("createdAt")
     .default(sql`CURRENT_TIMESTAMP`)
@@ -97,24 +105,30 @@ export const transactions = sqliteTable("Transactions", {
 // Transfer Table
 export const transfer = sqliteTable("Transfer", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  date: text("date").default(sql`CURRENT_TIMESTAMP`),
+  date: text("date")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
   userId: integer("userId")
     .references(() => users.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     })
-    .default(DEFAULT_USER_ID),
-  fromWalletId: integer("fromWalletId").references(() => wallet.walletId, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
-
-  toWalletId: integer("toWalletId").references(() => wallet.walletId, {
-    onDelete: "cascade",
-    onUpdate: "cascade",
-  }),
-  fromTransactionId: integer("fromTransactionId"),
-  toTransactionId: integer("toTransactionId"),
+    .default(DEFAULT_USER_ID)
+    .notNull(),
+  fromWalletId: integer("fromWalletId")
+    .references(() => wallet.walletId, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .notNull(),
+  toWalletId: integer("toWalletId")
+    .references(() => wallet.walletId, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .notNull(),
+  fromTransactionId: integer("fromTransactionId").notNull(),
+  toTransactionId: integer("toTransactionId").notNull(),
 });
 
 //Relations
