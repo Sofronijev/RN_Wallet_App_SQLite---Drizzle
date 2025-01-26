@@ -3,7 +3,9 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as schema from "./schema";
 
-export const expoDb = openDatabaseSync("db.db", { enableChangeListener: true });
+export const expoDb = openDatabaseSync("db.db", {
+  enableChangeListener: true,
+});
 
 // Turn on foreign keys, they are off by default
 expoDb.execSync("PRAGMA foreign_keys = ON;");
