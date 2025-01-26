@@ -15,6 +15,13 @@
       "when": 1737915562858,
       "tag": "0001_seedUser",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1737916050473,
+      "tag": "0002_seedWallet",
+      "breakpoints": true
     }
   ]
 }
