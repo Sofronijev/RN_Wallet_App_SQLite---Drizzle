@@ -5,6 +5,7 @@ import { addTransaction } from "./transactionQueries";
 import { formatIsoDate } from "modules/timeAndDate";
 import { CategoryNumber, typeIds } from "modules/categories";
 import { formatDecimalDigits } from "modules/numbers";
+import { getSelectedWalletInfo, setSelectedWallet } from "./userQueries";
 
 export const getAllWalletsWithBalance = () =>
   db
@@ -66,5 +67,17 @@ export const createNewWallet = (walletName: string) => db.insert(wallet).values(
 export const setWalletName = (walletId: number, walletName: string) =>
   db.update(wallet).set({ walletName }).where(eq(wallet.walletId, walletId));
 
-export const deleteWallet = (walletId: number) =>
-  db.delete(wallet).where(eq(wallet.walletId, walletId));
+export const deleteWallet = async (walletId: number) => {
+  await db.transaction(async (trx) => {
+    await trx.delete(wallet).where(eq(wallet.walletId, walletId));
+    const selectedWallet = await getSelectedWalletInfo();
+
+    // if selected wallet is deleted, need to set new selected wallet from the ones in the db
+    if (selectedWallet?.selectedWalletId === walletId) {
+      const wallet = await trx.query.wallet.findFirst();
+      if (wallet) {
+        await setSelectedWallet(wallet.walletId);
+      }
+    }
+  });
+};

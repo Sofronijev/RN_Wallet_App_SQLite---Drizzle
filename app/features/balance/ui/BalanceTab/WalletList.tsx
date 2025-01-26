@@ -20,11 +20,14 @@ import {
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
 
-// TODO - FIX THIS TYPE
-const walletKeyExtractor = (item: any) => `${item.walletId}`;
+const walletKeyExtractor = (item: Wallet) => `${item.walletId}`;
 
 type WalletListProps = { selectedWalletId?: number | null };
 
+const findWalletIndex = (walletId: number, wallets: Wallet[]) => {
+  const index = wallets.findIndex((wallet) => wallet.walletId === walletId);
+  return index < 0 ? undefined : index;
+};
 const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
@@ -34,9 +37,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const canTransfer = wallets.length >= 2;
 
   const startingIndex =
-    wallets.length && selectedWalletId
-      ? wallets.findIndex((wallet) => wallet.walletId === selectedWalletId)
-      : undefined;
+    wallets.length && selectedWalletId ? findWalletIndex(selectedWalletId, wallets) : undefined;
 
   const onWalletChange = (item: Wallet) => {
     setSelectedWallet(item.walletId);
@@ -89,6 +90,8 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   return (
     <>
       <Carousel
+        // Key is used to reset carousel when wallets change (mostly when wallet is deleted so there is no empty space)
+        key={`${wallets.length}-wallets`}
         data={wallets}
         renderItem={renderWallet}
         keyExtractor={walletKeyExtractor}
