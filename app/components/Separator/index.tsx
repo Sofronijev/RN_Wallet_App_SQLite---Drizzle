@@ -16,6 +16,6 @@ export default Separator;
 const styles = StyleSheet.create({
   border: {
     borderBottomWidth: 1,
-    borderColor: colors.grey,
+    borderColor: colors.separator,
   },
 });

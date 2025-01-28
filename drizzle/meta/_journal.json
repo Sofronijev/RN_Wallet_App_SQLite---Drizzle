@@ -5,22 +5,36 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1736446804488,
-      "tag": "0000_aberrant_rawhide_kid",
+      "when": 1737915290105,
+      "tag": "0000_parched_cyclops",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "6",
-      "when": 1736447148045,
+      "when": 1737915562858,
       "tag": "0001_seedUser",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "6",
-      "when": 1736447167628,
-      "tag": "0002_seedWallets",
+      "when": 1737916050473,
+      "tag": "0002_seedWallet",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1737916163334,
+      "tag": "0003_seedCategories",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1737916234656,
+      "tag": "0004_seedTypes",
       "breakpoints": true
     }
   ]

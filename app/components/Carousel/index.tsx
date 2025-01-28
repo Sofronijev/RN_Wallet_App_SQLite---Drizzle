@@ -10,9 +10,8 @@ import {
 } from "react-native";
 import React, { useCallback, useRef } from "react";
 
-// TODO - remove ANY
-type CarouselProps<ItemT = any> = {
-  data: ArrayLike<ItemT>;
+type CarouselProps<ItemT> = {
+  data: ItemT[];
   renderItem: ListRenderItem<ItemT>;
   keyExtractor: (item: ItemT, index: number) => string;
   itemWidth: number;
@@ -22,7 +21,7 @@ type CarouselProps<ItemT = any> = {
   initialIndex?: number;
 };
 
-const Carousel: React.FC<CarouselProps> = ({
+const Carousel = <ItemT,>({
   data,
   renderItem,
   keyExtractor,
@@ -31,7 +30,7 @@ const Carousel: React.FC<CarouselProps> = ({
   style,
   onSnapToItem = () => undefined,
   initialIndex,
-}) => {
+}: CarouselProps<ItemT>) => {
   // NOTE: indexRef can be undefined on the initial render
   const indexRef = useRef(initialIndex);
   const { width } = useWindowDimensions();

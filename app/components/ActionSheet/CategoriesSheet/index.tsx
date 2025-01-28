@@ -1,34 +1,24 @@
 import React, { FC, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { Category, transactionCategories, Transaction } from "modules/transactionCategories";
-import Separator from "components/Separator";
+import { BottomSheetFlatList, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import CategoryTypeRowSelect from "./CategoryTypeRowSelect";
-import CategoryItem, { CATEGORY_ITEM_HEIGHT } from "./CategoryItem";
-import { CATEGORIES_NUMBER_OF_ROWS } from "app/features/balance/modules/transaction";
+import CategoryItem from "./CategoryItem";
+import {
+  CATEGORIES_NUMBER_OF_ROWS,
+  CATEGORY_ITEM_HEIGHT,
+} from "app/features/balance/modules/transaction";
 import CategoriesSheetHeader from "./CategoriesSheetHeader";
 import createSheet from "../createSheet";
 import useSheetData from "../useSheetData";
 import SheetModal, { HANDLE_HEIGHT } from "../components/SheetModal";
 import { HEADER_TEXT_HEIGH } from "../components/SheetHeader";
+import { useGetCategories } from "app/queries/categories";
+import { CategoriesWithType, Category, Type } from "db";
 
-const categoriesData = Object.values(transactionCategories).map((item) => ({
-  name: item.name,
-  id: item.id,
-  label: item.label,
-}));
-
-const CATEGORIES_PADDING = 10;
-
-const snapPoints = [
-  CATEGORY_ITEM_HEIGHT * CATEGORIES_NUMBER_OF_ROWS +
-    HANDLE_HEIGHT +
-    HEADER_TEXT_HEIGH +
-    CATEGORIES_PADDING * 2,
-];
+const CONTAINER_PADDING = 8;
 
 type Data = {
-  onSelect: (category: Category, type: Transaction) => void;
+  onSelect: (category: Category, type: Type) => void;
 };
 
 const [emitter, openCategoriesSheet, closeCategoriesSheet] = createSheet<Data>();
@@ -37,78 +27,69 @@ export { openCategoriesSheet };
 
 const TransactionBottomSheet: FC = () => {
   const sheetRef = useRef<BottomSheetModal>(null);
-  const [data, setData] = useState<Transaction[]>(categoriesData);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const sheetData = useSheetData<Data>(emitter, sheetRef);
+  const [selectedCategory, setSelectedCategory] = useState<CategoriesWithType | null>(null);
 
-  const setTypeData = (id: number) => {
-    const types = transactionCategories[id].types ?? [];
-    setData(Object.values(types));
-  };
+  const sheetData = useSheetData<Data>(emitter, sheetRef);
+  const { data: categories } = useGetCategories();
+
+  const snapPoints = [
+    CATEGORY_ITEM_HEIGHT * Math.ceil(categories.length / CATEGORIES_NUMBER_OF_ROWS) +
+      HANDLE_HEIGHT +
+      HEADER_TEXT_HEIGH +
+      CONTAINER_PADDING +
+      16,
+  ];
 
   const clearCategory = () => {
-    setData(categoriesData);
     setSelectedCategory(null);
   };
 
-  const onRowPress = (item: Transaction | Category) => {
-    if (!selectedCategory) {
-      setTypeData(item.id);
-      setSelectedCategory(item as Category);
-    } else {
-      sheetData?.onSelect(selectedCategory, item);
-      closeCategoriesSheet();
+  const onCategoryPress = (item: CategoriesWithType) => {
+    setSelectedCategory(item);
+  };
+  const onTypePress = (item: Type) => {
+    if (selectedCategory) {
+      const { types, ...category } = selectedCategory;
+      sheetData?.onSelect(category, item);
     }
+    closeCategoriesSheet();
   };
-
-  const onClose = () => {
-    setData(categoriesData);
-    setSelectedCategory(null);
-  };
-
-  const renderItems = () => {
-    if (!selectedCategory) {
-      return (
-        <View style={styles.categories}>
-          {data.map((item) => (
-            <CategoryItem key={item.id} item={item} onPress={onRowPress} />
-          ))}
-        </View>
-      );
-    }
-    return data.map((item) => (
-      <View key={item.id}>
-        <CategoryTypeRowSelect item={item} onPress={onRowPress} />
-        <Separator offset={16} />
-      </View>
-    ));
-  };
+  const renderItem = ({ item }: { item: CategoriesWithType }) => (
+    <CategoryItem item={item} onPress={onCategoryPress} />
+  );
 
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
   // BUG - when there is textInput with autofocus prop the bottom sheet will open - FIXED with setting "softwareKeyboardLayoutMode": "pan" in app.json
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={onClose}>
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={clearCategory}>
       <CategoriesSheetHeader onBack={clearCategory} selectedCategory={selectedCategory} />
-      <BottomSheetScrollView>{renderItems()}</BottomSheetScrollView>
+      <View style={styles.container}>
+        {!selectedCategory ? (
+          <BottomSheetFlatList
+            numColumns={CATEGORIES_NUMBER_OF_ROWS}
+            data={categories}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id.toString()}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+          />
+        ) : (
+          <BottomSheetScrollView>
+            {selectedCategory.types.map((item) => (
+              <CategoryTypeRowSelect key={item.id} item={item} onPress={onTypePress} />
+            ))}
+          </BottomSheetScrollView>
+        )}
+      </View>
     </SheetModal>
   );
 };
 
 const styles = StyleSheet.create({
-  title: {
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
+  container: {
     flex: 1,
-  },
-  categories: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingVertical: CATEGORIES_PADDING,
-  },
-  icon: {
-    marginLeft: 10,
-    width: 30,
+    paddingTop: CONTAINER_PADDING,
+    paddingHorizontal: 8,
   },
 });
 

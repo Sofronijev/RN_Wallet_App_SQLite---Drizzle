@@ -1,6 +1,8 @@
+import { Alert, Platform } from "react-native";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-import { Alert, Platform } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import RNRestart from "react-native-restart";
 
 export const exportDB = async () => {
   const isAvailable = await Sharing.isAvailableAsync();
@@ -22,7 +24,7 @@ export const exportDB = async () => {
 
       await FileSystem.StorageAccessFramework.createFileAsync(
         permissions.directoryUri,
-        "db.db",
+        "walletApp.db",
         "application/octet-stream"
       )
         .then(async (uri) => {
@@ -36,5 +38,46 @@ export const exportDB = async () => {
     }
   } else {
     await Sharing.shareAsync(FileSystem.documentDirectory + "SQLite/db.db");
+  }
+};
+
+// TODO - this is just a quick add, try to make it better
+export const importDb = async () => {
+  let result = await DocumentPicker.getDocumentAsync({
+    copyToCacheDirectory: true,
+  });
+
+  if (!result.canceled) {
+    // Ensure the SQLite directory exists
+    const sqliteDir = FileSystem.documentDirectory + "SQLite";
+    if (!(await FileSystem.getInfoAsync(sqliteDir)).exists) {
+      await FileSystem.makeDirectoryAsync(sqliteDir);
+    }
+
+    // Read the selected file as base64
+    const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Write the base64 data to the db.db file (replacing the old one)
+    await FileSystem.writeAsStringAsync(
+      sqliteDir + "/db.db", // Make sure to use the same name as the existing SQLite DB
+      base64,
+      { encoding: FileSystem.EncodingType.Base64 }
+    );
+
+    // Need to restart the app so the new db can be loaded
+    Alert.alert(
+      "Restarting App",
+      "The database will be replaced and the app will restart.",
+      [{ text: "OK", onPress: () => RNRestart.restart() }],
+      { cancelable: false }
+    );
+
+    // Close the current database connection (optional, but ensures proper cleanup)
+    // await expoDb.closeAsync();
+
+    // Reopen the SQLite database with the new db.db
+    // setDb(SQLite.openDatabase("db.db"));
   }
 };

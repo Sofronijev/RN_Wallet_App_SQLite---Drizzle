@@ -6,4 +6,5 @@ export const queryKeys = {
   selectedWallet: "selectedWallet",
   wallets: "wallets",
   transferId: "transferId",
+  categories: "categories",
 } as const;

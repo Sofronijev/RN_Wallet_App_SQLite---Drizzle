@@ -121,6 +121,7 @@ export const useGetTransactionByIdQuery = (transactionId: number | null | undefi
     queryKey: [queryKeys.transactionId, transactionId],
     queryFn: transactionId ? () => getTransactionById(transactionId) : skipToken,
   });
+
   return {
     data,
     isLoading: isLoading || isFetching,

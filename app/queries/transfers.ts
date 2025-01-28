@@ -1,10 +1,9 @@
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./index";
 import { db } from "db";
-import { addTransfer, getTransferId } from "app/services/transferQueries";
-import { addTransaction } from "app/services/transactionQueries";
+import { getTransferId } from "app/services/transferQueries";
 import { formatIsoDate } from "modules/timeAndDate";
-import { CategoryNumber, typeIds } from "modules/transactionCategories";
+import { CategoryNumber, typeIds } from "modules/categories";
 import { getWalletInfo } from "app/services/walletQueries";
 import { transactions, transfer } from "db/schema";
 import { eq } from "drizzle-orm";

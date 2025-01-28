@@ -1,8 +1,8 @@
 import React from "react";
 import colors from "constants/colors";
-import { Category } from "modules/transactionCategories";
 import { FontAwesome } from "@expo/vector-icons";
 import SheetHeader from "../components/SheetHeader";
+import { Category } from "db";
 
 type CategoriesSheetHeaderProps = {
   onBack: () => void;
@@ -15,7 +15,7 @@ const CategoriesSheetHeader: React.FC<CategoriesSheetHeaderProps> = ({
 }) => {
   return (
     <SheetHeader
-      title={!!selectedCategory ? selectedCategory.label : "Pick category"}
+      title={!!selectedCategory ? selectedCategory.name : "Pick category"}
       onBack={onBack}
       backText={
         !!selectedCategory ? (

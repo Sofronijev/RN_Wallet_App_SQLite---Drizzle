@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 import { formatIsoDate } from "modules/timeAndDate";
-import { Category, Transaction } from "modules/transactionCategories";
+import { Category, Type } from "db";
 
 export const initialTransactionFormValues = {
   date: formatIsoDate(new Date()),
@@ -16,7 +16,7 @@ export type TransactionFromInputs = {
   amount: string;
   description: string;
   category: Category | null;
-  type: Transaction | null;
+  type: Type | null;
   walletId: string;
 };
 

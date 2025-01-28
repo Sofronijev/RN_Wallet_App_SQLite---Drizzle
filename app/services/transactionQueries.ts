@@ -1,6 +1,7 @@
 import { db, NewTransaction, TransactionType } from "db";
 import { transactions } from "db/schema";
 import { and, count, desc, eq, not, sql, sum } from "drizzle-orm";
+import { CategoryNumber } from "modules/categories";
 
 export const getTransactions = (walletId: number, limit?: number, offset?: number) => {
   const query = db
@@ -85,14 +86,17 @@ export const getMonthlyAmountsByCategory = async (walletId: number, date: string
         eq(transactions.wallet_id, walletId),
         sql`strftime('%Y', ${transactions.date}) = strftime('%Y', ${date})`,
         sql`strftime('%m', ${transactions.date}) = strftime('%m', ${date})`,
-        not(eq(transactions.categoryId, 15)),
-        not(eq(transactions.categoryId, 1))
+        not(eq(transactions.categoryId, CategoryNumber.balanceCorrection)),
+        not(eq(transactions.categoryId, CategoryNumber.income))
       )
     )
     .groupBy(transactions.categoryId);
 
 export const getTransactionById = (id: number) =>
-  db.query.transactions.findFirst({ where: sql`${transactions.id} = ${id}` });
+  db.query.transactions.findFirst({
+    where: sql`${transactions.id} = ${id}`,
+    with: { category: true, type: true },
+  });
 
 export const addTransaction = (transaction: NewTransaction) =>
   db.insert(transactions).values(transaction);

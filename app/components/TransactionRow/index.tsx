@@ -2,28 +2,31 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
 import colors from "constants/colors";
 import Label from "components/Label";
-import CategoryIcon from "components/CategoryIcon";
 import { formatDecimalDigits } from "modules/numbers";
-import { CategoryNumber, transactionCategories, typeIds } from "modules/transactionCategories";
+import { CategoryNumber, typeIds } from "modules/categories";
 import { formatDayString } from "modules/timeAndDate";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
+import { useGetCategories } from "app/queries/categories";
+import CategoryIcon from "components/CategoryIcon";
+import { TransactionType } from "db";
 
-// TODO - FIX
 type Props = {
-  transaction: any;
+  transaction: TransactionType;
 };
 
 const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   if (!transaction) return null;
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
-  const category = transactionCategories[transaction.categoryId];
-  const type = category.types[transaction.type_id];
+
   const hasDescription = !!transaction.description;
   const transactionId = transaction.id;
   const transferId = transaction.transfer_id;
   const transactionReceivedId = typeIds.transfer_received;
+  const { categoriesById } = useGetCategories();
+  const category = categoriesById[transaction.categoryId];
+  const type = category.types.find((type) => type.id === transaction.type_id);
 
   const isIncome =
     transaction.categoryId === CategoryNumber.income ||
@@ -45,11 +48,15 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={openEditTransaction}>
       <View style={styles.icon}>
-        <CategoryIcon categoryName={category.name} />
+        <CategoryIcon
+          color={category.iconColor}
+          iconFamily={category.iconFamily}
+          name={category.iconName}
+        />
       </View>
       <View style={styles.descriptionContainer}>
         <Label numberOfLines={hasDescription ? 1 : 2} style={styles.label}>
-          {type?.label}
+          {type?.name}
         </Label>
         {hasDescription && (
           <Label numberOfLines={1} style={styles.descriptionText}>

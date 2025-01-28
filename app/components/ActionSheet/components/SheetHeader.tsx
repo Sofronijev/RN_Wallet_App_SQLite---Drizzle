@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grey3,
     height: HEADER_TEXT_HEIGH,
     flexDirection: "row",
-    paddingBottom: 10,
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },

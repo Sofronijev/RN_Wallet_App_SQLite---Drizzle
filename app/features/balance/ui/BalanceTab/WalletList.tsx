@@ -1,4 +1,4 @@
-import { ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
 import React from "react";
 import Label from "components/Label";
 import { formatDecimalDigits } from "modules/numbers";
@@ -20,22 +20,24 @@ import {
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
 
-// TODO - FIX THIS TYPE
-const walletKeyExtractor = (item: any) => `${item.walletId}`;
+const walletKeyExtractor = (item: Wallet) => `${item.walletId}`;
 
 type WalletListProps = { selectedWalletId?: number | null };
 
+const findWalletIndex = (walletId: number, wallets: Wallet[]) => {
+  const index = wallets.findIndex((wallet) => wallet.walletId === walletId);
+  return index < 0 ? undefined : index;
+};
 const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
   const { data: wallets } = useGetWalletsWithBalance();
   const { setSelectedWallet } = setSelectedWalletMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
+  const canTransfer = wallets.length >= 2;
 
   const startingIndex =
-    wallets.length && selectedWalletId
-      ? wallets.findIndex((wallet) => wallet.walletId === selectedWalletId)
-      : undefined;
+    wallets.length && selectedWalletId ? findWalletIndex(selectedWalletId, wallets) : undefined;
 
   const onWalletChange = (item: Wallet) => {
     setSelectedWallet(item.walletId);
@@ -49,8 +51,18 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
 
   const walletWidth = width - HORIZONTAL_PADDING * 2;
 
-  // TODO - FIX this
-  const renderWallet: ListRenderItem<any> = ({ item }) => {
+  const onTransfer = (walletId: number) => () => {
+    if (canTransfer) {
+      navigation.navigate("TransferForm", { walletId });
+    } else {
+      Alert.alert(
+        "Transfer not possible",
+        "To make a transfer, you need at least two wallets. Please add another wallet to continue"
+      );
+    }
+  };
+
+  const renderWallet: ListRenderItem<Wallet> = ({ item }) => {
     return (
       <View style={[styles.walletContainer, { borderColor: item.color }]}>
         <Label style={styles.walletName}>{item.walletName}</Label>
@@ -60,7 +72,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
         <View style={styles.row}>
           <ButtonText
             title='Transfer funds'
-            onPress={() => navigation.navigate("TransferForm", { walletId: item.walletId })}
+            onPress={onTransfer(item.walletId)}
             style={styles.button}
           />
           <ButtonText
@@ -78,6 +90,8 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   return (
     <>
       <Carousel
+        // Key is used to reset carousel when wallets change (mostly when wallet is deleted so there is no empty space)
+        key={`${wallets.length}-wallets`}
         data={wallets}
         renderItem={renderWallet}
         keyExtractor={walletKeyExtractor}
