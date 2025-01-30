@@ -6,6 +6,8 @@ import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "../../drizzle/migrations";
 import { db } from "db";
 import DrizzleStudio from "db/DrizzleStudio";
+import useUserInactivityState from "app/features/pinCode/hooks/useUserInactivityState";
+import AuthNavigator from "./AuthNavigator";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,12 +29,14 @@ const RootNavigator: React.FC = () => {
     }
   }, [success]);
 
+  useUserInactivityState();
+
   if (!success) return null;
 
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       {__DEV__ && <DrizzleStudio />}
-      <AppNavigator />
+      {false ? <AuthNavigator /> : <AppNavigator />}
     </View>
   );
 };

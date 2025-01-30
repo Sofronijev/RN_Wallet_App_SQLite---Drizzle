@@ -1,5 +1,3 @@
-import { TransactionFromInputs } from "app/features/balance/modules/transactionFormValidation";
-
 export type HomeStackParamList = {
   Balance: undefined;
   Monthly: undefined;
@@ -15,4 +13,9 @@ export type AppStackParamList = {
     walletId: number;
     editTransferId?: number;
   };
+  PinSettings: undefined;
+};
+
+export type AuthStackParamList = {
+  PinCode: undefined;
 };
