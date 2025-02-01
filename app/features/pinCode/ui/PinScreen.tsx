@@ -22,25 +22,27 @@ const PinScreen: FC = () => {
   };
 
   const onNumberPress = (num: number) => () => {
+    const nextPin = pin + `${num}`;
     if (currentPinLength < savedPinLength) {
       clearPinError();
-      setPin((prevPin) => prevPin + `${num}`);
+      setPin(nextPin);
+    }
+
+    // new Pin will not be set yet so need to add +1 manually
+    if (currentPinLength + 1 === savedPinLength) {
+      if (nextPin === pinCode) {
+        closePinScreen();
+        setPin("");
+      } else {
+        setPin("");
+        setPinError(true);
+      }
     }
   };
 
   const onDelete = () => {
     clearPinError();
     setPin((prevPin) => prevPin.slice(0, -1));
-  };
-
-  const onEnter = () => {
-    clearPinError();
-    if (pin === pinCode) {
-      closePinScreen();
-    } else {
-      setPin("");
-      setPinError(true);
-    }
   };
 
   return (
@@ -75,14 +77,10 @@ const PinScreen: FC = () => {
           })}
         </View>
         <View style={[styles.buttonRow, { justifyContent: "flex-end" }]}>
+          <PinButton onPress={onNumberPress(0)} item={0} />
           <PinButton
             onPress={onDelete}
             item={<Feather name='delete' size={40} color={colors.black} />}
-          />
-          <PinButton onPress={onNumberPress(0)} item={0} />
-          <PinButton
-            onPress={onEnter}
-            item={<Feather name='log-in' size={40} color={colors.greenMint} />}
           />
         </View>
       </View>
@@ -107,6 +105,7 @@ const styles = StyleSheet.create({
     gap: 20,
     paddingTop: 50,
     paddingBottom: 40,
+    justifyContent: "center",
   },
   title: {
     fontSize: 16,
