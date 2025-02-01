@@ -2,14 +2,6 @@ import { TransferWithTransactions } from "db";
 import { formatIsoDate } from "modules/timeAndDate";
 import * as Yup from "yup";
 
-export const initialTransferFormValues = {
-  date: formatIsoDate(new Date()),
-  amountTo: "",
-  amountFrom: "",
-  walletIdTo: "",
-  walletIdFrom: "",
-};
-
 export const transactionValidationSchema = Yup.object({
   date: Yup.string().required().label("Date"),
   amountTo: Yup.number()

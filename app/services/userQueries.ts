@@ -30,14 +30,14 @@ export const setIsPinEnabled = (isPinEnabled: boolean) => {
   return db.update(users).set({ isPinEnabled });
 };
 
-export const getHideTotalAmount = () => {
+export const getShowTotalAmount = () => {
   return db.query.users.findFirst({
     columns: {
-      hideTotalAmount: true,
+      showTotalAmount: true,
     },
   });
 };
 
-export const setHideTotalAmount = (hideTotalAmount: boolean) => {
-  return db.update(users).set({ hideTotalAmount });
+export const setShowTotalAmount = (showTotalAmount: boolean) => {
+  return db.update(users).set({ showTotalAmount });
 };

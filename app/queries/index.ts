@@ -8,5 +8,5 @@ export const queryKeys = {
   transferId: "transferId",
   categories: "categories",
   pinCode: "pinCode",
-  hideTotalAmount: "hideTotalAmount",
+  showTotalAmount: "showTotalAmount",
 } as const;

@@ -4,14 +4,15 @@ import AppSwitch from "components/AppSwitch";
 import colors from "constants/colors";
 import Label from "components/Label";
 import ButtonText from "components/ButtonText";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import AlertPrompt from "components/AlertPrompt";
-import { isNumber } from "modules/numbers";
+import { hideValues, isNumber } from "modules/numbers";
 import {
   useGetPinCodeDataQuery,
   useSetIsPinEnabledMutation,
   useSetPinCodeMutation,
 } from "app/queries/user";
+import VisibilityToggleIcon from "components/VisibilityToggleIcon";
 
 const PinSettings = () => {
   const { pinCode, isPinEnabled } = useGetPinCodeDataQuery();
@@ -19,7 +20,7 @@ const PinSettings = () => {
   const { setIsPinEnabled } = useSetIsPinEnabledMutation();
   const [showPin, setShowPin] = useState(false);
 
-  const formatPinCode = showPin ? pinCode : pinCode.replace(/./g, "*");
+  const formatPinCode = showPin ? pinCode : hideValues(pinCode);
 
   const toggleSwitch = (isEnabled: boolean) => {
     if (isEnabled && !pinCode) {
@@ -28,8 +29,8 @@ const PinSettings = () => {
     setIsPinEnabled(isEnabled);
   };
 
-  const onEyePress = () => {
-    setShowPin((prevVal) => !prevVal);
+  const onEyePress = (isVisible: boolean) => {
+    setShowPin(isVisible);
   };
 
   const onSetPin = (canCancel?: boolean) => {
@@ -70,13 +71,7 @@ const PinSettings = () => {
         <ButtonText title={"Change PIN"} type='link' onPress={() => onSetPin(true)} />
         <View style={styles.pinCode}>
           <Label>{formatPinCode || "Not set"}</Label>
-          <TouchableOpacity onPress={onEyePress}>
-            {showPin ? (
-              <MaterialCommunityIcons name='eye-outline' size={24} color='black' />
-            ) : (
-              <MaterialCommunityIcons name='eye-off-outline' size={24} color='black' />
-            )}
-          </TouchableOpacity>
+          <VisibilityToggleIcon isVisible={showPin} onPress={onEyePress} />
         </View>
       </View>
       <ButtonText title={"Remove PIN"} type='link' onPress={onDeletePin} />

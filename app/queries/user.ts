@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getHideTotalAmount,
+  getShowTotalAmount,
   getPinCode,
-  setHideTotalAmount,
+  setShowTotalAmount,
   setIsPinEnabled,
   setPinCode,
 } from "app/services/userQueries";
@@ -54,30 +54,30 @@ export const useSetIsPinEnabledMutation = () => {
   };
 };
 
-export const useGetHideTotalAmount = () => {
+export const useGetShowTotalAmount = () => {
   const { data, isLoading, isFetching, isError } = useQuery({
-    queryKey: [queryKeys.hideTotalAmount],
-    queryFn: getHideTotalAmount,
+    queryKey: [queryKeys.showTotalAmount],
+    queryFn: getShowTotalAmount,
   });
 
   return {
-    hideTotalAmount: data?.hideTotalAmount ?? "",
+    showTotalAmount: data?.showTotalAmount ?? false,
     isLoading: isLoading || isFetching,
     isError,
   };
 };
 
-export const useSetHideTotalAmount = () => {
+export const useSetShowTotalAmount = () => {
   const clientQuery = useQueryClient();
   const { mutate, isPending, isError } = useMutation({
-    mutationFn: (isHidden: boolean) => setHideTotalAmount(isHidden),
+    mutationFn: (isHidden: boolean) => setShowTotalAmount(isHidden),
     onSuccess: () => {
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.hideTotalAmount] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.showTotalAmount] });
     },
   });
 
   return {
-    setIsTotalHidden: mutate,
+    setShowTotalAmount: mutate,
     isLoading: isPending,
     isError,
   };
