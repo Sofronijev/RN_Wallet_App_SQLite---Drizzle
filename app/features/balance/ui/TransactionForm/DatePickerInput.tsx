@@ -78,7 +78,6 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
         <DateTimePicker
           value={value}
           mode={isIosDevice ? "datetime" : "date"}
-          is24Hour={!isIosDevice}
           onChange={onChangeDate}
           maximumDate={maximumDate}
           minimumDate={minimumDate}

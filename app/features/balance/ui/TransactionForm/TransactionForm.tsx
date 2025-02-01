@@ -1,5 +1,5 @@
 import { Keyboard, StyleSheet, View, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
@@ -53,6 +53,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const { editTransaction } = editTransactionMutation();
   const { deleteTransaction } = deleteTransactionMutation();
   const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
+  const dateRef = useRef(new Date());
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
@@ -111,7 +112,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       initialValues: editedTransaction
         ? formatEditInitialValues(editedTransaction)
         : {
-            date: formatIsoDate(new Date()),
+            date: formatIsoDate(dateRef.current),
             amount: "",
             description: "",
             category: null,
@@ -183,7 +184,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps='always'>
       <View style={styles.inputsContainer}>
-        <DatePickerInput date={new Date(values.date)} onDateSelect={onDateChange} />
+        <DatePickerInput date={new Date(values.date ?? undefined)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>
           <WalletPicker wallets={wallets} selected={+values.walletId} onSelect={onWalletSelect} />
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />

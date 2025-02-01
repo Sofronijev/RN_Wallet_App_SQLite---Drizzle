@@ -7,7 +7,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
 import StyledLabelInput from "components/StyledLabelInput";
@@ -39,6 +39,7 @@ export type TransferFromInputs = {
   walletIdTo: string;
   walletIdFrom: string;
 };
+
 const getWalletById = (wallets: WalletType[], walletId: number | null) =>
   wallets.find((wallet) => wallet.walletId === walletId);
 
@@ -53,11 +54,7 @@ const TransferForm: React.FC = () => {
   const { data: wallets } = useGetWalletsWithBalance();
   const { data: editTransferData, isLoading: isFetchingEditData } =
     useGetTransferByIdQuery(editTransferId);
-
-  useEffect(() => {
-    console.log("RENDER");
-    return () => console.log("CLOSE");
-  }, []);
+  const dateRef = useRef(new Date());
 
   useEffect(() => {
     if (editTransferData) {
@@ -120,7 +117,7 @@ const TransferForm: React.FC = () => {
       initialValues: editTransferData
         ? formatInitialTransferEditData(editTransferData)
         : {
-            date: formatIsoDate(new Date()),
+            date: formatIsoDate(dateRef.current),
             amountTo: "",
             amountFrom: "",
             walletIdTo: "",
