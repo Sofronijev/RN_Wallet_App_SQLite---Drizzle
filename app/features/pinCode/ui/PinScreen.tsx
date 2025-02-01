@@ -1,5 +1,12 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { FC, useState } from "react";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
+
 import colors from "constants/colors";
 import PinButton from "./PinButton";
 import Feather from "@expo/vector-icons/Feather";
@@ -36,6 +43,7 @@ const PinScreen: FC = () => {
       } else {
         setPin("");
         setPinError(true);
+        triggerShake();
       }
     }
   };
@@ -45,18 +53,34 @@ const PinScreen: FC = () => {
     setPin((prevPin) => prevPin.slice(0, -1));
   };
 
+  const shake = useSharedValue(0);
+
+  const shakeAnimation = useAnimatedStyle(() => ({
+    transform: [{ translateX: shake.value }],
+  }));
+
+  const triggerShake = () => {
+    shake.value = withSequence(
+      withTiming(-10, { duration: 50 }),
+      withTiming(10, { duration: 50 }),
+      withTiming(-10, { duration: 50 }),
+      withTiming(10, { duration: 50 }),
+      withTiming(0, { duration: 50 })
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View>
         <Text style={styles.title}>Unlock with pin code</Text>
-        <View style={styles.pinContainer}>
+        <Animated.View style={[styles.pinContainer, shakeAnimation]}>
           {pinDots.map((item, index) => (
             <View
               key={item + index}
               style={[styles.pin, index < currentPinLength && styles.fillPin]}
             ></View>
           ))}
-        </View>
+        </Animated.View>
         <Text style={styles.pinError}>{pinError ? "The PIN you entered is incorrect." : ""}</Text>
       </View>
 
