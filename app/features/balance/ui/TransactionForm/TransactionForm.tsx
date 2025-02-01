@@ -13,7 +13,6 @@ import AppActivityIndicator from "components/AppActivityIndicator";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import {
-  initialTransactionFormValues,
   TransactionFromInputs,
   transactionValidationSchema,
 } from "../../modules/transactionFormValidation";
@@ -111,7 +110,14 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     useFormik<TransactionFromInputs>({
       initialValues: editedTransaction
         ? formatEditInitialValues(editedTransaction)
-        : { ...initialTransactionFormValues, walletId: `${selectedWallet?.walletId}` },
+        : {
+            date: formatIsoDate(new Date()),
+            amount: "",
+            description: "",
+            category: null,
+            type: null,
+            walletId: `${selectedWallet?.walletId}`,
+          },
       validationSchema: transactionValidationSchema,
       validateOnChange: hasSubmittedForm,
       onSubmit: onTransactionSubmit,
