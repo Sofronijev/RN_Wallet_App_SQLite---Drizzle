@@ -3,17 +3,17 @@ import React, { FC, useState } from "react";
 import colors from "constants/colors";
 import PinButton from "./PinButton";
 import Feather from "@expo/vector-icons/Feather";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
-
-const maxPin = 6;
-const pinDots = Array(maxPin).fill(0);
+import { usePinCodeStatus } from "./PinCodeStatusProvider";
+import { useGetPinCodeDataQuery } from "app/queries/user";
 
 const PinScreen: FC = () => {
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState(false);
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const { closePinScreen } = usePinCodeStatus();
+  const { pinCode } = useGetPinCodeDataQuery();
+  const currentPinLength = pin.length;
+  const savedPinLength = pinCode.length;
+  const pinDots = Array(savedPinLength).fill(0);
 
   const clearPinError = () => {
     if (pinError) {
@@ -21,9 +21,8 @@ const PinScreen: FC = () => {
     }
   };
 
-  const pinLength = pin.length;
   const onNumberPress = (num: number) => () => {
-    if (pinLength < maxPin) {
+    if (currentPinLength < savedPinLength) {
       clearPinError();
       setPin((prevPin) => prevPin + `${num}`);
     }
@@ -36,9 +35,10 @@ const PinScreen: FC = () => {
 
   const onEnter = () => {
     clearPinError();
-    if (pin === "123456") {
-      navigation.goBack();
+    if (pin === pinCode) {
+      closePinScreen();
     } else {
+      setPin("");
       setPinError(true);
     }
   };
@@ -51,7 +51,7 @@ const PinScreen: FC = () => {
           {pinDots.map((item, index) => (
             <View
               key={item + index}
-              style={[styles.pin, index < pinLength && styles.fillPin]}
+              style={[styles.pin, index < currentPinLength && styles.fillPin]}
             ></View>
           ))}
         </View>
@@ -82,7 +82,7 @@ const PinScreen: FC = () => {
           <PinButton onPress={onNumberPress(0)} item={0} />
           <PinButton
             onPress={onEnter}
-            item={<Feather name='log-in' size={40} color={colors.black} />}
+            item={<Feather name='log-in' size={40} color={colors.greenMint} />}
           />
         </View>
       </View>
@@ -118,9 +118,10 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
+    borderColor: colors.greenMint,
   },
   fillPin: {
-    backgroundColor: colors.black,
+    backgroundColor: colors.greenMint,
   },
   pinError: {
     textAlign: "center",

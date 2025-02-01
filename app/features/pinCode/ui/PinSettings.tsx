@@ -7,19 +7,25 @@ import ButtonText from "components/ButtonText";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AlertPrompt from "components/AlertPrompt";
 import { isNumber } from "modules/numbers";
+import {
+  useGetPinCodeDataQuery,
+  useSetIsPinEnabledMutation,
+  useSetPinCodeMutation,
+} from "app/queries/user";
 
 const PinSettings = () => {
-  const [isEnabled, setIsEnabled] = useState(false);
+  const { pinCode, isPinEnabled } = useGetPinCodeDataQuery();
+  const { setPinCode } = useSetPinCodeMutation();
+  const { setIsPinEnabled } = useSetIsPinEnabledMutation();
   const [showPin, setShowPin] = useState(false);
-  const [pin, setPin] = useState("");
 
-  const formatPinCode = showPin ? pin : pin.replace(/./g, "*");
+  const formatPinCode = showPin ? pinCode : pinCode.replace(/./g, "*");
 
   const toggleSwitch = (isEnabled: boolean) => {
-    if (isEnabled && !pin) {
+    if (isEnabled && !pinCode) {
       onSetPin();
     }
-    setIsEnabled(isEnabled);
+    setIsPinEnabled(isEnabled);
   };
 
   const onEyePress = () => {
@@ -27,11 +33,12 @@ const PinSettings = () => {
   };
 
   const onSetPin = (canCancel?: boolean) => {
-    console.log(canCancel);
     AlertPrompt.prompt(
       "Set Your PIN",
       "Please create a PIN between 4 and 8 digits. \n\nMake sure to write it down or save it safely. If you lose it, you won’t be able to reset it, and all your data will be lost.",
-      canCancel ? (text) => setPin(text) : [{ onPress: (text) => setPin(text ?? ""), label: "OK" }],
+      canCancel
+        ? (text) => setPinCode(text)
+        : [{ onPress: (text) => setPinCode(text ?? ""), label: "OK" }],
       {
         validator: (text) => text.length >= 4 && text.length <= 8 && isNumber(text),
         keyboardType: "numeric",
@@ -40,10 +47,10 @@ const PinSettings = () => {
   };
 
   const onDeletePin = () => {
-    if (pin) {
-      setIsEnabled(false);
+    if (pinCode) {
+      setIsPinEnabled(false);
     }
-    setPin("");
+    setPinCode("");
   };
 
   return (
@@ -57,7 +64,7 @@ const PinSettings = () => {
       </View>
       <View style={styles.row}>
         <Label>Enable PIN code</Label>
-        <AppSwitch onValueChange={toggleSwitch} value={isEnabled} />
+        <AppSwitch onValueChange={toggleSwitch} value={isPinEnabled} />
       </View>
       <View style={styles.row}>
         <ButtonText title={"Change PIN"} type='link' onPress={() => onSetPin(true)} />

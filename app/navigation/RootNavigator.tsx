@@ -8,11 +8,13 @@ import { db } from "db";
 import DrizzleStudio from "db/DrizzleStudio";
 import useUserInactivityState from "app/features/pinCode/hooks/useUserInactivityState";
 import AuthNavigator from "./AuthNavigator";
+import { usePinCodeStatus } from "app/features/pinCode/ui/PinCodeStatusProvider";
 
 SplashScreen.preventAutoHideAsync();
 
 const RootNavigator: React.FC = () => {
   const { success, error } = useMigrations(db, migrations);
+  const { pinVisible, isLoading } = usePinCodeStatus();
 
   useEffect(() => {
     if (error) {
@@ -24,10 +26,10 @@ const RootNavigator: React.FC = () => {
   }, [error]);
 
   const onLayoutRootView = useCallback(async () => {
-    if (success) {
+    if (success && !isLoading) {
       await SplashScreen.hideAsync();
     }
-  }, [success]);
+  }, [success, pinVisible]);
 
   useUserInactivityState();
 
@@ -36,7 +38,7 @@ const RootNavigator: React.FC = () => {
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       {__DEV__ && <DrizzleStudio />}
-      {false ? <AuthNavigator /> : <AppNavigator />}
+      {pinVisible ? <AuthNavigator /> : <AppNavigator />}
     </View>
   );
 };

@@ -12,3 +12,32 @@ export const getSelectedWalletInfo = () => {
     },
   });
 };
+
+export const getPinCode = () => {
+  return db.query.users.findFirst({
+    columns: {
+      pinCode: true,
+      isPinEnabled: true,
+    },
+  });
+};
+
+export const setPinCode = (pinCode: string) => {
+  return db.update(users).set({ pinCode });
+};
+
+export const setIsPinEnabled = (isPinEnabled: boolean) => {
+  return db.update(users).set({ isPinEnabled });
+};
+
+export const getHideTotalAmount = () => {
+  return db.query.users.findFirst({
+    columns: {
+      hideTotalAmount: true,
+    },
+  });
+};
+
+export const setHideTotalAmount = (hideTotalAmount: boolean) => {
+  return db.update(users).set({ hideTotalAmount });
+};

@@ -8,21 +8,24 @@ import { MenuProvider } from "react-native-popup-menu";
 import AlertPromptProvider from "components/AlertPrompt/AlertPrompt";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ActionSheetProvider from "components/ActionSheet";
+import { PinCodeStatusProvider } from "app/features/pinCode/ui/PinCodeStatusProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <MenuProvider>
-        <ActionSheetProvider>
-          <NavigationContainer>
-            <StatusBar animated={true} backgroundColor={colors.greenMint} />
-            <RootNavigator />
-          </NavigationContainer>
-        </ActionSheetProvider>
-        <AlertPromptProvider />
-      </MenuProvider>
+      <PinCodeStatusProvider>
+        <MenuProvider>
+          <ActionSheetProvider>
+            <NavigationContainer>
+              <StatusBar animated={true} backgroundColor={colors.greenMint} />
+              <RootNavigator />
+            </NavigationContainer>
+          </ActionSheetProvider>
+          <AlertPromptProvider />
+        </MenuProvider>
+      </PinCodeStatusProvider>
     </GestureHandlerRootView>
   </QueryClientProvider>
 );
