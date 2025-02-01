@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { Alert } from "react-native";
+import useUserInactivityState from "../hooks/useUserInactivityState";
 
 type PinCodeStatusProps = {
   pinVisible: boolean;
@@ -22,6 +23,8 @@ export const PinCodeStatusProvider: FC<PropsWithChildren> = ({ children }) => {
   const [pinVisible, setPinVisible] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // useUserInactivityState();
+
   useEffect(() => {
     setIsLoading(true);
     getPinCode()
@@ -30,9 +33,13 @@ export const PinCodeStatusProvider: FC<PropsWithChildren> = ({ children }) => {
           setPinVisible(data.isPinEnabled && !!data.pinCode);
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log(error);
         setPinVisible(false);
-        Alert.alert("Failed to load PIN settings", "Set up a new PIN if the issue persists.");
+        Alert.alert(
+          "Failed to load PIN settings",
+          "Please try setting up a new PIN if the issue persists."
+        );
       })
       .finally(() => {
         setIsLoading(false);
