@@ -5,6 +5,7 @@ import {
   setShowTotalAmount,
   setIsPinEnabled,
   setPinCode,
+  setInactivePinTimeout,
 } from "app/services/userQueries";
 import { queryKeys } from "./index";
 
@@ -17,6 +18,7 @@ export const useGetPinCodeDataQuery = () => {
   return {
     pinCode: data?.pinCode ?? "",
     isPinEnabled: data?.isPinEnabled ?? false,
+    inactivePinTimeout: data?.inactivePinTimeout ?? null,
     isLoading: isLoading || isFetching,
     isError,
   };
@@ -49,6 +51,21 @@ export const useSetIsPinEnabledMutation = () => {
 
   return {
     setIsPinEnabled: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+export const useSetInactivePinTimeoutMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (time: number | null) => setInactivePinTimeout(time),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.pinCode] });
+    },
+  });
+
+  return {
+    setInactivePinTimeout: mutate,
     isLoading: isPending,
     isError,
   };

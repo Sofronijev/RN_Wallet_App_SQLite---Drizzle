@@ -15,6 +15,10 @@ export const users = sqliteTable("Users", {
   selectedWalletId: integer("selectedWalletId").default(1),
   delimiter: text("delimiter", { length: 5 }).default(".").notNull(),
   decimal: text("decimal", { length: 5 }).default(",").notNull(),
+  pinCode: text("pinCode", { length: 8 }).default("").notNull(),
+  isPinEnabled: integer("isPinEnabled", { mode: "boolean" }).default(false).notNull(),
+  showTotalAmount: integer("showTotalAmount", { mode: "boolean" }).default(true).notNull(),
+  inactivePinTimeout: integer("inactivePinTimeout").default(sql`NULL`),
 });
 
 // Types Table

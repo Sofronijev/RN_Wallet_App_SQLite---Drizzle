@@ -5,10 +5,10 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
-import { Alert } from "react-native";
-import useUserInactivityState from "../hooks/useUserInactivityState";
+import { Alert, AppState } from "react-native";
 
 type PinCodeStatusProps = {
   pinVisible: boolean;
@@ -17,13 +17,51 @@ type PinCodeStatusProps = {
   isLoading: boolean;
 };
 
+const pinAlert = () =>
+  Alert.alert(
+    "Failed to load PIN settings",
+    "Please try setting up a new PIN if the issue persists."
+  );
+
 export const PinCodeStatusContext = createContext<PinCodeStatusProps | null>(null);
 
 export const PinCodeStatusProvider: FC<PropsWithChildren> = ({ children }) => {
   const [pinVisible, setPinVisible] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+  const backgroundTimestampRef = useRef<number | null>(null);
+  const appState = useRef(AppState.currentState);
 
-  // useUserInactivityState();
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "background") {
+        backgroundTimestampRef.current = Date.now();
+      } else if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+        getPinCode()
+          .then((data) => {
+            if (data) {
+              if (
+                data.inactivePinTimeout != null &&
+                backgroundTimestampRef.current &&
+                data.isPinEnabled &&
+                !!data.pinCode
+              ) {
+                const elapsedSeconds = (Date.now() - backgroundTimestampRef.current) / 1000;
+                if (elapsedSeconds >= data.inactivePinTimeout) {
+                  setPinVisible(true);
+                }
+              }
+            }
+          })
+          .catch(() => {
+            setPinVisible(false);
+            pinAlert();
+          });
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -33,13 +71,9 @@ export const PinCodeStatusProvider: FC<PropsWithChildren> = ({ children }) => {
           setPinVisible(data.isPinEnabled && !!data.pinCode);
         }
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
         setPinVisible(false);
-        Alert.alert(
-          "Failed to load PIN settings",
-          "Please try setting up a new PIN if the issue persists."
-        );
+        pinAlert();
       })
       .finally(() => {
         setIsLoading(false);

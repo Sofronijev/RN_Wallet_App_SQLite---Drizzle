@@ -18,6 +18,7 @@ export const getPinCode = () => {
     columns: {
       pinCode: true,
       isPinEnabled: true,
+      inactivePinTimeout: true,
     },
   });
 };
@@ -28,6 +29,10 @@ export const setPinCode = (pinCode: string) => {
 
 export const setIsPinEnabled = (isPinEnabled: boolean) => {
   return db.update(users).set({ isPinEnabled });
+};
+
+export const setInactivePinTimeout = (inactivePinTimeout: number | null) => {
+  return db.update(users).set({ inactivePinTimeout });
 };
 
 export const getShowTotalAmount = () => {

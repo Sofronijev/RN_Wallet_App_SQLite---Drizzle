@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import React, { useState } from "react";
 import AppSwitch from "components/AppSwitch";
 import colors from "constants/colors";
@@ -9,15 +9,27 @@ import AlertPrompt from "components/AlertPrompt";
 import { hideValues, isNumber } from "modules/numbers";
 import {
   useGetPinCodeDataQuery,
+  useSetInactivePinTimeoutMutation,
   useSetIsPinEnabledMutation,
   useSetPinCodeMutation,
 } from "app/queries/user";
 import VisibilityToggleIcon from "components/VisibilityToggleIcon";
+import { openPickerSheet } from "components/ActionSheet/PickerSheet";
+import { pinInactivityOptions } from "../modules";
+
+const pinTimeData = Object.values(pinInactivityOptions);
+
+const formatPinInactivityLabel = (val: number | null) => {
+  const data = pinInactivityOptions[val ?? 0];
+
+  return data ? data.label : "Never";
+};
 
 const PinSettings = () => {
-  const { pinCode, isPinEnabled } = useGetPinCodeDataQuery();
+  const { pinCode, isPinEnabled, inactivePinTimeout } = useGetPinCodeDataQuery();
   const { setPinCode } = useSetPinCodeMutation();
   const { setIsPinEnabled } = useSetIsPinEnabledMutation();
+  const { setInactivePinTimeout } = useSetInactivePinTimeoutMutation();
   const [showPin, setShowPin] = useState(false);
 
   const formatPinCode = showPin ? pinCode : hideValues(pinCode);
@@ -54,6 +66,10 @@ const PinSettings = () => {
     setPinCode("");
   };
 
+  const onSelectPinTime = (value: number | null) => {
+    setInactivePinTimeout(value);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.warningRow}>
@@ -74,7 +90,21 @@ const PinSettings = () => {
           <VisibilityToggleIcon isVisible={showPin} onPress={onEyePress} />
         </View>
       </View>
-      <ButtonText title={"Remove PIN"} type='link' onPress={onDeletePin} />
+      <ButtonText disabled={!pinCode} title={"Remove PIN"} type='link' onPress={onDeletePin} />
+      <View style={styles.row}>
+        <Label>{"Lock PIN after inactivity:"}</Label>
+        <ButtonText
+          title={formatPinInactivityLabel(inactivePinTimeout)}
+          type='link'
+          onPress={() =>
+            openPickerSheet({
+              data: pinTimeData,
+              onSelect: onSelectPinTime,
+              title: "Select time",
+            })
+          }
+        />
+      </View>
     </View>
   );
 };
