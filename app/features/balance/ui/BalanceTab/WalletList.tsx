@@ -41,9 +41,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const canTransfer = wallets.length >= 2;
 
   const totalBalance = (total: number, symbol: string | null, code: string | null) =>
-    showTotalAmount
-      ? `${`${formatDecimalDigits(total)} ${symbol || code}`} ${symbol || code}`
-      : "*******";
+    showTotalAmount ? `${`${formatDecimalDigits(total)} ${symbol || code}`}` : "*******";
 
   const startingIndex =
     wallets.length && selectedWalletId ? findWalletIndex(selectedWalletId, wallets) : undefined;
@@ -82,13 +80,9 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
           <Label style={styles.walletName}>{item.walletName}</Label>
           <VisibilityToggleIcon isVisible={showTotalAmount} onPress={onIsVisiblePress} />
         </View>
-        <Label style={styles.walletValue}>{`${`${totalBalance(
-          item.currentBalance,
-          item.currencySymbol,
-          item.currencyCode
-        )} ${item.currencySymbol || item.currencyCode}`} ${
-          item.currencySymbol || item.currencyCode
-        }`}</Label>
+        <Label style={styles.walletValue}>
+          {totalBalance(item.currentBalance, item.currencySymbol, item.currencyCode)}
+        </Label>
         <View style={styles.row}>
           <ButtonText
             title='Transfer funds'
