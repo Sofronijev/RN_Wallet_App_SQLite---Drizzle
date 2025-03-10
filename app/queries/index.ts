@@ -7,4 +7,6 @@ export const queryKeys = {
   wallets: "wallets",
   transferId: "transferId",
   categories: "categories",
+  pinCode: "pinCode",
+  showTotalAmount: "showTotalAmount",
 } as const;

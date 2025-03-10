@@ -29,6 +29,7 @@ const colors = {
   transfer: "#86A789",
   greenLight: "#E6F5E8",
   separator: "#DDDDDD",
+  dark: "#303133",
 };
 
 export default colors;

@@ -21,26 +21,32 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({ onBack, backText, onNext, nex
     return text;
   };
 
+  const showLeftButton = !!backText && typeof onBack === "function";
+  const showRightButton = !!nextText && typeof onNext === "function";
+  const showIcons = showLeftButton || showRightButton;
+
   return (
-    <View style={styles.header}>
-      <TouchableOpacity onPress={onBack} style={styles.icon}>
-        {!!backText && onBack && renderText(backText)}
-      </TouchableOpacity>
-      <Label style={styles.title}>{title}</Label>
-      <TouchableOpacity onPress={onNext} style={styles.icon}>
-        {!!nextText && onNext && renderText(nextText)}
-      </TouchableOpacity>
+    <View>
+      <View style={styles.header}>
+        {showIcons && (
+          <TouchableOpacity onPress={onBack} style={styles.icon}>
+            {showLeftButton && renderText(backText)}
+          </TouchableOpacity>
+        )}
+        <Label numberOfLines={1} style={styles.title}>
+          {title}
+        </Label>
+        {showIcons && (
+          <TouchableOpacity onPress={onNext} style={styles.icon}>
+            {showRightButton && renderText(nextText)}
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  title: {
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
-    flex: 1,
-  },
   header: {
     backgroundColor: colors.grey3,
     height: HEADER_TEXT_HEIGH,
@@ -48,8 +54,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },
+  title: {
+    textAlign: "center",
+    fontSize: 15,
+    flex: 2,
+    color: colors.dark,
+  },
   icon: {
     flex: 1,
+    minWidth: 10,
   },
   text: {
     color: colors.hyperlink,

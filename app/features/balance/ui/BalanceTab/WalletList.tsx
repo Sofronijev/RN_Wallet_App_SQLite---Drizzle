@@ -1,9 +1,8 @@
 import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
 import React from "react";
 import Label from "components/Label";
-import { formatDecimalDigits } from "modules/numbers";
+import { formatDecimalDigits, hideValues } from "modules/numbers";
 import colors from "constants/colors";
-import AppActivityIndicator from "components/AppActivityIndicator";
 import Carousel from "components/Carousel";
 import ButtonText from "components/ButtonText";
 import { showBalancePrompt } from "app/features/settings/modules";
@@ -16,9 +15,12 @@ import {
   setSelectedWalletMutation,
   useGetWalletsWithBalance,
 } from "app/queries/wallets";
+import VisibilityToggleIcon from "components/VisibilityToggleIcon";
+import { useGetShowTotalAmount, useSetShowTotalAmount } from "app/queries/user";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
+const WALLET_HEIGHT = 170;
 
 const walletKeyExtractor = (item: Wallet) => `${item.walletId}`;
 
@@ -34,7 +36,12 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { data: wallets } = useGetWalletsWithBalance();
   const { setSelectedWallet } = setSelectedWalletMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
+  const { showTotalAmount } = useGetShowTotalAmount();
+  const { setShowTotalAmount } = useSetShowTotalAmount();
   const canTransfer = wallets.length >= 2;
+
+  const totalBalance = (total: number, symbol: string | null, code: string | null) =>
+    showTotalAmount ? `${`${formatDecimalDigits(total)} ${symbol || code}`}` : "*******";
 
   const startingIndex =
     wallets.length && selectedWalletId ? findWalletIndex(selectedWalletId, wallets) : undefined;
@@ -62,13 +69,20 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
     }
   };
 
+  const onIsVisiblePress = (isVisible: boolean) => {
+    setShowTotalAmount(isVisible);
+  };
+
   const renderWallet: ListRenderItem<Wallet> = ({ item }) => {
     return (
       <View style={[styles.walletContainer, { borderColor: item.color }]}>
-        <Label style={styles.walletName}>{item.walletName}</Label>
-        <Label style={styles.walletValue}>{`${formatDecimalDigits(item.currentBalance)} ${
-          item.currencySymbol || item.currencyCode
-        }`}</Label>
+        <View style={styles.row}>
+          <Label style={styles.walletName}>{item.walletName}</Label>
+          <VisibilityToggleIcon isVisible={showTotalAmount} onPress={onIsVisiblePress} />
+        </View>
+        <Label style={styles.walletValue}>
+          {totalBalance(item.currentBalance, item.currencySymbol, item.currencyCode)}
+        </Label>
         <View style={styles.row}>
           <ButtonText
             title='Transfer funds'
@@ -101,27 +115,23 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
         onSnapToItem={onWalletChange}
         initialIndex={startingIndex}
       />
-      {/* <AppActivityIndicator isLoading={mutation.isPending} /> */}
+      {/* <AppActivityIndicator isLoading={true} /> */}
     </>
   );
 };
 
 export default WalletList;
 
-const walletStyle = {
-  padding: 10,
-  borderRadius: 20,
-  backgroundColor: colors.white,
-  height: 170,
-};
-
 const styles = StyleSheet.create({
   walletCarousel: {
     paddingHorizontal: HORIZONTAL_PADDING,
-    height: walletStyle.height,
+    height: WALLET_HEIGHT,
   },
   walletContainer: {
-    ...walletStyle,
+    padding: 10,
+    borderRadius: 20,
+    backgroundColor: colors.white,
+    height: WALLET_HEIGHT,
     borderLeftWidth: 5,
     borderRightWidth: 5,
     justifyContent: "space-between",

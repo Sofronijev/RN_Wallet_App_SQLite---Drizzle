@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    paddingLeft: 10,
+    paddingLeft: 15,
     fontSize: 15,
   },
 });

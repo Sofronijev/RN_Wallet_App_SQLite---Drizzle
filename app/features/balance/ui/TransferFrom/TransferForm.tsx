@@ -7,7 +7,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
 import StyledLabelInput from "components/StyledLabelInput";
@@ -19,13 +19,9 @@ import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { AppStackParamList } from "navigation/routes";
 import Label from "components/Label";
-import { errorStrings, transferStrings } from "constants/strings";
+import { transferStrings } from "constants/strings";
 import { useGetWalletsWithBalance, WalletType } from "app/queries/wallets";
-import {
-  formatInitialTransferEditData,
-  initialTransferFormValues,
-  transactionValidationSchema,
-} from "../../modules/transfer";
+import { formatInitialTransferEditData, transactionValidationSchema } from "../../modules/transfer";
 import {
   addTransferMutation,
   deleteTransferMutation,
@@ -34,6 +30,7 @@ import {
 } from "app/queries/transfers";
 import HeaderIcon from "components/HeaderIcon";
 import AppActivityIndicator from "components/AppActivityIndicator";
+import { formatIsoDate } from "modules/timeAndDate";
 
 export type TransferFromInputs = {
   date: string;
@@ -42,6 +39,7 @@ export type TransferFromInputs = {
   walletIdTo: string;
   walletIdFrom: string;
 };
+
 const getWalletById = (wallets: WalletType[], walletId: number | null) =>
   wallets.find((wallet) => wallet.walletId === walletId);
 
@@ -56,6 +54,7 @@ const TransferForm: React.FC = () => {
   const { data: wallets } = useGetWalletsWithBalance();
   const { data: editTransferData, isLoading: isFetchingEditData } =
     useGetTransferByIdQuery(editTransferId);
+  const dateRef = useRef(new Date());
 
   useEffect(() => {
     if (editTransferData) {
@@ -118,7 +117,10 @@ const TransferForm: React.FC = () => {
       initialValues: editTransferData
         ? formatInitialTransferEditData(editTransferData)
         : {
-            ...initialTransferFormValues,
+            date: formatIsoDate(dateRef.current),
+            amountTo: "",
+            amountFrom: "",
+            walletIdTo: "",
             walletIdFrom: `${walletId}`,
           },
       validationSchema: transactionValidationSchema,

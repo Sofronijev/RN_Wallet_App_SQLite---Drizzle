@@ -1,38 +1,19 @@
-import React, { useEffect, useCallback } from "react";
-import * as SplashScreen from "expo-splash-screen";
+import React from "react";
+import { StatusBar, View } from "react-native";
 import AppNavigator from "./AppNavigator";
-import { Alert, View } from "react-native";
-import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
-import migrations from "../../drizzle/migrations";
-import { db } from "db";
+import AuthNavigator from "./AuthNavigator";
+import { usePinCodeStatus } from "app/features/pinCode/ui/PinCodeStatusProvider";
 import DrizzleStudio from "db/DrizzleStudio";
-
-SplashScreen.preventAutoHideAsync();
+import colors from "constants/colors";
 
 const RootNavigator: React.FC = () => {
-  const { success, error } = useMigrations(db, migrations);
-
-  useEffect(() => {
-    if (error) {
-      Alert.alert(
-        "Initialization Error",
-        "There was a problem initializing the app. Please try restarting the app. If the issue persists, consider reinstalling the app."
-      );
-    }
-  }, [error]);
-
-  const onLayoutRootView = useCallback(async () => {
-    if (success) {
-      await SplashScreen.hideAsync();
-    }
-  }, [success]);
-
-  if (!success) return null;
+  const { pinVisible, isLoading } = usePinCodeStatus();
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+    <View style={{ flex: 1 }}>
       {__DEV__ && <DrizzleStudio />}
-      <AppNavigator />
+      <StatusBar animated={true} backgroundColor={colors.greenMint} />
+      {pinVisible && !isLoading ? <AuthNavigator /> : <AppNavigator />}
     </View>
   );
 };

@@ -8,7 +8,7 @@ import AppActivityIndicator from "components/AppActivityIndicator";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { transactionStrings } from "constants/strings";
-import { addMonths, isSameMonth, subMonths } from "date-fns";
+import { addMonths, subMonths } from "date-fns";
 import { useGetMonthlyBalanceQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import MonthlyChart from "../MonthlyChart";
@@ -22,12 +22,9 @@ const MonthlyBalance: React.FC = () => {
   const { balance, expense, income } = data;
 
   const formattedMonth = getMonthAndYear(selectedDate);
-  const isCurrentMonth = isSameMonth(selectedDate, TODAY);
 
   const addMonth = () => {
-    if (!isCurrentMonth) {
-      setSelectedDate(addMonths(selectedDate, 1));
-    }
+    setSelectedDate(addMonths(selectedDate, 1));
   };
   const deductMonth = () => {
     setSelectedDate(subMonths(selectedDate, 1));
@@ -47,12 +44,8 @@ const MonthlyBalance: React.FC = () => {
           <TouchableOpacity onPress={setCurrentMonth} style={styles.icon}>
             <MaterialCommunityIcons name='calendar-today' size={25} color={colors.black} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={addMonth} style={styles.icon} disabled={isCurrentMonth}>
-            <FontAwesome
-              name='chevron-right'
-              size={25}
-              color={isCurrentMonth ? colors.disabled : colors.black}
-            />
+          <TouchableOpacity onPress={addMonth} style={styles.icon}>
+            <FontAwesome name='chevron-right' size={25} color={colors.black} />
           </TouchableOpacity>
         </View>
       </View>
@@ -73,7 +66,7 @@ const MonthlyBalance: React.FC = () => {
         </View>
         <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
       </View>
-      <MonthlyChart date={selectedDate}/>
+      <MonthlyChart date={selectedDate} />
     </View>
   );
 };

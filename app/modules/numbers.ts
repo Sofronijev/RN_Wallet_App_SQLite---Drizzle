@@ -8,3 +8,5 @@ export const formatDecimalDigits = (number: number) => {
 };
 
 export const isNumber = (value: string | number) => !isNaN(+value);
+
+export const hideValues = (value: string) => value.replace(/./g, "*");

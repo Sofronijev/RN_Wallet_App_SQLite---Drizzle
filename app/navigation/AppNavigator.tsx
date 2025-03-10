@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import WalletSettings from "app/features/settings/ui/wallets";
 import TransferForm from "app/features/balance/ui/TransferFrom/TransferForm";
 import TransactionSearch from "app/features/balance/ui/TransactionSearch";
+import PinSettings from "app/features/pinCode/ui/PinSettings";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -63,6 +64,13 @@ const AppNavigator: React.FC = () => {
         options={{
           animation: "slide_from_bottom",
           title: transferStrings.createTransfer,
+        }}
+      />
+      <Stack.Screen
+        name='PinSettings'
+        component={PinSettings}
+        options={{
+          animation: "default",
         }}
       />
     </Stack.Navigator>
