@@ -24,9 +24,8 @@ const HomeNavigator = () => (
       name='Balance'
       component={BalanceScreen}
       options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name='wallet' size={size} color={color} />
-        ),
+        tabBarIcon: ({ color, size }) => <Ionicons name='wallet' size={size} color={color} />,
+        headerShown: false,
       }}
     />
     <Tab.Screen

@@ -8,7 +8,7 @@ export const monthYearFormat = "yyyy-MM";
 // Format used on the Drizzle SQLite db
 export const apiIsoFormat = "yyyy-MM-dd'T'HH:mm:ssXXX";
 
-export const getMonthAndYear = (date: Date | string) => format(new Date(date), "MMMM Y");
+export const getMonthAndYear = (date: Date | string) => format(new Date(date), "MMMM y");
 
 export const getMonth = (date: Date) => format(date, "MMMM");
 
