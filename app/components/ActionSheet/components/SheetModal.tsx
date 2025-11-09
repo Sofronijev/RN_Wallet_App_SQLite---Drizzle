@@ -37,7 +37,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
       onDismiss={onDismiss}
       backdropComponent={renderBackdrop}
       handleStyle={styles.handle}
-      handleHeight={HANDLE_HEIGHT}
+      enableDynamicSizing={false}
     >
       {children}
     </BottomSheetModal>

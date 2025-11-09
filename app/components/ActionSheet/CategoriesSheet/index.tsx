@@ -1,6 +1,6 @@
 import React, { FC, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { BottomSheetFlatList, BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { StyleSheet } from "react-native";
+import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
 import CategoryTypeRowSelect from "./CategoryTypeRowSelect";
 import CategoryItem from "./CategoryItem";
 import {
@@ -25,6 +25,8 @@ const [emitter, openCategoriesSheet, closeCategoriesSheet] = createSheet<Data>()
 
 export { openCategoriesSheet };
 
+const keyExtractor = <T extends { id: number }>(item: T) => item.id.toString();
+
 const TransactionBottomSheet: FC = () => {
   const sheetRef = useRef<BottomSheetModal>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoriesWithType | null>(null);
@@ -39,7 +41,6 @@ const TransactionBottomSheet: FC = () => {
       CONTAINER_PADDING +
       16,
   ];
-
   const clearCategory = () => {
     setSelectedCategory(null);
   };
@@ -58,29 +59,36 @@ const TransactionBottomSheet: FC = () => {
     <CategoryItem item={item} onPress={onCategoryPress} />
   );
 
+  const renderTypeItem = ({ item }: { item: Type }) => (
+    <CategoryTypeRowSelect item={item} onPress={onTypePress} />
+  );
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
   // BUG - when there is textInput with autofocus prop the bottom sheet will open - FIXED with setting "softwareKeyboardLayoutMode": "pan" in app.json
   return (
     <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={clearCategory}>
       <CategoriesSheetHeader onBack={clearCategory} selectedCategory={selectedCategory} />
-      <View style={styles.container}>
-        {!selectedCategory ? (
-          <BottomSheetFlatList
-            numColumns={CATEGORIES_NUMBER_OF_ROWS}
-            data={categories}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
-          />
-        ) : (
-          <BottomSheetScrollView>
-            {selectedCategory.types.map((item) => (
-              <CategoryTypeRowSelect key={item.id} item={item} onPress={onTypePress} />
-            ))}
-          </BottomSheetScrollView>
-        )}
-      </View>
+      {!selectedCategory ? (
+        <BottomSheetFlatList
+          numColumns={CATEGORIES_NUMBER_OF_ROWS}
+          key='categories-flatlist'
+          data={categories}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          style={styles.container}
+        />
+      ) : (
+        <BottomSheetFlatList
+          key={`${selectedCategory.id}-types`}
+          data={selectedCategory.types}
+          keyExtractor={keyExtractor}
+          renderItem={renderTypeItem}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          style={styles.container}
+        />
+      )}
     </SheetModal>
   );
 };
