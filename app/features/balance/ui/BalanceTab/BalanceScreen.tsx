@@ -23,7 +23,7 @@ const BalanceScreen: React.FC = () => {
 
   return (
     <>
-      <ScrollView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <WalletList selectedWalletId={selectedWallet?.walletId} />
         <View style={styles.itemContainer}>
           <MonthlyBalance />
@@ -54,8 +54,7 @@ export default BalanceScreen;
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: 100,
-    paddingTop: 16,
+    paddingTop: 64,
   },
   itemContainer: {
     marginHorizontal: 16,
