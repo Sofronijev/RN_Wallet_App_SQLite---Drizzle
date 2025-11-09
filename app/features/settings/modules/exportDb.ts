@@ -2,7 +2,7 @@ import { Alert, Platform } from "react-native";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import * as DocumentPicker from "expo-document-picker";
-import RNRestart from "react-native-restart";
+import * as Updates from "expo-updates";
 
 export const exportDB = async () => {
   const isAvailable = await Sharing.isAvailableAsync();
@@ -70,7 +70,18 @@ export const importDb = async () => {
     Alert.alert(
       "Restarting App",
       "The database will be replaced and the app will restart.",
-      [{ text: "OK", onPress: () => RNRestart.restart() }],
+      [
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              await Updates.reloadAsync();
+            } catch (error) {
+              console.error("Failed to restart the app:", error);
+            }
+          },
+        },
+      ],
       { cancelable: false }
     );
 

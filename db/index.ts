@@ -1,4 +1,4 @@
-import { openDatabaseSync } from "expo-sqlite/next";
+import { openDatabaseSync } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as schema from "./schema";
