@@ -87,8 +87,7 @@ export const transactions = sqliteTable("Transactions", {
     .default(DEFAULT_USER_ID)
     .notNull(),
   type_id: integer("type_id")
-    .references(() => types.id, { onUpdate: "cascade", onDelete: "cascade" })
-    .notNull(),
+    .references(() => types.id, { onUpdate: "cascade", onDelete: "cascade" }),
   categoryId: integer("categoryId")
     .references(() => categories.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
