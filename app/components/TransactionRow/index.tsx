@@ -56,7 +56,8 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
       </View>
       <View style={styles.descriptionContainer}>
         <Label numberOfLines={hasDescription ? 1 : 2} style={styles.label}>
-          {type?.name}
+          {`${category.name} `}
+          {transaction.type_id && <Label style={styles.typeText}>{`(${type?.name})`}</Label>}
         </Label>
         {hasDescription && (
           <Label numberOfLines={1} style={styles.descriptionText}>
@@ -106,6 +107,11 @@ const styles = StyleSheet.create({
   },
   descriptionText: {
     fontSize: 16,
+    color: colors.grey4,
+    fontStyle: "italic",
+  },
+  typeText: {
+    fontWeight: "normal",
     color: colors.grey4,
   },
   incomeColor: {

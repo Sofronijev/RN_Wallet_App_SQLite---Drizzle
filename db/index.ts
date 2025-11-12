@@ -20,7 +20,7 @@ export type Wallet = InferSelectModel<typeof schema.wallet> & { currentBalance: 
 export type TransactionType = InferSelectModel<typeof schema.transactions>;
 export type TransactionWithDetails = InferSelectModel<typeof schema.transactions> & {
   category: InferSelectModel<typeof schema.categories>;
-  type: InferSelectModel<typeof schema.types>;
+  type: InferSelectModel<typeof schema.types> | null;
 };
 export type NewTransaction = InferInsertModel<typeof schema.transactions>;
 

@@ -43,11 +43,11 @@ const AppNavigator: React.FC = () => {
           animation: "slide_from_bottom",
           title: transactionStrings.transactionSearch,
           // TODO - create FILTERS screen
-          headerRight: () => (
-            <HeaderIcon onPress={() => console.log("Open filters")}>
-              <Ionicons name='filter' size={24} color={colors.white} />
-            </HeaderIcon>
-          ),
+          // headerRight: () => (
+          //   <HeaderIcon onPress={() => console.log("Open filters")}>
+          //     <Ionicons name='filter' size={24} color={colors.white} />
+          //   </HeaderIcon>
+          // ),
         }}
       />
       <Stack.Screen

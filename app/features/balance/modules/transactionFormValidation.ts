@@ -18,6 +18,6 @@ export const transactionValidationSchema = Yup.object({
     .moreThan(0, "Amount must be greater than 0")
     .label("Amount"),
   category: Yup.object().required("Please choose a category").nullable().label("Category"),
-  type: Yup.object().required().nullable().label("Type"),
+  type: Yup.object().nullable().label("Type"),
   walletId: Yup.number().required().nullable().label("Wallet"),
 });

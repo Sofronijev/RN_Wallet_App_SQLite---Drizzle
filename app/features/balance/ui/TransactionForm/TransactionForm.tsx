@@ -37,6 +37,9 @@ import {
 } from "app/queries/transactions";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
 import { ScrollView } from "react-native-gesture-handler";
+import Label from "components/Label";
+import TypeSelector from "./TypeSelector";
+import { useGetCategories } from "app/queries/categories";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -49,7 +52,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data: editedTransaction } = useGetTransactionByIdQuery(editTransactionId);
   const { data: wallets } = useGetWalletsWithBalance();
-  const { addTransaction, isLoading: addTransactionLoading } = addTransactionMutation();
+  const { categoriesById } = useGetCategories();
+  const { addTransaction } = addTransactionMutation();
   const { editTransaction } = editTransactionMutation();
   const { deleteTransaction } = deleteTransactionMutation();
   const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
@@ -57,12 +61,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
-    if (values.type && values.category && values.walletId) {
+    if (values.category && values.walletId) {
       const transactionData = {
-        amount: formatFormAmountValue(values.amount, values.category.id, values.type.id),
+        amount: formatFormAmountValue(values.amount, values.category.id, values.type?.id),
         description: values.description,
         date: formatIsoDate(values.date),
-        type_id: values.type.id,
+        type_id: values.type?.id ?? null,
         categoryId: values.category.id,
         wallet_id: Number(values.walletId),
       };
@@ -141,21 +145,14 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [editedTransaction]);
 
-  const onSelectCategory = (category: Category, type: Type) => {
+  const typeOptions = values.category?.id ? categoriesById[values.category.id]?.types ?? [] : [];
+  const onSelectCategory = (category: Category) => {
     setFieldValue("category", category);
+  };
+
+  const onSelectType = (type: Type | undefined) => {
     setFieldValue("type", type);
   };
-
-  const setCategoryText = () => {
-    if (!values.category && !values.type) {
-      return "";
-    }
-    return `${values.category?.name}, ${values.type?.name}`;
-  };
-
-  // In case amount is negative, remove minus sign for preview
-  // TODO - add validation while typing
-  const formattedAmount = values.amount.replace("-", "");
 
   const onDateChange = (date: string) => {
     setFieldValue("date", date);
@@ -175,10 +172,10 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       color: values.category.iconColor,
       iconFamily: values.category.iconFamily,
       name: values.category.iconName,
-      iconSize: 24,
+      iconSize: 40,
     })
   ) : (
-    <MaterialIcons name='category' size={24} color={colors.greenMint} />
+    <MaterialIcons name='category' size={40} color={colors.greenMint} />
   );
 
   return (
@@ -190,7 +187,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
         <StyledLabelInput
-          value={formattedAmount}
+          value={values.amount}
           placeholder='Amount'
           onChangeText={handleChange("amount")}
           keyboardType='decimal-pad'
@@ -200,18 +197,13 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           rightText={walletCurrency}
         />
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
-        <View>
-          <TouchableOpacity onPress={openSheet}>
-            <StyledLabelInput
-              value={setCategoryText()}
-              icon={getCategoryInputIcon}
-              disabled
-              placeholder='Category'
-              style={styles.input}
-              inputStyle={styles.category}
-            />
+        <View style={[styles.input, styles.category]}>
+          <TouchableOpacity onPress={openSheet} style={styles.flexRow}>
+            <View>{getCategoryInputIcon}</View>
+            <Label style={styles.categoryText}>{values.category?.name ?? "Select category"}</Label>
           </TouchableOpacity>
-          <InputErrorLabel text={errors.category} isVisible={!!errors.category || !!errors.type} />
+          <TypeSelector types={typeOptions} onSelect={onSelectType} selected={values.type?.id} />
+          <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
         </View>
         <StyledLabelInput
           placeholder='Transaction comment'
@@ -241,6 +233,9 @@ const styles = StyleSheet.create({
   },
   flexRow: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 8,
   },
   flex: {
     flex: 1,
@@ -253,10 +248,13 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 20,
   },
-  category: {
-    color: colors.black,
-  },
   walletPicker: {
     paddingTop: 20,
   },
+  category: {
+    borderColor: colors.grey,
+    borderWidth: 1,
+    paddingVertical: 10,
+  },
+  categoryText: { fontSize: 17, fontWeight: "400" },
 });
