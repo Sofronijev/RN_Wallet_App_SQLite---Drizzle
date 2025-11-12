@@ -1,6 +1,7 @@
 import { Alert, Platform } from "react-native";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+// TODO - remove legacy
+import * as FileSystem from "expo-file-system/legacy";
 import * as DocumentPicker from "expo-document-picker";
 import * as Updates from "expo-updates";
 
