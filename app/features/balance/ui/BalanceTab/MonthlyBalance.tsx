@@ -12,6 +12,7 @@ import { addMonths, subMonths } from "date-fns";
 import { useGetMonthlyBalanceQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import MonthlyChart from "../MonthlyChart";
+import ShadowBoxView from "components/ShadowBoxView";
 
 const TODAY = new Date();
 
@@ -34,7 +35,7 @@ const MonthlyBalance: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ShadowBoxView style={styles.container}>
       <View style={[styles.row, styles.titleContainer]}>
         <Label style={styles.title}>{formattedMonth}</Label>
         <View style={styles.icons}>
@@ -67,7 +68,7 @@ const MonthlyBalance: React.FC = () => {
         <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
       </View>
       <MonthlyChart date={selectedDate} />
-    </View>
+    </ShadowBoxView>
   );
 };
 

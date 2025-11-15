@@ -10,6 +10,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { useGetTransactionsQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
+import ShadowBoxView from "components/ShadowBoxView";
 
 type RecentTransactionsProps = {
   isLoading: boolean;
@@ -46,13 +47,13 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
     </View>
   );
   return (
-    <View style={styles.container}>
+    <ShadowBoxView style={styles.container}>
       {title && <Label style={styles.title}>{title}</Label>}
       {loading ? renderLoading : renderTransactions}
       <View style={styles.button}>
         <ButtonText title='View all transactions' onPress={navigateToTransactionSearch} />
       </View>
-    </View>
+    </ShadowBoxView>
   );
 };
 

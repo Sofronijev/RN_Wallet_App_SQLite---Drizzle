@@ -1,8 +1,8 @@
 import { StyleProp, StyleSheet, TextInputProps, TextStyle, View } from "react-native";
 import React from "react";
-import colors from "constants/colors";
 import LabelInput from "components/LabelInput";
 import Label from "components/Label";
+import ShadowBoxView from "components/ShadowBoxView";
 
 type StyledLabelInputType = TextInputProps & {
   icon?: React.ReactElement;
@@ -21,11 +21,11 @@ const StyledLabelInput: React.FC<StyledLabelInputType> = ({
   ...props
 }) => {
   return (
-    <View style={[styles.container, style]} pointerEvents={disabled ? "none" : "auto"}>
+    <ShadowBoxView style={[styles.container, style]} pointerEvents={disabled ? "none" : "auto"}>
       {icon && <View style={styles.icon}>{icon}</View>}
       <LabelInput style={[styles.input, inputStyle]} editable={!disabled} {...props} />
       {rightText && <Label style={styles.rightText}>{rightText}</Label>}
-    </View>
+    </ShadowBoxView>
   );
 };
 
@@ -35,10 +35,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    borderColor: colors.grey,
-    borderWidth: 1,
-    borderRadius: 10,
-    overflow: "hidden",
   },
   icon: {
     paddingLeft: 10,
@@ -51,5 +47,5 @@ const styles = StyleSheet.create({
   },
   rightText: {
     paddingRight: 12,
-  }
+  },
 });

@@ -40,6 +40,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import Label from "components/Label";
 import TypeSelector from "./TypeSelector";
 import { useGetCategories } from "app/queries/categories";
+import ShadowBoxView from "components/ShadowBoxView";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -197,14 +198,15 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           rightText={walletCurrency}
         />
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
-        <View style={[styles.input, styles.category]}>
+        <ShadowBoxView style={[styles.input, styles.category]}>
           <TouchableOpacity onPress={openSheet} style={styles.flexRow}>
             <View>{getCategoryInputIcon}</View>
             <Label style={styles.categoryText}>{values.category?.name ?? "Select category"}</Label>
           </TouchableOpacity>
           <TypeSelector types={typeOptions} onSelect={onSelectType} selected={values.type?.id} />
-          <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
-        </View>
+        </ShadowBoxView>
+        <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
+
         <StyledLabelInput
           placeholder='Transaction comment'
           style={styles.input}
@@ -242,8 +244,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginTop: 20,
-    backgroundColor: colors.white,
-    borderRadius: 10,
   },
   button: {
     marginTop: 20,
@@ -252,8 +252,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   category: {
-    borderColor: colors.grey,
-    borderWidth: 1,
     paddingVertical: 10,
   },
   categoryText: { fontSize: 17, fontWeight: "400" },
