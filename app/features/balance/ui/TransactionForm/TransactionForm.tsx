@@ -196,6 +196,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
           autoFocus={!editTransactionId}
           rightText={walletCurrency}
+          inputStyle={styles.amount}
         />
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
         <ShadowBoxView style={[styles.input, styles.category]}>
@@ -245,6 +246,9 @@ const styles = StyleSheet.create({
   input: {
     marginTop: 20,
   },
+  amount: {
+    fontSize: 18,
+  },
   button: {
     marginTop: 20,
   },
@@ -254,5 +258,5 @@ const styles = StyleSheet.create({
   category: {
     paddingVertical: 10,
   },
-  categoryText: { fontSize: 17, fontWeight: "400" },
+  categoryText: { fontSize: 18, fontWeight: "400" },
 });
