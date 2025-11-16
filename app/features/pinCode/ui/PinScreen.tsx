@@ -12,6 +12,7 @@ import PinButton from "./PinButton";
 import Feather from "@expo/vector-icons/Feather";
 import { usePinCodeStatus } from "./PinCodeStatusProvider";
 import { useGetPinCodeDataQuery } from "app/queries/user";
+import { tapHaptic } from "modules/haptics";
 
 const PinScreen: FC = () => {
   const [pin, setPin] = useState("");
@@ -29,6 +30,7 @@ const PinScreen: FC = () => {
   };
 
   const onNumberPress = (num: number) => () => {
+    tapHaptic();
     const nextPin = pin + `${num}`;
     if (currentPinLength < savedPinLength) {
       clearPinError();
@@ -49,6 +51,7 @@ const PinScreen: FC = () => {
   };
 
   const onDelete = () => {
+    tapHaptic();
     clearPinError();
     setPin((prevPin) => prevPin.slice(0, -1));
   };

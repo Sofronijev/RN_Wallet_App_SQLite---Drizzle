@@ -11,6 +11,7 @@ import colors from "constants/colors";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
+import { tapHaptic } from "modules/haptics";
 
 const snapPoints = ["50%"];
 
@@ -64,14 +65,17 @@ const NumericKeyboard: FC = () => {
   }, [sheetData?.initialValue]);
 
   const onNumberPress = (value: string) => {
+    tapHaptic();
     setInput((prev) => prev + value);
   };
 
   const onBackSpace = () => {
+    tapHaptic();
     setInput((prev) => prev.slice(0, -1));
   };
 
   const onDecimal = () => {
+    tapHaptic();
     if (input.includes(decimal)) return;
 
     if (input === "" || input === delimiter) {

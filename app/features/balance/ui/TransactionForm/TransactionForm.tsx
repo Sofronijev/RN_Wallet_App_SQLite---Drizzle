@@ -150,6 +150,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [editedTransaction]);
 
+  useEffect(() => {
+    if (!editTransactionId) {
+      openAmountInput();
+    }
+  }, [editTransactionId]);
+
   const typeOptions = values.category?.id ? categoriesById[values.category.id]?.types ?? [] : [];
   const onSelectCategory = (category: Category) => {
     setFieldValue("category", category);
@@ -171,7 +177,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     setFieldValue("walletId", walletId);
   };
 
-  const enterAmount = () => {
+  const openAmountInput = () => {
     Keyboard.dismiss();
     openNumericKeyboard({
       onSetAmount: onSetAmount,
@@ -204,7 +210,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
-          <TouchableOpacity style={styles.flexRow} onPress={enterAmount}>
+          <TouchableOpacity style={styles.flexRow} onPress={openAmountInput}>
             <FontAwesome5 name='coins' size={24} color={colors.greenMint} />
             <Label style={styles.amount}>
               {values.amount
