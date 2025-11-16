@@ -41,6 +41,9 @@ import Label from "components/Label";
 import TypeSelector from "./TypeSelector";
 import { useGetCategories } from "app/queries/categories";
 import ShadowBoxView from "components/ShadowBoxView";
+import { openNumericKeyboard } from "components/ActionSheet/NumbericKeyboard";
+import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { formatDecimalDigits } from "modules/numbers";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -57,6 +60,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const { addTransaction } = addTransactionMutation();
   const { editTransaction } = editTransactionMutation();
   const { deleteTransaction } = deleteTransactionMutation();
+  const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
   const dateRef = useRef(new Date());
 
@@ -104,7 +108,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const formatEditInitialValues = (transaction: TransactionWithDetails) => {
     return {
       date: formatIsoDate(transaction.date),
-      amount: `${Math.abs(transaction.amount)}`,
+      amount: Math.abs(transaction.amount),
       description: transaction.description ?? "",
       category: transaction.category,
       type: transaction.type,
@@ -118,7 +122,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         ? formatEditInitialValues(editedTransaction)
         : {
             date: formatIsoDate(dateRef.current),
-            amount: "",
+            amount: 0,
             description: "",
             category: null,
             type: null,
@@ -151,6 +155,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     setFieldValue("category", category);
   };
 
+  // TODO: FIX
+  const onSetAmount = (amount: number) => {
+    console.log(amount);
+    setFieldValue("amount", amount);
+  };
+
   const onSelectType = (type: Type | undefined) => {
     setFieldValue("type", type);
   };
@@ -161,6 +171,14 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const onWalletSelect = (walletId: number) => {
     setFieldValue("walletId", walletId);
+  };
+
+  const enterAmount = () => {
+    Keyboard.dismiss();
+    openNumericKeyboard({
+      onSetAmount: onSetAmount,
+      initialValue: values.amount || editedTransaction?.amount,
+    });
   };
 
   const onSubmit = () => {
@@ -187,19 +205,20 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <WalletPicker wallets={wallets} selected={+values.walletId} onSelect={onWalletSelect} />
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
-        <StyledLabelInput
-          value={values.amount}
-          placeholder='Amount'
-          onChangeText={handleChange("amount")}
-          keyboardType='decimal-pad'
-          style={styles.input}
-          icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
-          autoFocus={!editTransactionId}
-          rightText={walletCurrency}
-          inputStyle={styles.amount}
-        />
+        <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
+          <TouchableOpacity style={styles.flexRow} onPress={enterAmount}>
+            <FontAwesome5 name='coins' size={24} color={colors.greenMint} />
+            <Label style={styles.amount}>
+              {values.amount
+                ? `${formatDecimalDigits(values.amount, delimiter, decimal)} ${
+                    walletCurrency ?? ""
+                  }`
+                : "Enter amount"}
+            </Label>
+          </TouchableOpacity>
+        </ShadowBoxView>
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
-        <ShadowBoxView style={[styles.input, styles.category]}>
+        <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
           <TouchableOpacity onPress={openSheet} style={styles.flexRow}>
             <View>{getCategoryInputIcon}</View>
             <Label style={styles.categoryText}>{values.category?.name ?? "Select category"}</Label>
@@ -248,6 +267,7 @@ const styles = StyleSheet.create({
   },
   amount: {
     fontSize: 18,
+    flex: 1,
   },
   button: {
     marginTop: 20,
@@ -255,7 +275,7 @@ const styles = StyleSheet.create({
   walletPicker: {
     paddingTop: 20,
   },
-  category: {
+  paddingVertical: {
     paddingVertical: 10,
   },
   categoryText: { fontSize: 18, fontWeight: "400" },

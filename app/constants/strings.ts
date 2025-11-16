@@ -47,3 +47,8 @@ export const deleteUserDataStrings = {
   title: "Are you sure you want to delete your account?",
   subtitle: "All your data will permanently be deleted. This action cannot be undone.",
 };
+
+export const numericKeyboardStrings = {
+  setAmount: "Set amount",
+  amount: "Amount",
+};

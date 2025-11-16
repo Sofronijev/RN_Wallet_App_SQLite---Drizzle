@@ -46,3 +46,12 @@ export const getShowTotalAmount = () => {
 export const setShowTotalAmount = (showTotalAmount: boolean) => {
   return db.update(users).set({ showTotalAmount });
 };
+
+export const getNumberSeparator = () => {
+  return db.query.users.findFirst({
+    columns: {
+      decimal: true,
+      delimiter: true,
+    },
+  });
+};

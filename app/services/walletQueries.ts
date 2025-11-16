@@ -4,7 +4,6 @@ import { eq, getTableColumns, sql } from "drizzle-orm";
 import { addTransaction } from "./transactionQueries";
 import { formatIsoDate } from "modules/timeAndDate";
 import { CategoryNumber, typeIds } from "modules/categories";
-import { formatDecimalDigits } from "modules/numbers";
 import { getSelectedWalletInfo, setSelectedWallet } from "./userQueries";
 
 export const getAllWalletsWithBalance = () =>
@@ -23,7 +22,7 @@ export const getAllWalletsWithBalance = () =>
       wallet.startingBalance,
       wallet.walletName,
       wallet.currencyCode,
-      wallet.currencySymbol,
+      wallet.currencySymbol
     );
 
 export const setWalletStartingBalance = (walletId: number, amount: number) =>
@@ -34,10 +33,9 @@ export const changeCurrentBalance = (
   currentBalance: number,
   newBalance: number
 ) => {
-  const balanceDifference = newBalance - currentBalance;
+  const balanceDifference = Number((newBalance - currentBalance).toFixed(2));
   const isPositive = balanceDifference >= 0;
   const type = isPositive ? typeIds.transfer_received : typeIds.transfer_send;
-  const formatNumber = formatDecimalDigits(newBalance);
 
   return addTransaction({
     amount: balanceDifference,
@@ -45,7 +43,7 @@ export const changeCurrentBalance = (
     type_id: type,
     wallet_id,
     date: formatIsoDate(new Date()),
-    description: `Balance correction. New balance: ${formatNumber}`,
+    description: `Balance correction. New balance: ${newBalance}`,
   });
 };
 

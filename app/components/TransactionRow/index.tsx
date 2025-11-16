@@ -11,6 +11,7 @@ import { AppStackParamList } from "navigation/routes";
 import { useGetCategories } from "app/queries/categories";
 import CategoryIcon from "components/CategoryIcon";
 import { TransactionType } from "db";
+import { useGetNumberSeparatorQuery } from "app/queries/user";
 
 type Props = {
   transaction: TransactionType;
@@ -27,6 +28,7 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   const { categoriesById } = useGetCategories();
   const category = categoriesById[transaction.categoryId];
   const type = category.types.find((type) => type.id === transaction.type_id);
+  const { decimal, delimiter } = useGetNumberSeparatorQuery();
 
   const isIncome =
     transaction.categoryId === CategoryNumber.income ||
@@ -67,7 +69,7 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
       </View>
       <View>
         <Label style={[styles.price, isIncome && styles.incomeColor]}>
-          {`${formatDecimalDigits(transaction.amount)}`}
+          {`${formatDecimalDigits(transaction.amount, delimiter, decimal)}`}
         </Label>
         <View style={styles.dateContainer}>
           <Label style={styles.date} numberOfLines={1}>

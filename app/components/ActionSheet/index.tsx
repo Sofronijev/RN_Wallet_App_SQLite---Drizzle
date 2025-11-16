@@ -4,6 +4,7 @@ import TransactionBottomSheet from "./CategoriesSheet";
 import CurrencySheet from "./CurrencySheet";
 import ColorSheet from "./ColorSheet";
 import PickerSheet from "./PickerSheet";
+import NumericKeyboard from "./NumbericKeyboard";
 
 const ActionSheetProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -13,6 +14,7 @@ const ActionSheetProvider: FC<PropsWithChildren> = ({ children }) => {
       <CurrencySheet />
       <ColorSheet />
       <PickerSheet />
+      <NumericKeyboard />
     </BottomSheetModalProvider>
   );
 };

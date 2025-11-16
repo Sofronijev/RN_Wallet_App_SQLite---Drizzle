@@ -9,4 +9,5 @@ export const queryKeys = {
   categories: "categories",
   pinCode: "pinCode",
   showTotalAmount: "showTotalAmount",
+  numberSeparator: "numberSeparator",
 } as const;

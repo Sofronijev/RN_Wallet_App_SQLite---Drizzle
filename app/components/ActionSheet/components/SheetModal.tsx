@@ -6,7 +6,6 @@ import {
   BottomSheetProps,
 } from "@gorhom/bottom-sheet";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import colors from "constants/colors";
 import { StyleSheet } from "react-native";
 
 type Props = {
@@ -46,7 +45,6 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
 
 const styles = StyleSheet.create({
   handle: {
-    backgroundColor: colors.grey3,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
   },

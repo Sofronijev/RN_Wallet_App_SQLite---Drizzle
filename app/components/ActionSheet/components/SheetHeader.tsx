@@ -10,7 +10,7 @@ type SheetHeaderProps = {
   nextText?: React.ReactElement | string;
   title: string;
 };
-export const HEADER_TEXT_HEIGH = 35;
+export const HEADER_TEXT_HEIGH = 40;
 
 const SheetHeader: React.FC<SheetHeaderProps> = ({ onBack, backText, onNext, nextText, title }) => {
   const renderText = (text: React.ReactElement | string) => {
@@ -48,7 +48,6 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({ onBack, backText, onNext, nex
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: colors.grey3,
     height: HEADER_TEXT_HEIGH,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -56,7 +55,8 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    fontSize: 15,
+    fontSize: 20,
+    fontWeight: '600',
     flex: 2,
     color: colors.dark,
   },

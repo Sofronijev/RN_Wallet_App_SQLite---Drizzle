@@ -11,6 +11,7 @@ import { GetMonthlyAmountsType } from "app/services/transactionQueries";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType } from "db";
+import { useGetNumberSeparatorQuery } from "app/queries/user";
 
 const formatBarData = (
   data: GetMonthlyAmountsType,
@@ -36,9 +37,11 @@ const formatBarData = (
 
 const TooltipComponent: FC<{ value: number | undefined; index: number }> = ({ value, index }) => {
   if (!value) return null;
+  const { decimal, delimiter } = useGetNumberSeparatorQuery();
+
   return (
     <View style={[styles.tooltip, index === 0 && { marginLeft: 50 }]}>
-      <Label>{formatDecimalDigits(value)}</Label>
+      <Label>{formatDecimalDigits(value, delimiter, decimal)}</Label>
     </View>
   );
 };

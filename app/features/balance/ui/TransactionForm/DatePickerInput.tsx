@@ -10,6 +10,9 @@ import {
 import colors from "constants/colors";
 import StyledLabelInput from "components/StyledLabelInput";
 import { FontAwesome } from "@expo/vector-icons";
+import ShadowBoxView from "components/ShadowBoxView";
+import Label from "components/Label";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const isIosDevice = Platform.OS === "ios";
 
@@ -56,22 +59,18 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
     <View>
       {!isIosDevice && (
         <View style={styles.container}>
-          <TouchableOpacity onPress={showCalendar} style={styles.dateLabel}>
-            <StyledLabelInput
-              value={getFormattedDate(value, calendarDateFormat)}
-              icon={<FontAwesome name='calendar' size={24} color={colors.greenMint} />}
-              editable={false}
-              inputStyle={styles.dateLabel}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={showClock} style={styles.dateLabel}>
-            <StyledLabelInput
-              value={formatTime(value)}
-              icon={<FontAwesome name='calendar' size={24} color={colors.greenMint} />}
-              editable={false}
-              inputStyle={styles.dateLabel}
-            />
-          </TouchableOpacity>
+          <ShadowBoxView style={styles.flex}>
+            <TouchableOpacity onPress={showCalendar} style={styles.row}>
+              <FontAwesome name='calendar' size={24} color={colors.greenMint} />
+              <Label>{getFormattedDate(value, calendarDateFormat)}</Label>
+            </TouchableOpacity>
+          </ShadowBoxView>
+          <ShadowBoxView style={styles.flex}>
+            <TouchableOpacity onPress={showClock} style={styles.row}>
+              <AntDesign name='clock-circle' size={24} color={colors.greenMint} />
+              <Label>{formatTime(value)}</Label>
+            </TouchableOpacity>
+          </ShadowBoxView>
         </View>
       )}
       {showDate && (
@@ -102,13 +101,15 @@ export default DatePickerInput;
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-between",
     columnGap: 16,
   },
-  dateLabel: {
-    color: colors.black,
-    backgroundColor: colors.white,
-    borderRadius: 10,
+  flex: {
     flex: 1,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    gap: 8,
   },
 });

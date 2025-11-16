@@ -3,7 +3,7 @@ import { Category, Type } from "db";
 
 export type TransactionFromInputs = {
   date: string;
-  amount: string;
+  amount: number;
   description: string;
   category: Category | null;
   type: Type | null;

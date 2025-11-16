@@ -19,6 +19,7 @@ import { CurrencyType } from "app/currencies/currencies";
 import { openColorSheet } from "components/ActionSheet/ColorSheet";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AlertPrompt from "components/AlertPrompt";
+import { useGetNumberSeparatorQuery } from "app/queries/user";
 
 type Props = {
   wallet: WalletType;
@@ -32,6 +33,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   const { setColor } = setColorMutation();
   const { changeWalletName } = setWalletNameMutation();
   const { deleteWallet } = deleteWalletMutation();
+  const { decimal, delimiter } = useGetNumberSeparatorQuery();
 
   if (!wallet) return null;
   const {
@@ -122,7 +124,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
       <View style={styles.row}>
         <Label>Balance:</Label>
         <ButtonText
-          title={formatDecimalDigits(currentBalance)}
+          title={formatDecimalDigits(currentBalance, delimiter, decimal)}
           type='link'
           onPress={onBalancePress}
         />
@@ -130,7 +132,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
       <View style={styles.row}>
         <Label>Starting balance:</Label>
         <ButtonText
-          title={formatDecimalDigits(startingBalance)}
+          title={formatDecimalDigits(startingBalance, delimiter, decimal)}
           type='link'
           onPress={onStartingBalancePress}
         />

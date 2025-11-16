@@ -6,6 +6,7 @@ import {
   setIsPinEnabled,
   setPinCode,
   setInactivePinTimeout,
+  getNumberSeparator,
 } from "app/services/userQueries";
 import { queryKeys } from "./index";
 
@@ -96,6 +97,20 @@ export const useSetShowTotalAmount = () => {
   return {
     setShowTotalAmount: mutate,
     isLoading: isPending,
+    isError,
+  };
+};
+
+export const useGetNumberSeparatorQuery = () => {
+  const { data, isLoading, isFetching, isError } = useQuery({
+    queryKey: [queryKeys.numberSeparator],
+    queryFn: getNumberSeparator,
+  });
+
+  return {
+    decimal: data?.decimal ?? ",",
+    delimiter: data?.delimiter ?? ".",
+    isLoading: isLoading || isFetching,
     isError,
   };
 };

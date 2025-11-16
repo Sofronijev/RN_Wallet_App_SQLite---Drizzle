@@ -13,6 +13,7 @@ import { useGetMonthlyBalanceQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import MonthlyChart from "../MonthlyChart";
 import ShadowBoxView from "components/ShadowBoxView";
+import { useGetNumberSeparatorQuery } from "app/queries/user";
 
 const TODAY = new Date();
 
@@ -21,6 +22,7 @@ const MonthlyBalance: React.FC = () => {
   const { data: selectedWallet, isLoading: selectedWalletLoading } = useGetSelectedWalletQuery();
   const { data, isLoading } = useGetMonthlyBalanceQuery(selectedWallet?.walletId, selectedDate);
   const { balance, expense, income } = data;
+  const { decimal, delimiter } = useGetNumberSeparatorQuery();
 
   const formattedMonth = getMonthAndYear(selectedDate);
 
@@ -54,16 +56,20 @@ const MonthlyBalance: React.FC = () => {
         <View style={styles.row}>
           <Label style={styles.label}>{transactionStrings.available}</Label>
           <Label style={[styles.balance, balance < 0 && styles.redBalance]}>
-            {formatDecimalDigits(balance)}
+            {formatDecimalDigits(balance, delimiter, decimal)}
           </Label>
         </View>
         <View style={styles.row}>
           <Label style={styles.label}>{transactionStrings.income}</Label>
-          <Label style={styles.transactions}>{formatDecimalDigits(income)}</Label>
+          <Label style={styles.transactions}>
+            {formatDecimalDigits(income, delimiter, decimal)}
+          </Label>
         </View>
         <View style={styles.row}>
           <Label style={styles.label}>{transactionStrings.expenses}</Label>
-          <Label style={styles.transactions}>{formatDecimalDigits(expense)}</Label>
+          <Label style={styles.transactions}>
+            {formatDecimalDigits(expense, delimiter, decimal)}
+          </Label>
         </View>
         <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
       </View>

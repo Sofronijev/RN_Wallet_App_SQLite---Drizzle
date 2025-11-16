@@ -23,7 +23,7 @@ export const deleteTransactionAlert = (onPress: () => void) => {
   ]);
 };
 
-export const formatFormAmountValue = (amount: string, categoryId: number, typeId?: number) => {
+export const formatFormAmountValue = (amount: string | number, categoryId: number, typeId?: number) => {
   const amountNumber = Math.abs(Number(amount));
   const isIncome =
     categoryId === CategoryNumber.income ||

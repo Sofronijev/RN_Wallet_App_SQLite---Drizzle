@@ -16,7 +16,11 @@ import {
   useGetWalletsWithBalance,
 } from "app/queries/wallets";
 import VisibilityToggleIcon from "components/VisibilityToggleIcon";
-import { useGetShowTotalAmount, useSetShowTotalAmount } from "app/queries/user";
+import {
+  useGetNumberSeparatorQuery,
+  useGetShowTotalAmount,
+  useSetShowTotalAmount,
+} from "app/queries/user";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -38,10 +42,14 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
   const { showTotalAmount } = useGetShowTotalAmount();
   const { setShowTotalAmount } = useSetShowTotalAmount();
+  const { decimal, delimiter } = useGetNumberSeparatorQuery();
+
   const canTransfer = wallets.length >= 2;
 
   const totalBalance = (total: number, symbol: string | null, code: string | null) =>
-    showTotalAmount ? `${`${formatDecimalDigits(total)} ${symbol || code}`}` : "*******";
+    showTotalAmount
+      ? `${`${formatDecimalDigits(total, delimiter, decimal)} ${symbol || code}`}`
+      : "*******";
 
   const startingIndex =
     wallets.length && selectedWalletId ? findWalletIndex(selectedWalletId, wallets) : undefined;
