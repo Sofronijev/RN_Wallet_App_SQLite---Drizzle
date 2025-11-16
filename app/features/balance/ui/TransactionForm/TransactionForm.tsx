@@ -155,9 +155,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     setFieldValue("category", category);
   };
 
-  // TODO: FIX
   const onSetAmount = (amount: number) => {
-    console.log(amount);
     setFieldValue("amount", amount);
   };
 

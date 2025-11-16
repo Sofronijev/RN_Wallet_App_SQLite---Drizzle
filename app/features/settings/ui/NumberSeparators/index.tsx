@@ -64,6 +64,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
+    width: "50%",
   },
   button: {
     borderWidth: 1,
@@ -85,13 +86,13 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     gap: 8,
+    width: "50%",
   },
   itemContainer: {
     flexDirection: "row",
     gap: 8,
     alignContent: "center",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingVertical: 8,
   },
 });
