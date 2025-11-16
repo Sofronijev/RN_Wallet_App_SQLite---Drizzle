@@ -36,7 +36,12 @@ const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect }) => {
 
   return (
     <View style={styles.container}>
-      <FlatList data={wallets} horizontal renderItem={renderItem} />
+      <FlatList
+        data={wallets}
+        horizontal
+        renderItem={renderItem}
+        showsHorizontalScrollIndicator={false}
+      />
     </View>
   );
 };

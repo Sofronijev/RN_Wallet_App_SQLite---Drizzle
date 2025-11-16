@@ -1,4 +1,4 @@
-import React, { FC, PropsWithChildren, useCallback } from "react";
+import React, { FC, PropsWithChildren, useCallback, useEffect, useState } from "react";
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -6,7 +6,7 @@ import {
   BottomSheetProps,
 } from "@gorhom/bottom-sheet";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import { StyleSheet } from "react-native";
+import { BackHandler, Platform, StyleSheet } from "react-native";
 
 type Props = {
   sheetRef: React.RefObject<BottomSheetModalMethods>;
@@ -22,6 +22,29 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
   snapPoints,
   onDismiss,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+
+    const handleBack = () => {
+      if (isOpen) {
+        sheetRef.current?.close();
+        return true;
+      }
+
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener("hardwareBackPress", handleBack);
+
+    return () => subscription.remove();
+  }, [isOpen]);
+
+  const handleSheetChanges = useCallback((index: number) => {
+    setIsOpen(index >= 0);
+  }, []);
+
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
@@ -37,6 +60,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
       backdropComponent={renderBackdrop}
       handleStyle={styles.handle}
       enableDynamicSizing={false}
+      onChange={handleSheetChanges}
     >
       {children}
     </BottomSheetModal>

@@ -211,8 +211,10 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         </View>
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
           <TouchableOpacity style={styles.flexRow} onPress={openAmountInput}>
-            <FontAwesome5 name='coins' size={24} color={colors.greenMint} />
-            <Label style={styles.amount}>
+            <View style={styles.icon}>
+              <FontAwesome5 name='coins' size={30} color={colors.greenMint} />
+            </View>
+            <Label style={[styles.label, !values.amount && styles.placeHolder]}>
               {values.amount
                 ? `${formatDecimalDigits(values.amount, delimiter, decimal)} ${
                     walletCurrency ?? ""
@@ -224,8 +226,10 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
           <TouchableOpacity onPress={openSheet} style={styles.flexRow}>
-            <View>{getCategoryInputIcon}</View>
-            <Label style={styles.categoryText}>{values.category?.name ?? "Select category"}</Label>
+            <View style={styles.icon}>{getCategoryInputIcon}</View>
+            <Label style={[styles.label, !values.category?.name && styles.placeHolder]}>
+              {values.category?.name ?? "Select category"}
+            </Label>
           </TouchableOpacity>
           <TypeSelector types={typeOptions} onSelect={onSelectType} selected={values.type?.id} />
         </ShadowBoxView>
@@ -269,10 +273,6 @@ const styles = StyleSheet.create({
   input: {
     marginTop: 20,
   },
-  amount: {
-    fontSize: 18,
-    flex: 1,
-  },
   button: {
     marginTop: 20,
   },
@@ -282,5 +282,9 @@ const styles = StyleSheet.create({
   paddingVertical: {
     paddingVertical: 10,
   },
-  categoryText: { fontSize: 18, fontWeight: "400" },
+  icon: {
+    width: 40,
+  },
+  label: { fontSize: 18, flex: 1 },
+  placeHolder: { color: colors.grey4 },
 });
