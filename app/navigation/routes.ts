@@ -14,6 +14,7 @@ export type AppStackParamList = {
     editTransferId?: number;
   };
   PinSettings: undefined;
+  NumberSeparators: undefined;
 };
 
 export type AuthStackParamList = {

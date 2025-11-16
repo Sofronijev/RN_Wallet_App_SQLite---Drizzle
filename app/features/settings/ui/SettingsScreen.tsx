@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet } from "react-native";
 import React from "react";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import SettingsListItem from "./SettingsListItem";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
 import colors from "constants/colors";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -23,18 +23,24 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
     },
     {
       id: 2,
+      title: "Number separators",
+      icon: <Octicons name='number' size={24} color={colors.black} />,
+      onPress: () => navigation.navigate("NumberSeparators"),
+    },
+    {
+      id: 3,
       title: "Export data",
       icon: <Ionicons name='exit-outline' size={24} color={colors.black} />,
       onPress: exportDB,
     },
     {
-      id: 3,
+      id: 4,
       title: "Import data",
       icon: <Ionicons name='enter-outline' size={24} color={colors.black} />,
       onPress: importDb,
     },
     {
-      id: 4,
+      id: 5,
       title: "Pin code",
       icon: <MaterialIcons name='password' size={24} color={colors.black} />,
       onPress: () => navigation.navigate("PinSettings"),

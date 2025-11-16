@@ -1,5 +1,6 @@
 import { db } from "db";
 import { users } from "db/schema";
+import { Decimal, Delimiter } from "modules/types";
 
 export const setSelectedWallet = (selectedWalletId: number) => {
   return db.update(users).set({ selectedWalletId });
@@ -54,4 +55,12 @@ export const getNumberSeparator = () => {
       delimiter: true,
     },
   });
+};
+
+export const setDecimal = (decimal: Decimal) => {
+  return db.update(users).set({ decimal });
+};
+
+export const setDelimiter = (delimiter: Delimiter) => {
+  return db.update(users).set({ delimiter });
 };

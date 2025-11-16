@@ -13,3 +13,6 @@ export type ResponseError = {
   data: { message: string };
   status: number;
 };
+
+export type Decimal = "." | ",";
+export type Delimiter = "." | "," | "";

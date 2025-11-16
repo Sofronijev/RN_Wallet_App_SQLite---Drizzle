@@ -11,6 +11,7 @@ import WalletSettings from "app/features/settings/ui/wallets";
 import TransferForm from "app/features/balance/ui/TransferFrom/TransferForm";
 import TransactionSearch from "app/features/balance/ui/TransactionSearch";
 import PinSettings from "app/features/pinCode/ui/PinSettings";
+import NumberSeparators from "app/features/settings/ui/NumberSeparators";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -71,6 +72,15 @@ const AppNavigator: React.FC = () => {
         component={PinSettings}
         options={{
           animation: "default",
+          title: "Pin Code",
+        }}
+      />
+      <Stack.Screen
+        name='NumberSeparators'
+        component={NumberSeparators}
+        options={{
+          animation: "default",
+          title: "Number separators",
         }}
       />
     </Stack.Navigator>

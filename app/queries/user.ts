@@ -7,8 +7,11 @@ import {
   setPinCode,
   setInactivePinTimeout,
   getNumberSeparator,
+  setDecimal,
+  setDelimiter,
 } from "app/services/userQueries";
 import { queryKeys } from "./index";
+import { Decimal, Delimiter } from "modules/types";
 
 export const useGetPinCodeDataQuery = () => {
   const { data, isLoading, isFetching, isError } = useQuery({
@@ -111,6 +114,38 @@ export const useGetNumberSeparatorQuery = () => {
     decimal: data?.decimal ?? ",",
     delimiter: data?.delimiter ?? ".",
     isLoading: isLoading || isFetching,
+    isError,
+  };
+};
+
+export const useSetDecimal = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (decimal: Decimal) => setDecimal(decimal),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.numberSeparator] });
+    },
+  });
+
+  return {
+    setDecimal: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const useSetDelimiter = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (delimiter: Delimiter) => setDelimiter(delimiter),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.numberSeparator] });
+    },
+  });
+
+  return {
+    setDelimiter: mutate,
+    isLoading: isPending,
     isError,
   };
 };
