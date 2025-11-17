@@ -100,11 +100,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     deleteTransactionAlert(onDeleteTransaction);
   };
 
-  const openSheet = () => {
-    Keyboard.dismiss();
-    openCategoriesSheet({ onSelect: onSelectCategory });
-  };
-
   const formatEditInitialValues = (transaction: TransactionWithDetails) => {
     return {
       date: formatIsoDate(transaction.date),
@@ -152,7 +147,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     if (!editTransactionId) {
-      openAmountInput();
+      showAmountSheet();
     }
   }, [editTransactionId]);
 
@@ -161,8 +156,21 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     setFieldValue("category", category);
   };
 
+  const showCategoriesSheet = () => {
+    Keyboard.dismiss();
+    openCategoriesSheet({ onSelect: onSelectCategory });
+  };
+
   const onSetAmount = (amount: number) => {
     setFieldValue("amount", amount);
+  };
+
+  const showAmountSheet = () => {
+    Keyboard.dismiss();
+    openNumericKeyboard({
+      onSetAmount: onSetAmount,
+      initialValue: values.amount || editedTransaction?.amount,
+    });
   };
 
   const onSelectType = (type: Type | undefined) => {
@@ -175,14 +183,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const onWalletSelect = (walletId: number) => {
     setFieldValue("walletId", walletId);
-  };
-
-  const openAmountInput = () => {
-    Keyboard.dismiss();
-    openNumericKeyboard({
-      onSetAmount: onSetAmount,
-      initialValue: values.amount || editedTransaction?.amount,
-    });
   };
 
   const onSubmit = () => {
@@ -210,7 +210,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
-          <TouchableOpacity style={styles.flexRow} onPress={openAmountInput}>
+          <TouchableOpacity style={styles.flexRow} onPress={showAmountSheet}>
             <View style={styles.icon}>
               <FontAwesome5 name='coins' size={30} color={colors.greenMint} />
             </View>
@@ -225,7 +225,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         </ShadowBoxView>
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
-          <TouchableOpacity onPress={openSheet} style={styles.flexRow}>
+          <TouchableOpacity onPress={showCategoriesSheet} style={styles.flexRow}>
             <View style={styles.icon}>{getCategoryInputIcon}</View>
             <Label style={[styles.label, !values.category?.name && styles.placeHolder]}>
               {values.category?.name ?? "Select category"}
