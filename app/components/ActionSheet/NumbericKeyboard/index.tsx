@@ -66,7 +66,18 @@ const NumericKeyboard: FC = () => {
 
   const onNumberPress = (value: string) => {
     tapHaptic();
-    setInput((prev) => prev + value);
+    setInput((prev) => {
+      const next = prev + value;
+
+      // ako već postoji decimala i pokušava da doda više od 2
+      const decimalIndex = next.indexOf(decimal);
+      if (decimalIndex !== -1) {
+        const decimalsCount = next.length - decimalIndex - 1;
+        if (decimalsCount > 2) return prev; // blokiraj dodavanje
+      }
+
+      return next;
+    });
   };
 
   const onBackSpace = () => {
