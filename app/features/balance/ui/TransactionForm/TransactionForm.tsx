@@ -17,7 +17,7 @@ import {
   transactionValidationSchema,
 } from "../../modules/transactionFormValidation";
 import { RouteProp } from "@react-navigation/native";
-import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import HeaderIcon from "components/HeaderIcon";
 import {
   deleteTransactionAlert,
@@ -43,7 +43,7 @@ import { useGetCategories } from "app/queries/categories";
 import ShadowBoxView from "components/ShadowBoxView";
 import { openNumericKeyboard } from "components/ActionSheet/NumbericKeyboard";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
-import { formatDecimalDigits } from "modules/numbers";
+import AmountInput from "../AmountInput";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -209,20 +209,13 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <WalletPicker wallets={wallets} selected={+values.walletId} onSelect={onWalletSelect} />
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
-        <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
-          <TouchableOpacity style={styles.flexRow} onPress={showAmountSheet}>
-            <View style={styles.icon}>
-              <FontAwesome5 name='coins' size={30} color={colors.greenMint} />
-            </View>
-            <Label style={[styles.label, !values.amount && styles.placeHolder]}>
-              {values.amount
-                ? `${formatDecimalDigits(values.amount, delimiter, decimal)} ${
-                    walletCurrency ?? ""
-                  }`
-                : "Enter amount"}
-            </Label>
-          </TouchableOpacity>
-        </ShadowBoxView>
+        <AmountInput
+          initialValue={values.amount || editedTransaction?.amount}
+          onSetAmount={onSetAmount}
+          style={styles.input}
+          amount={values.amount}
+          walletCurrency={walletCurrency}
+        />
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
           <TouchableOpacity onPress={showCategoriesSheet} style={styles.flexRow}>

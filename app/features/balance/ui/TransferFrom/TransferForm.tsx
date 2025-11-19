@@ -10,12 +10,11 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import WalletPicker from "app/features/balance/ui/TransactionForm/WalletPicker";
 import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
-import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { AppStackParamList } from "navigation/routes";
 import Label from "components/Label";
@@ -31,11 +30,12 @@ import {
 import HeaderIcon from "components/HeaderIcon";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { formatIsoDate } from "modules/timeAndDate";
+import AmountInput from "../AmountInput";
 
 export type TransferFromInputs = {
   date: string;
-  amountTo: string;
-  amountFrom: string;
+  amountTo: number;
+  amountFrom: number;
   walletIdTo: string;
   walletIdFrom: string;
 };
@@ -118,8 +118,8 @@ const TransferForm: React.FC = () => {
         ? formatInitialTransferEditData(editTransferData)
         : {
             date: formatIsoDate(dateRef.current),
-            amountTo: "",
-            amountFrom: "",
+            amountTo: 0,
+            amountFrom: 0,
             walletIdTo: "",
             walletIdFrom: `${walletId}`,
           },
@@ -137,10 +137,6 @@ const TransferForm: React.FC = () => {
     setFieldValue("date", date);
   };
 
-  // In case amount is negative, remove minus sign for preview
-  // TODO - add validation while typing
-  const formattedAmount = (amount: string) => amount.replace("-", "");
-
   const onWalletSelect = (fieldName: string) => (walletId: number) => {
     setFieldValue(fieldName, walletId);
   };
@@ -150,17 +146,21 @@ const TransferForm: React.FC = () => {
     handleSubmit();
   };
 
-  const onSetAmountFrom = (event: string | React.ChangeEvent<any>) => {
-    handleChange("amountFrom")(event);
+  const onSetAmountFrom = (amount: number) => {
+    setFieldValue("amountFrom", amount);
     if (!isDifferentCurrency) {
-      handleChange("amountTo")(event);
+      setFieldValue("amountTo", amount);
     }
+  };
+
+  const onSetAmountTo = (amount: number) => {
+    setFieldValue("amountTo", amount);
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      style={styles.flex}
     >
       <ScrollView style={styles.container}>
         <View style={styles.inputContainer}>
@@ -181,24 +181,22 @@ const TransferForm: React.FC = () => {
               onSelect={onWalletSelect("walletIdTo")}
             />
           </View>
-          <StyledLabelInput
-            value={formattedAmount(values.amountFrom)}
-            placeholder={isDifferentCurrency ? "Amount from" : "Amount"}
-            onChangeText={onSetAmountFrom}
-            keyboardType='decimal-pad'
+          <AmountInput
+            initialValue={values.amountFrom}
+            onSetAmount={onSetAmountFrom}
             style={styles.input}
-            icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
-            rightText={walletFrom?.currencySymbol || walletFrom?.currencyCode}
+            amount={values.amountFrom}
+            walletCurrency={walletFrom?.currencySymbol || walletFrom?.currencyCode}
+            placeholder={isDifferentCurrency ? "Amount from" : "Enter Amount"}
           />
           {isDifferentCurrency && (
-            <StyledLabelInput
-              value={formattedAmount(values.amountTo)}
-              placeholder='Amount to'
-              onChangeText={handleChange("amountTo")}
-              keyboardType='decimal-pad'
+            <AmountInput
+              initialValue={values.amountTo}
+              onSetAmount={onSetAmountTo}
               style={styles.input}
-              icon={<FontAwesome5 name='coins' size={24} color={colors.greenMint} />}
-              rightText={walletTo?.currencySymbol || walletTo?.currencyCode}
+              amount={values.amountTo}
+              walletCurrency={walletTo?.currencySymbol || walletTo?.currencyCode}
+              placeholder='Amount to'
             />
           )}
         </View>
@@ -226,9 +224,10 @@ const TransferForm: React.FC = () => {
 export default TransferForm;
 
 const styles = StyleSheet.create({
+  flex: { flex: 1, backgroundColor: colors.white },
   container: {
-    marginHorizontal: 16,
-    marginTop: 20,
+    paddingHorizontal: 16,
+    paddingTop: 20,
     flex: 1,
   },
   inputContainer: {

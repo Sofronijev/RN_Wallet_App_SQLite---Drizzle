@@ -26,8 +26,8 @@ export const formatInitialTransferEditData = (transfer: TransferWithTransactions
   return {
     date: formatIsoDate(transfer.date ?? new Date()),
     walletIdFrom: transfer.fromWalletId?.toString() ?? "",
-    amountFrom: Math.abs(Number(transfer.fromTransaction?.amount ?? 0)).toString(),
+    amountFrom: Math.abs(Number(transfer.fromTransaction?.amount ?? 0)),
     walletIdTo: transfer.toWalletId?.toString() || "",
-    amountTo: Math.abs(Number(transfer.toTransaction?.amount ?? 0)).toString(),
+    amountTo: Math.abs(Number(transfer.toTransaction?.amount ?? 0)),
   };
 };
