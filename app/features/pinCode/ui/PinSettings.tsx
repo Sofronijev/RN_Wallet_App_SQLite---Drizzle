@@ -89,7 +89,7 @@ const PinSettings = () => {
         <ButtonText title={"Change PIN"} type='link' onPress={() => onSetPin(true)} />
         <View style={styles.pinCode}>
           <Label>{formatPinCode || "Not set"}</Label>
-          <VisibilityToggleIcon isVisible={showPin} onPress={onEyePress} />
+          {!!formatPinCode && <VisibilityToggleIcon isVisible={showPin} onPress={onEyePress} />}
         </View>
       </View>
       <ButtonText disabled={!pinCode} title={"Remove PIN"} type='link' onPress={onDeletePin} />
