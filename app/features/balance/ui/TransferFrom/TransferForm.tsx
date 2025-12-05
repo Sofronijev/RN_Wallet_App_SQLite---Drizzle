@@ -1,5 +1,4 @@
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -31,6 +30,8 @@ import HeaderIcon from "components/HeaderIcon";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { formatIsoDate } from "modules/timeAndDate";
 import AmountInput from "../AmountInput";
+import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
+import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 
 export type TransferFromInputs = {
   date: string;
@@ -55,6 +56,7 @@ const TransferForm: React.FC = () => {
   const { data: editTransferData, isLoading: isFetchingEditData } =
     useGetTransferByIdQuery(editTransferId);
   const dateRef = useRef(new Date());
+  const { openSheet } = useActionSheet();
 
   useEffect(() => {
     if (editTransferData) {
@@ -146,6 +148,14 @@ const TransferForm: React.FC = () => {
     handleSubmit();
   };
 
+  const openNumericKeyboard = (onSetAmount: (amount: number) => void, initialValue: number) => {
+    Keyboard.dismiss();
+    openSheet({
+      type: SHEETS.NUMERIC_KEYBOARD,
+      props: { onSetAmount, initialValue },
+    });
+  };
+
   const onSetAmountFrom = (amount: number) => {
     setFieldValue("amountFrom", amount);
     if (!isDifferentCurrency) {
@@ -182,8 +192,7 @@ const TransferForm: React.FC = () => {
             />
           </View>
           <AmountInput
-            initialValue={values.amountFrom}
-            onSetAmount={onSetAmountFrom}
+            onPress={() => openNumericKeyboard(onSetAmountFrom, values.amountFrom)}
             style={styles.input}
             amount={values.amountFrom}
             walletCurrency={walletFrom?.currencySymbol || walletFrom?.currencyCode}
@@ -191,8 +200,7 @@ const TransferForm: React.FC = () => {
           />
           {isDifferentCurrency && (
             <AmountInput
-              initialValue={values.amountTo}
-              onSetAmount={onSetAmountTo}
+              onPress={() => openNumericKeyboard(onSetAmountTo, values.amountTo)}
               style={styles.input}
               amount={values.amountTo}
               walletCurrency={walletTo?.currencySymbol || walletTo?.currencyCode}

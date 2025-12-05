@@ -14,12 +14,12 @@ import {
   setWalletNameMutation,
   WalletType,
 } from "app/queries/wallets";
-import { openCurrencySheet } from "components/ActionSheet/CurrencySheet";
 import { CurrencyType } from "app/currencies/currencies";
-import { openColorSheet } from "components/ActionSheet/ColorSheet";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AlertPrompt from "components/AlertPrompt";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
+import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 
 type Props = {
   wallet: WalletType;
@@ -34,6 +34,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   const { changeWalletName } = setWalletNameMutation();
   const { deleteWallet } = deleteWalletMutation();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const { openSheet } = useActionSheet();
 
   if (!wallet) return null;
   const {
@@ -59,21 +60,27 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   };
 
   const onCurrencyPress = () => {
-    openCurrencySheet({
-      onSelect: (data: CurrencyType | null) => {
-        setCurrency({
-          id: walletId,
-          currencyCode: data?.currencyCode ?? "",
-          currencySymbol: data?.symbolNative ?? "",
-        });
+    openSheet({
+      type: SHEETS.CURRENCY_PICKER,
+      props: {
+        onSelect: (data: CurrencyType | null) => {
+          setCurrency({
+            id: walletId,
+            currencyCode: data?.currencyCode ?? "",
+            currencySymbol: data?.symbolNative ?? "",
+          });
+        },
       },
     });
   };
 
   const onColorPress = () => {
-    openColorSheet({
-      onSelect: (color: string) => {
-        setColor({ id: walletId, color });
+    openSheet({
+      type: SHEETS.COLOR_PICKER,
+      props: {
+        onSelect: (color: string) => {
+          setColor({ id: walletId, color });
+        },
       },
     });
   };

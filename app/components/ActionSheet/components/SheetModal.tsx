@@ -1,4 +1,4 @@
-import React, { FC, PropsWithChildren, useCallback, useEffect, useState } from "react";
+import React, { FC, PropsWithChildren, useCallback, useEffect, useLayoutEffect } from "react";
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -7,10 +7,12 @@ import {
 } from "@gorhom/bottom-sheet";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import { BackHandler, Platform, StyleSheet } from "react-native";
+import { SheetItem, useActionSheet } from "../ActionSheetContext";
 
 type Props = {
   sheetRef: React.RefObject<BottomSheetModalMethods>;
   snapPoints: BottomSheetProps["snapPoints"];
+  type: SheetItem["type"];
   onDismiss?: () => void;
 };
 
@@ -21,29 +23,30 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
   sheetRef,
   snapPoints,
   onDismiss,
+  type,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { closeSheet } = useActionSheet();
+
+  useLayoutEffect(() => {
+    requestAnimationFrame(() => sheetRef?.current?.present());
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
 
     const handleBack = () => {
-      if (isOpen) {
-        sheetRef.current?.close();
-        return true;
-      }
-
-      return false;
+      closeSheet(type);
+      return true;
     };
 
     const subscription = BackHandler.addEventListener("hardwareBackPress", handleBack);
-
     return () => subscription.remove();
-  }, [isOpen]);
-
-  const handleSheetChanges = useCallback((index: number) => {
-    setIsOpen(index >= 0);
   }, []);
+
+  const onDismissAction = () => {
+    closeSheet(type);
+    onDismiss?.();
+  };
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -56,11 +59,10 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
       ref={sheetRef}
       snapPoints={snapPoints}
       enablePanDownToClose
-      onDismiss={onDismiss}
+      onDismiss={onDismissAction}
       backdropComponent={renderBackdrop}
       handleStyle={styles.handle}
       enableDynamicSizing={false}
-      onChange={handleSheetChanges}
     >
       {children}
     </BottomSheetModal>

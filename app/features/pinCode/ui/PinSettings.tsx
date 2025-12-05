@@ -14,8 +14,9 @@ import {
   useSetPinCodeMutation,
 } from "app/queries/user";
 import VisibilityToggleIcon from "components/VisibilityToggleIcon";
-import { openPickerSheet } from "components/ActionSheet/PickerSheet";
 import { pinInactivityOptions } from "../modules";
+import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
+import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 
 const pinTimeData = Object.values(pinInactivityOptions);
 
@@ -31,6 +32,7 @@ const PinSettings = () => {
   const { setIsPinEnabled } = useSetIsPinEnabledMutation();
   const { setInactivePinTimeout } = useSetInactivePinTimeoutMutation();
   const [showPin, setShowPin] = useState(false);
+  const { openSheet } = useActionSheet();
 
   const formatPinCode = showPin ? pinCode : hideValues(pinCode);
 
@@ -97,10 +99,13 @@ const PinSettings = () => {
           title={formatPinInactivityLabel(inactivePinTimeout)}
           type='link'
           onPress={() =>
-            openPickerSheet({
-              data: pinTimeData,
-              onSelect: onSelectPinTime,
-              title: "Select time",
+            openSheet({
+              type: SHEETS.PICKER_SHEET,
+              props: {
+                data: pinTimeData,
+                onSelect: onSelectPinTime,
+                title: "Select time",
+              },
             })
           }
         />

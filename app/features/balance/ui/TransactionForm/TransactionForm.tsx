@@ -4,12 +4,10 @@ import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import { openCategoriesSheet } from "components/ActionSheet/CategoriesSheet";
 import colors from "constants/colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { formatIsoDate } from "modules/timeAndDate";
 import AppActivityIndicator from "components/AppActivityIndicator";
-
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import {
@@ -41,9 +39,9 @@ import Label from "components/Label";
 import TypeSelector from "./TypeSelector";
 import { useGetCategories } from "app/queries/categories";
 import ShadowBoxView from "components/ShadowBoxView";
-import { openNumericKeyboard } from "components/ActionSheet/NumbericKeyboard";
-import { useGetNumberSeparatorQuery } from "app/queries/user";
 import AmountInput from "../AmountInput";
+import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
+import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -60,9 +58,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const { addTransaction } = addTransactionMutation();
   const { editTransaction } = editTransactionMutation();
   const { deleteTransaction } = deleteTransactionMutation();
-  const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
   const dateRef = useRef(new Date());
+  const { openSheet } = useActionSheet();
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
@@ -158,18 +156,24 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const showCategoriesSheet = () => {
     Keyboard.dismiss();
-    openCategoriesSheet({ onSelect: onSelectCategory });
+    openSheet({ type: SHEETS.CATEGORY_PICKER, props: { onSelect: onSelectCategory } });
   };
 
   const onSetAmount = (amount: number) => {
     setFieldValue("amount", amount);
+    if (!values.category?.id) {
+      showCategoriesSheet();
+    }
   };
 
   const showAmountSheet = () => {
     Keyboard.dismiss();
-    openNumericKeyboard({
-      onSetAmount: onSetAmount,
-      initialValue: values.amount || editedTransaction?.amount,
+    openSheet({
+      type: SHEETS.NUMERIC_KEYBOARD,
+      props: {
+        onSetAmount: onSetAmount,
+        initialValue: values.amount || editedTransaction?.amount,
+      },
     });
   };
 
@@ -210,8 +214,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
         <AmountInput
-          initialValue={values.amount || editedTransaction?.amount}
-          onSetAmount={onSetAmount}
+          onPress={showAmountSheet}
           style={styles.input}
           amount={values.amount}
           walletCurrency={walletCurrency}

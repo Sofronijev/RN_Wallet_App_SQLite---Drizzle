@@ -1,37 +1,31 @@
 import React, { FC, useCallback, useRef } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
-import createSheet from "../createSheet";
-import useSheetData from "../useSheetData";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { CurrencyType, currencies } from "app/currencies/currencies";
 import SheetHeader from "../components/SheetHeader";
+import { SHEETS } from "../ActionSheetManager";
 
 const snapPoints = ["50%"];
 
-type Data = {
+type Props = {
   onSelect: (currency: CurrencyType | null) => void;
 };
 
-const [emitter, openCurrencySheet, closeCurrencySheet] = createSheet<Data>();
-
-export { openCurrencySheet };
-
 const currencyArray = Object.values(currencies);
 
-const CurrencySheet: FC = () => {
+const CurrencySheet: FC<Props> = ({ onSelect }) => {
   const sheetRef = useRef<BottomSheetModal>(null);
-  const sheetData = useSheetData<Data>(emitter, sheetRef);
 
   const onItemPress = (item: CurrencyType) => () => {
-    sheetData?.onSelect(item);
-    closeCurrencySheet();
+    onSelect(item);
+    sheetRef.current?.close();
   };
 
   const onRemoveCurrency = () => {
-    sheetData?.onSelect(null);
-    closeCurrencySheet();
+    onSelect(null);
+    sheetRef.current?.close();
   };
 
   const renderItem = useCallback(
@@ -44,11 +38,11 @@ const CurrencySheet: FC = () => {
         </Label>
       </TouchableOpacity>
     ),
-    [sheetData]
+    []
   );
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints}>
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} type={SHEETS.COLOR_PICKER}>
       <SheetHeader title='Choose currency' onBack={onRemoveCurrency} backText={"Remove"} />
       <BottomSheetFlatList data={currencyArray} renderItem={renderItem} style={styles.container} />
     </SheetModal>

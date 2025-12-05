@@ -1,42 +1,26 @@
-import { Keyboard, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 import React, { FC } from "react";
 import Label from "components/Label";
 import { formatDecimalDigits } from "modules/numbers";
 import colors from "constants/colors";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { openNumericKeyboard } from "components/ActionSheet/NumbericKeyboard";
 import ShadowBoxView from "components/ShadowBoxView";
 
 type Props = {
   amount: number;
+  onPress: () => void;
   walletCurrency?: string | null;
-  initialValue?: number;
-  onSetAmount: (amount: number) => void;
   style?: StyleProp<ViewStyle>;
   placeholder?: string;
 };
 
-const AmountInput: FC<Props> = ({
-  amount,
-  walletCurrency,
-  initialValue,
-  onSetAmount,
-  style,
-  placeholder,
-}) => {
-  const showAmountSheet = () => {
-    Keyboard.dismiss();
-    openNumericKeyboard({
-      onSetAmount,
-      initialValue,
-    });
-  };
+const AmountInput: FC<Props> = ({ amount, onPress, walletCurrency, style, placeholder }) => {
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
 
   return (
     <ShadowBoxView style={[styles.container, style]}>
-      <TouchableOpacity style={styles.flexRow} onPress={showAmountSheet}>
+      <TouchableOpacity style={styles.flexRow} onPress={onPress}>
         <View style={styles.icon}>
           <FontAwesome5 name='coins' size={30} color={colors.greenMint} />
         </View>

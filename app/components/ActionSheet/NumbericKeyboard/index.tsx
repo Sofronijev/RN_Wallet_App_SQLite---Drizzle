@@ -1,8 +1,5 @@
 import React, { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import createSheet from "../createSheet";
-import useSheetData from "../useSheetData";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
@@ -12,17 +9,16 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
 import { tapHaptic } from "modules/haptics";
+import { SHEETS } from "../ActionSheetManager";
+import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
 const snapPoints = ["50%"];
 
-type Data = {
+type Props = {
   onSetAmount: (amount: number) => void;
   initialValue?: number;
+  onDismiss?: () => void;
 };
-
-const [emitter, openNumericKeyboard, closeNumericKeyboard] = createSheet<Data>();
-
-export { openNumericKeyboard };
 
 const numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
@@ -49,31 +45,29 @@ const formatNumber = (rawValue: string, thousandsSeparator: string, decimalSepar
     : `${formattedInt}${decimalSeparator}`;
 };
 
-const NumericKeyboard: FC = () => {
-  const sheetRef = useRef<BottomSheetModal>(null);
-  const sheetData = useSheetData<Data>(emitter, sheetRef);
+const NumericKeyboard: FC<Props> = ({ onSetAmount, initialValue, onDismiss }) => {
+  const sheetRef = useRef<BottomSheetModalMethods | null>(null);
+
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+
   const setInitialValue = (value: number | undefined) =>
     value ? `${value}`.replace(".", decimal) : "";
 
-  const [input, setInput] = useState<string>(setInitialValue(sheetData?.initialValue));
+  const [input, setInput] = useState<string>(setInitialValue(initialValue));
 
   useEffect(() => {
-    if (sheetData) {
-      setInput(setInitialValue(sheetData.initialValue));
-    }
-  }, [sheetData?.initialValue]);
+    setInput(setInitialValue(initialValue));
+  }, [initialValue]);
 
   const onNumberPress = (value: string) => {
     tapHaptic();
     setInput((prev) => {
       const next = prev + value;
 
-      // ako već postoji decimala i pokušava da doda više od 2
       const decimalIndex = next.indexOf(decimal);
       if (decimalIndex !== -1) {
         const decimalsCount = next.length - decimalIndex - 1;
-        if (decimalsCount > 2) return prev; // blokiraj dodavanje
+        if (decimalsCount > 2) return prev;
       }
 
       return next;
@@ -96,16 +90,19 @@ const NumericKeyboard: FC = () => {
     }
   };
 
-  const clearInput = () => setInput(setInitialValue(sheetData?.initialValue));
-
   const onSave = () => {
     const parseNumber = parseFloat(input.replace(decimal, "."));
-    sheetData?.onSetAmount(parseNumber);
-    closeNumericKeyboard();
+    sheetRef?.current?.close();
+    onSetAmount(parseNumber);
   };
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={clearInput}>
+    <SheetModal
+      sheetRef={sheetRef}
+      snapPoints={snapPoints}
+      type={SHEETS.NUMERIC_KEYBOARD}
+      onDismiss={onDismiss}
+    >
       <SheetHeader title={numericKeyboardStrings.setAmount} />
       <View style={styles.container}>
         <Label style={styles.input}>{formatNumber(input, delimiter, decimal)}</Label>

@@ -25,7 +25,7 @@ export default SettingsListItem;
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    padding: 5,
+    paddingVertical: 10,
     alignItems: "center",
   },
   title: {

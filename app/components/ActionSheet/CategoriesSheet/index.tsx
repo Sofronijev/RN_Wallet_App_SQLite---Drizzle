@@ -1,18 +1,17 @@
-import React, { FC, useRef, useState } from "react";
+import React, { FC, useRef } from "react";
 import { StyleSheet } from "react-native";
-import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import CategoryItem from "./CategoryItem";
 import {
   CATEGORIES_NUMBER_OF_ROWS,
   CATEGORY_ITEM_HEIGHT,
 } from "app/features/balance/modules/transaction";
-import CategoriesSheetHeader from "./CategoriesSheetHeader";
-import createSheet from "../createSheet";
-import useSheetData from "../useSheetData";
 import SheetModal, { HANDLE_HEIGHT } from "../components/SheetModal";
-import { HEADER_TEXT_HEIGH } from "../components/SheetHeader";
+import SheetHeader, { HEADER_TEXT_HEIGH } from "../components/SheetHeader";
 import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType, Category, Type } from "db";
+import { SHEETS } from "../ActionSheetManager";
+import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
 const CONTAINER_PADDING = 8;
 
@@ -20,17 +19,11 @@ type Data = {
   onSelect: (category: Category, types: Type[]) => void;
 };
 
-const [emitter, openCategoriesSheet, closeCategoriesSheet] = createSheet<Data>();
-
-export { openCategoriesSheet };
-
 const keyExtractor = <T extends { id: number }>(item: T) => item.id.toString();
 
-const TransactionBottomSheet: FC = () => {
-  const sheetRef = useRef<BottomSheetModal>(null);
-  const [selectedCategory, setSelectedCategory] = useState<CategoriesWithType | null>(null);
+const TransactionBottomSheet: FC<Data> = ({ onSelect }) => {
+  const sheetRef = useRef<BottomSheetModalMethods | null>(null);
 
-  const sheetData = useSheetData<Data>(emitter, sheetRef);
   const { data: categories } = useGetCategories();
 
   const snapPoints = [
@@ -40,14 +33,11 @@ const TransactionBottomSheet: FC = () => {
       CONTAINER_PADDING +
       16,
   ];
-  const clearCategory = () => {
-    setSelectedCategory(null);
-  };
 
   const onCategoryPress = (item: CategoriesWithType) => {
     const { types, ...category } = item;
-    sheetData?.onSelect(category, types);
-    closeCategoriesSheet();
+    sheetRef.current?.close();
+    onSelect(category, types);
   };
 
   const renderItem = ({ item }: { item: CategoriesWithType }) => (
@@ -57,11 +47,10 @@ const TransactionBottomSheet: FC = () => {
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
   // BUG - when there is textInput with autofocus prop the bottom sheet will open - FIXED with setting "softwareKeyboardLayoutMode": "pan" in app.json
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={clearCategory}>
-      <CategoriesSheetHeader onBack={clearCategory} selectedCategory={selectedCategory} />
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} type={SHEETS.CATEGORY_PICKER}>
+      <SheetHeader title={"Pick a category"} />
       <BottomSheetFlatList
         numColumns={CATEGORIES_NUMBER_OF_ROWS}
-        key='categories-flatlist'
         data={categories}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
