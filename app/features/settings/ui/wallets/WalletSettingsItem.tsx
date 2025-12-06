@@ -1,9 +1,8 @@
 import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import React from "react";
 import colors from "constants/colors";
-import { formatDecimalDigits } from "modules/numbers";
+import { formatDecimalDigits, roundDecimals } from "modules/numbers";
 import ButtonText from "components/ButtonText";
-import { showBalancePrompt, showStartingBalancePrompt } from "app/features/settings/modules";
 import Label from "components/Label";
 import {
   changeCurrentBalanceMutation,
@@ -20,6 +19,7 @@ import AlertPrompt from "components/AlertPrompt";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
+import { changeBalanceStrings, startingBalanceStrings } from "constants/strings";
 
 type Props = {
   wallet: WalletType;
@@ -37,6 +37,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   const { openSheet } = useActionSheet();
 
   if (!wallet) return null;
+
   const {
     walletId,
     currentBalance,
@@ -50,13 +51,28 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   const currency = currencyCode || currencySymbol ? `${currencyCode} ${currencySymbol}` : "None";
 
   const onStartingBalancePress = () => {
-    showStartingBalancePrompt((amount: number) => setStartingBalance({ id: walletId, amount }));
+    openSheet({
+      type: SHEETS.NUMERIC_KEYBOARD,
+      props: {
+        onSetAmount: (amount: number) => setStartingBalance({ id: walletId, amount }),
+        title: startingBalanceStrings.title,
+        subtitle: startingBalanceStrings.subtitle,
+      },
+    });
   };
 
   const onBalancePress = () => {
-    showBalancePrompt((newAmount: number) =>
-      changeCurrentBalance({ id: walletId, currentAmount: currentBalance, newAmount })
-    );
+    openSheet({
+      type: SHEETS.NUMERIC_KEYBOARD,
+      props: {
+        onSetAmount: (newAmount: number) =>
+          changeCurrentBalance({ id: walletId, currentAmount: currentBalance, newAmount }),
+        title: changeBalanceStrings.title,
+        subtitle: changeBalanceStrings.subtitle,
+        showOperators: true,
+        initialValue: roundDecimals(currentBalance),
+      },
+    });
   };
 
   const onCurrencyPress = () => {

@@ -16,3 +16,6 @@ export const formatDecimalDigits = (
 export const isNumber = (value: string | number) => !isNaN(+value);
 
 export const hideValues = (value: string) => value.replace(/./g, "*");
+
+export const roundDecimals = (value: number, fractionDigits = 2) =>
+  Number(value.toFixed(fractionDigits));

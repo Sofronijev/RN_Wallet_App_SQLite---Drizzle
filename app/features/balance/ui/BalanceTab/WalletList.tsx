@@ -1,7 +1,7 @@
 import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
 import React from "react";
 import Label from "components/Label";
-import { formatDecimalDigits } from "modules/numbers";
+import { formatDecimalDigits, roundDecimals } from "modules/numbers";
 import colors from "constants/colors";
 import Carousel from "components/Carousel";
 import ButtonText from "components/ButtonText";
@@ -22,6 +22,7 @@ import {
 } from "app/queries/user";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
+import { changeBalanceStrings } from "constants/strings";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -66,9 +67,10 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
       props: {
         onSetAmount: (newAmount: number) =>
           changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount }),
-        title: "Enter the correct balance",
-        subtitle: "A correction transaction will be created to adjust it accordingly",
+        title: changeBalanceStrings.title,
+        subtitle: changeBalanceStrings.subtitle,
         showOperators: true,
+        initialValue: roundDecimals(balance),
       },
     });
   };

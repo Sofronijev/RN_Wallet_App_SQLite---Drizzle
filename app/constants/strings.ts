@@ -53,3 +53,13 @@ export const numericKeyboardStrings = {
   confirm: "Confirm",
   amount: "Amount",
 };
+
+export const changeBalanceStrings = {
+  title: "Enter the correct balance",
+  subtitle: "A correction transaction will be created to update your balance.",
+};
+
+export const startingBalanceStrings = {
+  title: "Enter your starting balance",
+  subtitle: "This will also update your current balance.",
+};

@@ -37,7 +37,7 @@ const Button: FC<PropsWithChildren<{ onPress: () => void; showOperators?: boolea
   );
 };
 
-const formatNumber = (rawValue: string, thousandsSeparator: string, decimalSeparator: string) => {
+const formatSingle = (rawValue: string, thousandsSeparator: string, decimalSeparator: string) => {
   if (!rawValue) return "0";
 
   const hasDecimal = rawValue.includes(decimalSeparator);
@@ -50,6 +50,16 @@ const formatNumber = (rawValue: string, thousandsSeparator: string, decimalSepar
   return decPart !== undefined
     ? `${formattedInt}${decimalSeparator}${decPart}`
     : `${formattedInt}${decimalSeparator}`;
+};
+
+const formatNumber = (rawValue: string, thousandsSeparator: string, decimalSeparator: string) => {
+  const numbers = rawValue.split(/([+\-*/])/g).filter((value) => value !== "");
+  return numbers
+    .map((number) => {
+      if (/^[+\-*/]$/.test(number)) return number;
+      return formatSingle(number, thousandsSeparator, decimalSeparator);
+    })
+    .join("");
 };
 
 const operators = ["+", "-", "*", "/"];
@@ -79,9 +89,11 @@ const NumericKeyboard: FC<Props> = ({
     setInput((prev) => {
       const next = prev + value;
 
-      const decimalIndex = next.indexOf(decimal);
+      const lastPart = next.split(/[\+\-\*\/]/).pop() || "";
+
+      const decimalIndex = lastPart.indexOf(decimal);
       if (decimalIndex !== -1) {
-        const decimalsCount = next.length - decimalIndex - 1;
+        const decimalsCount = lastPart.length - 1 - decimalIndex;
         if (decimalsCount > 2) return prev;
       }
 
@@ -113,17 +125,22 @@ const NumericKeyboard: FC<Props> = ({
 
   const onDecimal = () => {
     tapHaptic();
-    if (input.includes(decimal)) return;
 
-    if (input === "" || input === delimiter) {
-      setInput("0" + decimal);
-    } else {
-      setInput((prev) => prev + decimal);
-    }
+    setInput((prev) => {
+      const lastNumber = prev.split(/[\+\-\*\/]/).pop() || "";
+
+      if (lastNumber.includes(decimal)) return prev;
+
+      if (prev === "" || prev === delimiter) {
+        return "0" + decimal;
+      } else {
+        return prev + decimal;
+      }
+    });
   };
 
   const onSave = () => {
-    let parseNumber = input.replace(decimal, ".");
+    let parseNumber = input.replaceAll(decimal, ".");
 
     const lastChar = parseNumber.slice(-1);
     if (operators.includes(lastChar)) {
@@ -162,7 +179,13 @@ const NumericKeyboard: FC<Props> = ({
 
   const renderButton = (icon?: string, label?: string) => {
     if (icon) {
-      return <FontAwesome5 name={icon} size={24} color={colors.greenMint} />;
+      return (
+        <FontAwesome5
+          name={icon}
+          size={24}
+          color={icon === "backspace" ? colors.black : colors.greenMint}
+        />
+      );
     } else if (label) {
       return <Label style={styles.buttonText}>{label}</Label>;
     }
@@ -205,6 +228,7 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 28,
     textAlign: "right",
+    paddingTop: 4,
   },
   numbers: {
     backgroundColor: colors.grey3,

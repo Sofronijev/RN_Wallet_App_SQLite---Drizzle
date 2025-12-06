@@ -5,20 +5,30 @@ import WalletList from "app/features/balance/ui/BalanceTab/WalletList";
 import { ScrollView } from "react-native-gesture-handler";
 import RecentTransactions from "app/features/balance/ui/BalanceTab/RecentTransactions";
 import NullScreen from "components/NullScreen";
-import { showStartingBalancePrompt } from "app/features/settings/modules";
 import MonthlyBalance from "./MonthlyBalance";
 import { setStartingBalanceMutation, useGetSelectedWalletQuery } from "app/queries/wallets";
+import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
+import { SHEETS } from "components/ActionSheet/ActionSheetManager";
+import { startingBalanceStrings } from "constants/strings";
 
 const BalanceScreen: React.FC = () => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { setStartingBalance } = setStartingBalanceMutation();
+  const { openSheet } = useActionSheet();
   const hasStartingBalance = !!selectedWallet?.startingBalance;
 
   const onChangeStartingBalance = () => {
     if (!selectedWallet) return;
-    showStartingBalancePrompt((amount: number) =>
-      setStartingBalance({ id: selectedWallet.walletId, amount })
-    );
+
+    openSheet({
+      type: SHEETS.NUMERIC_KEYBOARD,
+      props: {
+        onSetAmount: (amount: number) =>
+          setStartingBalance({ id: selectedWallet.walletId, amount }),
+        title: startingBalanceStrings.title,
+        subtitle: startingBalanceStrings.subtitle,
+      },
+    });
   };
 
   return (
