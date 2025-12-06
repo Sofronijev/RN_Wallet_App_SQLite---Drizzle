@@ -17,6 +17,8 @@ type Props = {
   onSetAmount: (amount: number) => void;
   initialValue?: number;
   onDismiss?: () => void;
+  title?: string;
+  subtitle?: string;
 };
 
 const numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
@@ -44,7 +46,7 @@ const formatNumber = (rawValue: string, thousandsSeparator: string, decimalSepar
     : `${formattedInt}${decimalSeparator}`;
 };
 
-const NumericKeyboard: FC<Props> = ({ onSetAmount, initialValue, onDismiss }) => {
+const NumericKeyboard: FC<Props> = ({ onSetAmount, initialValue, onDismiss, title, subtitle }) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
 
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
@@ -97,7 +99,7 @@ const NumericKeyboard: FC<Props> = ({ onSetAmount, initialValue, onDismiss }) =>
 
   return (
     <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={onDismiss}>
-      <SheetHeader title={numericKeyboardStrings.setAmount} />
+      <SheetHeader title={title ?? numericKeyboardStrings.setAmount} subtitle={subtitle} />
       <View style={styles.container}>
         <Label style={styles.input}>{formatNumber(input, delimiter, decimal)}</Label>
         <View style={styles.numbers}>

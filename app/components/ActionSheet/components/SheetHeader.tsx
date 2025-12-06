@@ -9,10 +9,18 @@ type SheetHeaderProps = {
   onNext?: () => void;
   nextText?: React.ReactElement | string;
   title: string;
+  subtitle?: string;
 };
 export const HEADER_TEXT_HEIGH = 40;
 
-const SheetHeader: React.FC<SheetHeaderProps> = ({ onBack, backText, onNext, nextText, title }) => {
+const SheetHeader: React.FC<SheetHeaderProps> = ({
+  onBack,
+  backText,
+  onNext,
+  nextText,
+  title,
+  subtitle,
+}) => {
   const renderText = (text: React.ReactElement | string) => {
     if (typeof text === "string") {
       return <Label style={styles.text}>{text}</Label>;
@@ -26,7 +34,7 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({ onBack, backText, onNext, nex
   const showIcons = showLeftButton || showRightButton;
 
   return (
-    <View>
+    <View style={styles.container}>
       <View style={styles.header}>
         {showIcons && (
           <TouchableOpacity onPress={onBack} style={styles.icon}>
@@ -42,23 +50,27 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({ onBack, backText, onNext, nex
           </TouchableOpacity>
         )}
       </View>
+      {subtitle && <Label style={styles.subtitle}>{subtitle}</Label>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: { height: HEADER_TEXT_HEIGH, paddingHorizontal: 16 },
   header: {
-    height: HEADER_TEXT_HEIGH,
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
   },
   title: {
     textAlign: "center",
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 2,
     color: colors.dark,
+  },
+  subtitle: {
+    paddingTop: 4,
+    color: colors.grey4,
   },
   icon: {
     flex: 1,

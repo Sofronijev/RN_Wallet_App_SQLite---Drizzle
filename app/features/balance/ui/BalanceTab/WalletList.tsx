@@ -1,11 +1,10 @@
 import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
 import React from "react";
 import Label from "components/Label";
-import { formatDecimalDigits, hideValues } from "modules/numbers";
+import { formatDecimalDigits } from "modules/numbers";
 import colors from "constants/colors";
 import Carousel from "components/Carousel";
 import ButtonText from "components/ButtonText";
-import { showBalancePrompt } from "app/features/settings/modules";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
@@ -21,6 +20,8 @@ import {
   useGetShowTotalAmount,
   useSetShowTotalAmount,
 } from "app/queries/user";
+import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
+import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -43,6 +44,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { showTotalAmount } = useGetShowTotalAmount();
   const { setShowTotalAmount } = useSetShowTotalAmount();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const { openSheet } = useActionSheet();
 
   const canTransfer = wallets.length >= 2;
 
@@ -59,9 +61,15 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   };
 
   const onBalancePress = (walletId: number, balance: number) => {
-    showBalancePrompt((newAmount: number) =>
-      changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount })
-    );
+    openSheet({
+      type: SHEETS.NUMERIC_KEYBOARD,
+      props: {
+        onSetAmount: (newAmount: number) =>
+          changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount }),
+        title: "Enter the correct balance",
+        subtitle: "A correction transaction will be created to adjust it accordingly",
+      },
+    });
   };
 
   const walletWidth = width - HORIZONTAL_PADDING * 2;
