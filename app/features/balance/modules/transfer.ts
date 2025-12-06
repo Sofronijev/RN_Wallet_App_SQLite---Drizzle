@@ -7,10 +7,12 @@ export const transactionValidationSchema = Yup.object({
   amountTo: Yup.number()
     .typeError("Please enter a valid number for the amount")
     .required("Please enter the amount to transfer")
+    .moreThan(0, "Amount must be greater than 0")
     .label("Amount"),
   amountFrom: Yup.number()
     .typeError("Please enter a valid number for the amount")
     .required("Please enter the amount to transfer")
+    .moreThan(0, "Amount must be greater than 0")
     .label("Amount"),
   walletIdTo: Yup.number().required("Please select the wallet").label("Wallet"),
   walletIdFrom: Yup.number()

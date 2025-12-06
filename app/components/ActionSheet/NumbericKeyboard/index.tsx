@@ -176,19 +176,19 @@ const NumericKeyboard: FC<Props> = ({
           {formatNumber(input, delimiter, decimal)}
         </Label>
         <View style={styles.numbers}>
-          {buttons.map((buttonRow) => {
-            return (
-              <View style={styles.row}>
-                {buttonRow.map((button) => {
-                  return (
-                    <Button showOperators={showOperators} onPress={button.onPress}>
-                      {renderButton(button.icon, button.label)}
-                    </Button>
-                  );
-                })}
-              </View>
-            );
-          })}
+          {buttons.map((buttonRow, index) => (
+            <View key={`${index}`} style={styles.row}>
+              {buttonRow.map((button) => (
+                <Button
+                  key={`${button.label}-${button.icon}`}
+                  showOperators={showOperators}
+                  onPress={button.onPress}
+                >
+                  {renderButton(button.icon, button.label)}
+                </Button>
+              ))}
+            </View>
+          ))}
         </View>
         <CustomButton onPress={onSave} title={numericKeyboardStrings.confirm} />
       </View>
