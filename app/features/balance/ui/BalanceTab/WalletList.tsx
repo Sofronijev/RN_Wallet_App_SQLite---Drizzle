@@ -68,6 +68,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
           changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount }),
         title: "Enter the correct balance",
         subtitle: "A correction transaction will be created to adjust it accordingly",
+        showOperators: true,
       },
     });
   };

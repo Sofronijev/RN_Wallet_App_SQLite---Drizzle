@@ -173,6 +173,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       props: {
         onSetAmount: onSetAmount,
         initialValue: values.amount || editedTransaction?.amount,
+        showOperators: true,
       },
     });
   };

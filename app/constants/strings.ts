@@ -50,5 +50,6 @@ export const deleteUserDataStrings = {
 
 export const numericKeyboardStrings = {
   setAmount: "Set amount",
+  confirm: "Confirm",
   amount: "Amount",
 };

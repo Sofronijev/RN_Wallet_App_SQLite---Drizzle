@@ -152,7 +152,7 @@ const TransferForm: React.FC = () => {
     Keyboard.dismiss();
     openSheet({
       type: SHEETS.NUMERIC_KEYBOARD,
-      props: { onSetAmount, initialValue },
+      props: { onSetAmount, initialValue, showOperators: true },
     });
   };
 
