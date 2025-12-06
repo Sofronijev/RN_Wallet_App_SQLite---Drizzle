@@ -6,13 +6,14 @@ import {
   BottomSheetProps,
 } from "@gorhom/bottom-sheet";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import { BackHandler, Platform, StyleSheet } from "react-native";
+import { BackHandler, Platform, StyleSheet, useWindowDimensions } from "react-native";
 import { useActionSheet } from "../ActionSheetContext";
 
 type Props = {
   sheetRef: React.RefObject<BottomSheetModalMethods>;
-  snapPoints: BottomSheetProps["snapPoints"];
+  snapPoints?: BottomSheetProps["snapPoints"];
   onDismiss?: () => void;
+  maxDynamicContentSize?: number;
 };
 
 export const HANDLE_HEIGHT = 24;
@@ -22,9 +23,13 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
   sheetRef,
   snapPoints,
   onDismiss,
+  maxDynamicContentSize,
 }) => {
   const { closeSheet, activeSheet } = useActionSheet();
-  useLayoutEffect(() => {
+  const { height } = useWindowDimensions();
+  const maxSize = height - 150;
+
+  useLayoutEffect(() =>  {
     requestAnimationFrame(() => sheetRef?.current?.present());
   }, []);
 
@@ -59,7 +64,12 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
       onDismiss={onDismissAction}
       backdropComponent={renderBackdrop}
       handleStyle={styles.handle}
-      enableDynamicSizing={false}
+      // Mora da ima BottomSheetView ili neki drugi kao container da bi radio
+      enableDynamicSizing={!snapPoints}
+      detached
+      bottomInset={32}
+      style={{ marginHorizontal: 8 }}
+      maxDynamicContentSize={maxDynamicContentSize ?? maxSize}
     >
       {children}
     </BottomSheetModal>

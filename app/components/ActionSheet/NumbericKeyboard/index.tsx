@@ -11,8 +11,7 @@ import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
 import { tapHaptic } from "modules/haptics";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-
-const snapPoints = ["50%"];
+import { BottomSheetView } from "@gorhom/bottom-sheet";
 
 type Props = {
   onSetAmount: (amount: number) => void;
@@ -54,12 +53,14 @@ const formatSingle = (rawValue: string, thousandsSeparator: string, decimalSepar
 
 const formatNumber = (rawValue: string, thousandsSeparator: string, decimalSeparator: string) => {
   const numbers = rawValue.split(/([+\-*/])/g).filter((value) => value !== "");
-  return numbers
-    .map((number) => {
-      if (/^[+\-*/]$/.test(number)) return number;
-      return formatSingle(number, thousandsSeparator, decimalSeparator);
-    })
-    .join("");
+  return (
+    numbers
+      .map((number) => {
+        if (/^[+\-*/]$/.test(number)) return number;
+        return formatSingle(number, thousandsSeparator, decimalSeparator);
+      })
+      .join("") || 0
+  );
 };
 
 const operators = ["+", "-", "*", "/"];
@@ -192,29 +193,31 @@ const NumericKeyboard: FC<Props> = ({
   };
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={onDismiss}>
-      <SheetHeader title={title ?? numericKeyboardStrings.setAmount} subtitle={subtitle} />
-      <View style={styles.container}>
-        <Label numberOfLines={2} style={styles.input}>
-          {formatNumber(input, delimiter, decimal)}
-        </Label>
-        <View style={styles.numbers}>
-          {buttons.map((buttonRow, index) => (
-            <View key={`${index}`} style={styles.row}>
-              {buttonRow.map((button) => (
-                <Button
-                  key={`${button.label}-${button.icon}`}
-                  showOperators={showOperators}
-                  onPress={button.onPress}
-                >
-                  {renderButton(button.icon, button.label)}
-                </Button>
-              ))}
-            </View>
-          ))}
+    <SheetModal sheetRef={sheetRef} onDismiss={onDismiss}>
+      <BottomSheetView style={{ flex: 1 }}>
+        <SheetHeader title={title ?? numericKeyboardStrings.setAmount} subtitle={subtitle} />
+        <View style={styles.container}>
+          <Label numberOfLines={2} style={styles.input}>
+            {formatNumber(input, delimiter, decimal)}
+          </Label>
+          <View style={styles.numbers}>
+            {buttons.map((buttonRow, index) => (
+              <View key={`${index}`} style={styles.row}>
+                {buttonRow.map((button) => (
+                  <Button
+                    key={`${button.label}-${button.icon}`}
+                    showOperators={showOperators}
+                    onPress={button.onPress}
+                  >
+                    {renderButton(button.icon, button.label)}
+                  </Button>
+                ))}
+              </View>
+            ))}
+          </View>
+          <CustomButton onPress={onSave} title={numericKeyboardStrings.confirm} />
         </View>
-        <CustomButton onPress={onSave} title={numericKeyboardStrings.confirm} />
-      </View>
+      </BottomSheetView>
     </SheetModal>
   );
 };
@@ -222,13 +225,13 @@ const NumericKeyboard: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingBottom: 24,
     flex: 1,
     gap: 16,
   },
   input: {
     fontSize: 28,
     textAlign: "right",
-    paddingTop: 4,
   },
   numbers: {
     backgroundColor: colors.grey3,

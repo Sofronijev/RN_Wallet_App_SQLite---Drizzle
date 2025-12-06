@@ -6,8 +6,6 @@ import Label from "components/Label";
 import SheetHeader from "../components/SheetHeader";
 import colors from "constants/colors";
 
-const snapPoints = ["50%"];
-
 type PickerSheetItem<T extends number | null> = {
   label: string;
   value: T;
@@ -43,9 +41,14 @@ const PickerSheet = <T extends number | null>({
   );
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints}>
-      <SheetHeader title={title} />
-      <BottomSheetFlatList data={data} renderItem={renderItem} style={styles.container} />
+    <SheetModal sheetRef={sheetRef}>
+      <BottomSheetFlatList
+        data={data}
+        renderItem={renderItem}
+        contentContainerStyle={styles.container}
+        ListHeaderComponent={() => <SheetHeader title={title} />}
+        stickyHeaderIndices={[0]}
+      />
     </SheetModal>
   );
 };
@@ -53,6 +56,7 @@ const PickerSheet = <T extends number | null>({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   item: {
     height: ITEM_HEIGHT,

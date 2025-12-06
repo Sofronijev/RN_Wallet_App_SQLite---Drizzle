@@ -6,8 +6,6 @@ import Label from "components/Label";
 import { CurrencyType, currencies } from "app/currencies/currencies";
 import SheetHeader from "../components/SheetHeader";
 
-const snapPoints = ["50%"];
-
 type Props = {
   onSelect: (currency: CurrencyType | null) => void;
 };
@@ -41,9 +39,16 @@ const CurrencySheet: FC<Props> = ({ onSelect }) => {
   );
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints}>
-      <SheetHeader title='Choose currency' onBack={onRemoveCurrency} backText={"Remove"} />
-      <BottomSheetFlatList data={currencyArray} renderItem={renderItem} style={styles.container} />
+    <SheetModal sheetRef={sheetRef}>
+      <BottomSheetFlatList
+        data={currencyArray}
+        renderItem={renderItem}
+        contentContainerStyle={styles.container}
+        ListHeaderComponent={() => (
+          <SheetHeader title='Select a currency' onBack={onRemoveCurrency} backText={"Remove"} />
+        )}
+        stickyHeaderIndices={[0]}
+      />
     </SheetModal>
   );
 };
@@ -51,6 +56,7 @@ const CurrencySheet: FC<Props> = ({ onSelect }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   text: {
     fontSize: 16,

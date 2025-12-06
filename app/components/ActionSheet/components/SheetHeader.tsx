@@ -56,7 +56,7 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: { height: HEADER_TEXT_HEIGH, paddingHorizontal: 16 },
+  container: { height: HEADER_TEXT_HEIGH, paddingHorizontal: 16, backgroundColor: colors.white },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
