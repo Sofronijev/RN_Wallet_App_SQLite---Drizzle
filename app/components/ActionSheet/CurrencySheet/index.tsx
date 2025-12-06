@@ -5,7 +5,6 @@ import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { CurrencyType, currencies } from "app/currencies/currencies";
 import SheetHeader from "../components/SheetHeader";
-import { SHEETS } from "../ActionSheetManager";
 
 const snapPoints = ["50%"];
 
@@ -42,7 +41,7 @@ const CurrencySheet: FC<Props> = ({ onSelect }) => {
   );
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} type={SHEETS.COLOR_PICKER}>
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints}>
       <SheetHeader title='Choose currency' onBack={onRemoveCurrency} backText={"Remove"} />
       <BottomSheetFlatList data={currencyArray} renderItem={renderItem} style={styles.container} />
     </SheetModal>

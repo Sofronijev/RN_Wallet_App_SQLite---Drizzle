@@ -10,7 +10,6 @@ import SheetModal, { HANDLE_HEIGHT } from "../components/SheetModal";
 import SheetHeader, { HEADER_TEXT_HEIGH } from "../components/SheetHeader";
 import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType, Category, Type } from "db";
-import { SHEETS } from "../ActionSheetManager";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
 const CONTAINER_PADDING = 8;
@@ -47,7 +46,7 @@ const TransactionBottomSheet: FC<Data> = ({ onSelect }) => {
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
   // BUG - when there is textInput with autofocus prop the bottom sheet will open - FIXED with setting "softwareKeyboardLayoutMode": "pan" in app.json
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} type={SHEETS.CATEGORY_PICKER}>
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints}>
       <SheetHeader title={"Pick a category"} />
       <BottomSheetFlatList
         numColumns={CATEGORIES_NUMBER_OF_ROWS}

@@ -6,7 +6,6 @@ import SheetHeader, { HEADER_TEXT_HEIGH } from "../components/SheetHeader";
 import colors from "constants/colors";
 import { colorsArray } from "./sheetColors";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import { SHEETS } from "../ActionSheetManager";
 
 type Data = {
   onSelect: (color: string) => void;
@@ -42,7 +41,7 @@ const ColorSheet: FC<Data> = ({ onSelect }) => {
   );
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} type={SHEETS.COLOR_PICKER}>
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints}>
       <SheetHeader title='Choose color' />
       <BottomSheetFlatList
         numColumns={NUM_OF_COLUMNS}

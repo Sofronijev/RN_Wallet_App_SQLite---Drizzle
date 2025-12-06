@@ -9,7 +9,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
 import { tapHaptic } from "modules/haptics";
-import { SHEETS } from "../ActionSheetManager";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
 const snapPoints = ["50%"];
@@ -97,12 +96,7 @@ const NumericKeyboard: FC<Props> = ({ onSetAmount, initialValue, onDismiss }) =>
   };
 
   return (
-    <SheetModal
-      sheetRef={sheetRef}
-      snapPoints={snapPoints}
-      type={SHEETS.NUMERIC_KEYBOARD}
-      onDismiss={onDismiss}
-    >
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={onDismiss}>
       <SheetHeader title={numericKeyboardStrings.setAmount} />
       <View style={styles.container}>
         <Label style={styles.input}>{formatNumber(input, delimiter, decimal)}</Label>

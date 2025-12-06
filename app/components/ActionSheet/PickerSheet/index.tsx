@@ -5,7 +5,6 @@ import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import SheetHeader from "../components/SheetHeader";
 import colors from "constants/colors";
-import { SHEETS } from "../ActionSheetManager";
 
 const snapPoints = ["50%"];
 
@@ -44,7 +43,7 @@ const PickerSheet = <T extends number | null>({
   );
 
   return (
-    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} type={SHEETS.PICKER_SHEET}>
+    <SheetModal sheetRef={sheetRef} snapPoints={snapPoints}>
       <SheetHeader title={title} />
       <BottomSheetFlatList data={data} renderItem={renderItem} style={styles.container} />
     </SheetModal>

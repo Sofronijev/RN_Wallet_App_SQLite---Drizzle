@@ -7,12 +7,11 @@ import {
 } from "@gorhom/bottom-sheet";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import { BackHandler, Platform, StyleSheet } from "react-native";
-import { SheetItem, useActionSheet } from "../ActionSheetContext";
+import { useActionSheet } from "../ActionSheetContext";
 
 type Props = {
   sheetRef: React.RefObject<BottomSheetModalMethods>;
   snapPoints: BottomSheetProps["snapPoints"];
-  type: SheetItem["type"];
   onDismiss?: () => void;
 };
 
@@ -23,10 +22,8 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
   sheetRef,
   snapPoints,
   onDismiss,
-  type,
 }) => {
-  const { closeSheet } = useActionSheet();
-
+  const { closeSheet, activeSheet } = useActionSheet();
   useLayoutEffect(() => {
     requestAnimationFrame(() => sheetRef?.current?.present());
   }, []);
@@ -35,7 +32,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
     if (Platform.OS !== "android") return;
 
     const handleBack = () => {
-      closeSheet(type);
+      closeSheet(activeSheet?.type);
       return true;
     };
 
@@ -44,7 +41,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
   }, []);
 
   const onDismissAction = () => {
-    closeSheet(type);
+    closeSheet(activeSheet?.type);
     onDismiss?.();
   };
 
