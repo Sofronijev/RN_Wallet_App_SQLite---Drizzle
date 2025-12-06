@@ -6,7 +6,6 @@ import Label from "components/Label";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
@@ -137,6 +136,38 @@ const NumericKeyboard: FC<Props> = ({
     onSetAmount(result);
   };
 
+  const rawButtons = [
+    { label: "1", onPress: () => onNumberPress("1") },
+    { label: "2", onPress: () => onNumberPress("2") },
+    { label: "3", onPress: () => onNumberPress("3") },
+    { icon: "plus", onPress: () => addOperator("+") },
+
+    { label: "4", onPress: () => onNumberPress("4") },
+    { label: "5", onPress: () => onNumberPress("5") },
+    { label: "6", onPress: () => onNumberPress("6") },
+    { icon: "minus", onPress: () => addOperator("-") },
+
+    { label: "7", onPress: () => onNumberPress("7") },
+    { label: "8", onPress: () => onNumberPress("8") },
+    { label: "9", onPress: () => onNumberPress("9") },
+    { icon: "times", onPress: () => addOperator("*") },
+
+    { label: ",", onPress: () => onDecimal() },
+    { label: "0", onPress: () => onNumberPress("0") },
+    { icon: "backspace", onPress: () => onBackSpace() },
+    { icon: "divide", onPress: () => addOperator("/") },
+  ];
+
+  const buttons = Array.from({ length: 4 }, (_, i) => rawButtons.slice(i * 4, i * 4 + 4));
+
+  const renderButton = (icon?: string, label?: string) => {
+    if (icon) {
+      return <FontAwesome5 name={icon} size={24} color={colors.greenMint} />;
+    } else if (label) {
+      return <Label style={styles.buttonText}>{label}</Label>;
+    }
+  };
+
   return (
     <SheetModal sheetRef={sheetRef} snapPoints={snapPoints} onDismiss={onDismiss}>
       <SheetHeader title={title ?? numericKeyboardStrings.setAmount} subtitle={subtitle} />
@@ -145,65 +176,19 @@ const NumericKeyboard: FC<Props> = ({
           {formatNumber(input, delimiter, decimal)}
         </Label>
         <View style={styles.numbers}>
-          <View style={styles.row}>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("1")}>
-              <Label style={styles.buttonText}>1</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("2")}>
-              <Label style={styles.buttonText}>2</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("3")}>
-              <Label style={styles.buttonText}>3</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => addOperator("+")}>
-              <FontAwesome5 name='plus' size={24} color={colors.greenMint} />
-            </Button>
-          </View>
-
-          <View style={styles.row}>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("4")}>
-              <Label style={styles.buttonText}>4</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("5")}>
-              <Label style={styles.buttonText}>5</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("6")}>
-              <Label style={styles.buttonText}>6</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => addOperator("-")}>
-              <FontAwesome5 name='minus' size={24} color={colors.greenMint} />
-            </Button>
-          </View>
-
-          <View style={styles.row}>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("7")}>
-              <Label style={styles.buttonText}>7</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("8")}>
-              <Label style={styles.buttonText}>8</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("9")}>
-              <Label style={styles.buttonText}>9</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => addOperator("*")}>
-              <FontAwesome5 name='times' size={24} color={colors.greenMint} />
-            </Button>
-          </View>
-
-          <View style={styles.row}>
-            <Button showOperators={showOperators} onPress={onDecimal}>
-              <Label style={styles.buttonText}>{decimal}</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={() => onNumberPress("0")}>
-              <Label style={styles.buttonText}>0</Label>
-            </Button>
-            <Button showOperators={showOperators} onPress={onBackSpace}>
-              <MaterialIcons name='backspace' size={24} color='black' />
-            </Button>
-            <Button showOperators={showOperators} onPress={() => addOperator("/")}>
-              <FontAwesome5 name='divide' size={24} color={colors.greenMint} />
-            </Button>
-          </View>
+          {buttons.map((buttonRow) => {
+            return (
+              <View style={styles.row}>
+                {buttonRow.map((button) => {
+                  return (
+                    <Button showOperators={showOperators} onPress={button.onPress}>
+                      {renderButton(button.icon, button.label)}
+                    </Button>
+                  );
+                })}
+              </View>
+            );
+          })}
         </View>
         <CustomButton onPress={onSave} title={numericKeyboardStrings.confirm} />
       </View>
