@@ -29,7 +29,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
   const { height } = useWindowDimensions();
   const maxSize = height - 150;
 
-  useLayoutEffect(() =>  {
+  useLayoutEffect(() => {
     requestAnimationFrame(() => sheetRef?.current?.present());
   }, []);
 
@@ -68,7 +68,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
       enableDynamicSizing={!snapPoints}
       detached
       bottomInset={32}
-      style={{ marginHorizontal: 8 }}
+      style={styles.modal}
       maxDynamicContentSize={maxDynamicContentSize ?? maxSize}
     >
       {children}
@@ -80,6 +80,9 @@ const styles = StyleSheet.create({
   handle: {
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+  },
+  modal: {
+    marginHorizontal: 8,
   },
 });
 

@@ -97,6 +97,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
         onSelect: (color: string) => {
           setColor({ id: walletId, color });
         },
+        selected: color,
       },
     });
   };
