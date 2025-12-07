@@ -8,13 +8,22 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { exportDB, importDb } from "../modules/exportDb";
+import { useThemeSwitcher } from "app/theme/useThemeSwitcher";
 
 type SettingsScreenProps = {};
 
 const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const { getThemeIcon, changeTheme } = useThemeSwitcher();
 
   const settingsListItems = [
+    {
+      id: 0,
+      title: "Theme",
+      icon: <MaterialIcons name='lightbulb-outline' size={24} color={colors.black} />,
+      onPress: changeTheme,
+      rightIcon: getThemeIcon(),
+    },
     {
       id: 1,
       title: "Wallets",
@@ -49,7 +58,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
 
   const renderItems = () =>
     settingsListItems.map((item) => (
-      <SettingsListItem key={item.id} title={item.title} icon={item.icon} onPress={item.onPress} />
+      <SettingsListItem
+        key={item.id}
+        title={item.title}
+        icon={item.icon}
+        onPress={item.onPress}
+        rightIcon={item.rightIcon}
+      />
     ));
 
   return (

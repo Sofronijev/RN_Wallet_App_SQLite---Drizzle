@@ -12,12 +12,14 @@ import { PinCodeStatusProvider } from "app/features/pinCode/ui/PinCodeStatusProv
 import { db } from "db";
 import migrations from "drizzle/migrations";
 import RootNavigator from "navigation/RootNavigator";
+import { ThemeProvider, useAppTheme } from "app/theme/ThemeContext";
 
 const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
 
-const App = () => {
+const AppContent = () => {
   const { success, error } = useMigrations(db, migrations);
+  const { theme } = useAppTheme();
 
   useEffect(() => {
     if (error) {
@@ -42,7 +44,7 @@ const App = () => {
           <PinCodeStatusProvider>
             <MenuProvider>
               <ActionSheetProvider>
-                <NavigationContainer>
+                <NavigationContainer theme={theme}>
                   <RootNavigator />
                 </NavigationContainer>
               </ActionSheetProvider>
@@ -54,5 +56,11 @@ const App = () => {
     </View>
   );
 };
+
+const App = () => (
+  <ThemeProvider>
+    <AppContent />
+  </ThemeProvider>
+);
 
 export default App;
