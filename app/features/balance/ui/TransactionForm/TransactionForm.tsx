@@ -108,7 +108,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       walletId: `${transaction.wallet_id}`,
     };
   };
-
   const { values, setFieldValue, errors, handleSubmit, handleChange } =
     useFormik<TransactionFromInputs>({
       initialValues: editedTransaction
@@ -150,8 +149,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   }, [editTransactionId]);
 
   const typeOptions = values.category?.id ? categoriesById[values.category.id]?.types ?? [] : [];
-  const onSelectCategory = (category: Category) => {
-    setFieldValue("category", category);
+
+  // Zbog problema sa validacijom dodao sam async/await, da bi se sacekala promena
+  const onSelectCategory = async (category: Category) => {
+    await setFieldValue("category", category);
+    const type = category.id === 12 ? categoriesById[category.id].types[0] : null;
+    await setFieldValue("type", type, true);
   };
 
   const showCategoriesSheet = () => {
@@ -231,7 +234,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <TypeSelector types={typeOptions} onSelect={onSelectType} selected={values.type?.id} />
         </ShadowBoxView>
         <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
-
+        <InputErrorLabel text={errors.type} isVisible={!!errors.type} />
         <StyledLabelInput
           placeholder='Transaction comment'
           style={styles.input}
