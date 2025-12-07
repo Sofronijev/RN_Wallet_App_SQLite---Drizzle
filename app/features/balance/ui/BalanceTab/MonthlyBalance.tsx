@@ -14,6 +14,7 @@ import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import MonthlyChart from "../MonthlyChart";
 import ShadowBoxView from "components/ShadowBoxView";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 const TODAY = new Date();
 
@@ -23,6 +24,8 @@ const MonthlyBalance: React.FC = () => {
   const { data, isLoading } = useGetMonthlyBalanceQuery(selectedWallet?.walletId, selectedDate);
   const { balance, expense, income } = data;
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const styles = useThemedStyles(themedStyles);
+  const { text } = useColors();
 
   const formattedMonth = getMonthAndYear(selectedDate);
 
@@ -42,37 +45,35 @@ const MonthlyBalance: React.FC = () => {
         <Label style={styles.title}>{formattedMonth}</Label>
         <View style={styles.icons}>
           <TouchableOpacity onPress={deductMonth} style={styles.icon}>
-            <FontAwesome name='chevron-left' size={25} color={colors.black} />
+            <FontAwesome name='chevron-left' size={25} color={text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={setCurrentMonth} style={styles.icon}>
-            <MaterialCommunityIcons name='calendar-today' size={25} color={colors.black} />
+            <MaterialCommunityIcons name='calendar-today' size={25} color={text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={addMonth} style={styles.icon}>
-            <FontAwesome name='chevron-right' size={25} color={colors.black} />
+            <FontAwesome name='chevron-right' size={25} color={text} />
           </TouchableOpacity>
         </View>
       </View>
-      <View>
-        <View style={styles.row}>
-          <Label style={styles.label}>{transactionStrings.available}</Label>
-          <Label style={[styles.balance, balance < 0 && styles.redBalance]}>
-            {formatDecimalDigits(balance, delimiter, decimal)}
-          </Label>
-        </View>
-        <View style={styles.row}>
-          <Label style={styles.label}>{transactionStrings.income}</Label>
-          <Label style={styles.transactions}>
-            {formatDecimalDigits(income, delimiter, decimal)}
-          </Label>
-        </View>
-        <View style={styles.row}>
-          <Label style={styles.label}>{transactionStrings.expenses}</Label>
-          <Label style={styles.transactions}>
-            {formatDecimalDigits(expense, delimiter, decimal)}
-          </Label>
-        </View>
-        <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
+
+      <View style={styles.row}>
+        <Label style={styles.label}>{transactionStrings.available}</Label>
+        <Label style={[styles.balance, balance < 0 && styles.redBalance]}>
+          {formatDecimalDigits(balance, delimiter, decimal)}
+        </Label>
       </View>
+      <View style={styles.row}>
+        <Label style={styles.label}>{transactionStrings.income}</Label>
+        <Label style={styles.transactions}>{formatDecimalDigits(income, delimiter, decimal)}</Label>
+      </View>
+      <View style={styles.row}>
+        <Label style={styles.label}>{transactionStrings.expenses}</Label>
+        <Label style={styles.transactions}>
+          {formatDecimalDigits(expense, delimiter, decimal)}
+        </Label>
+      </View>
+      <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
+
       <MonthlyChart date={selectedDate} />
     </ShadowBoxView>
   );
@@ -80,57 +81,56 @@ const MonthlyBalance: React.FC = () => {
 
 export default MonthlyBalance;
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.white,
-    marginVertical: 20,
-    paddingVertical: 16,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  titleContainer: {
-    marginBottom: 15,
-  },
-  title: {
-    fontSize: 25,
-    fontWeight: "bold",
-    color: colors.black,
-  },
-  icons: {
-    flexDirection: "row",
-  },
-  icon: {
-    paddingLeft: 8,
-  },
-  balance: {
-    fontSize: 30,
-    textAlign: "right",
-    color: colors.greenMint,
-    fontWeight: "bold",
-  },
-  redBalance: {
-    color: colors.redDark,
-  },
-  label: {
-    fontSize: 18,
-    color: colors.grey2,
-  },
-  transactions: {
-    fontSize: 28,
-    textAlign: "right",
-    fontWeight: "bold",
-    color: colors.black,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    alignItems: "center",
-  },
-  walletName: {
-    fontSize: 25,
-    fontWeight: "bold",
-    paddingBottom: 5,
-    paddingLeft: 30,
-  },
-});
+const themedStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.card,
+      marginVertical: 20,
+      paddingVertical: 16,
+      borderRadius: 10,
+      overflow: "hidden",
+    },
+    titleContainer: {
+      marginBottom: 15,
+    },
+    title: {
+      fontSize: 25,
+      fontWeight: "bold",
+    },
+    icons: {
+      flexDirection: "row",
+    },
+    icon: {
+      paddingLeft: 8,
+    },
+    balance: {
+      fontSize: 30,
+      textAlign: "right",
+      color: colors.greenMint,
+      fontWeight: "bold",
+    },
+    redBalance: {
+      color: theme.colors.redDark,
+    },
+    label: {
+      fontSize: 18,
+      color: theme.colors.muted,
+    },
+    transactions: {
+      fontSize: 28,
+      textAlign: "right",
+      fontWeight: "bold",
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      alignItems: "center",
+    },
+    walletName: {
+      fontSize: 25,
+      fontWeight: "bold",
+      paddingBottom: 5,
+      paddingLeft: 30,
+    },
+  });

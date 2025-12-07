@@ -2,6 +2,8 @@ import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 import React from "react";
 import colors from "constants/colors";
 import { buttonColor, ButtonType } from "modules/buttons";
+import { useAppTheme } from "app/theme/ThemeContext";
+import { AppTheme } from "app/theme/useThemedStyles";
 
 type CustomButtonType = {
   onPress?: () => void;
@@ -11,10 +13,10 @@ type CustomButtonType = {
   outline?: boolean;
 };
 
-const getButtonStyle = (type: ButtonType, outline: boolean) => {
+const getButtonStyle = (type: ButtonType, outline: boolean, theme: AppTheme) => {
   return {
-    backgroundColor: outline ? "transparent" : buttonColor[type],
-    borderColor: buttonColor[type],
+    backgroundColor: outline ? "transparent" : buttonColor(theme)[type],
+    borderColor: buttonColor(theme)[type],
   };
 };
 
@@ -25,10 +27,15 @@ const CustomButton: React.FC<CustomButtonType> = ({
   type = "primary",
   outline = false,
 }) => {
-  const buttonStyle = getButtonStyle(type, outline);
-  const color = buttonColor[type];
+  const { theme } = useAppTheme();
+  const buttonStyle = getButtonStyle(type, outline, theme);
+  const color = buttonColor(theme)[type];
   return (
-    <TouchableOpacity onPress={onPress} style={[styles.container, buttonStyle, style]} activeOpacity={0.5}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.container, buttonStyle, style]}
+      activeOpacity={0.5}
+    >
       <Text style={[styles.text, outline && { color }]}>{title}</Text>
     </TouchableOpacity>
   );

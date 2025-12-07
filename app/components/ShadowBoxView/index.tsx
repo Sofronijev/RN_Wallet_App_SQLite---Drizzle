@@ -1,8 +1,9 @@
-import colors from "constants/colors";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import React from "react";
-import { View, StyleSheet, Platform, ViewStyle, StyleProp, ViewProps } from "react-native";
+import { View, StyleSheet, Platform, ViewProps } from "react-native";
 
 const ShadowBoxView: React.FC<ViewProps> = ({ children, style }) => {
+  const styles = useThemedStyles(themedStyles);
   return (
     <View
       style={[styles.box, Platform.OS === "ios" ? styles.iosShadow : styles.androidShadow, style]}
@@ -12,24 +13,25 @@ const ShadowBoxView: React.FC<ViewProps> = ({ children, style }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  box: {
-    borderRadius: 10,
-    backgroundColor: colors.white,
-    overflow: Platform.OS === "ios" ? "visible" : "hidden",
-    borderWidth: 1,
-    borderColor: colors.white,
-  },
-  iosShadow: {
-    shadowColor: colors.black,
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  androidShadow: {
-    elevation: 4,
-    shadowColor: colors.black,
-  },
-});
+const themedStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    box: {
+      borderRadius: 10,
+      backgroundColor: theme.colors.card,
+      overflow: Platform.OS === "ios" ? "visible" : "hidden",
+      borderWidth: theme.dark ? 2 : 1,
+      borderColor: theme.dark ? "rgba(255, 255, 255, 0.1)" : "transparent",
+    },
+    iosShadow: {
+      shadowColor: theme.colors.shadow,
+      shadowOpacity: theme.dark ? 0.4 : 0.1,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    androidShadow: {
+      elevation: theme.dark ? 4 : 3,
+      shadowColor: theme.colors.shadow,
+    },
+  });
 
 export default ShadowBoxView;

@@ -5,23 +5,24 @@ import colors from "constants/colors";
 import { AppStackParamList } from "./routes";
 import TransactionForm from "app/features/balance/ui/TransactionForm/TransactionForm";
 import { transactionStrings, transferStrings } from "constants/strings";
-import HeaderIcon from "components/HeaderIcon";
-import { Ionicons } from "@expo/vector-icons";
 import WalletSettings from "app/features/settings/ui/wallets";
 import TransferForm from "app/features/balance/ui/TransferFrom/TransferForm";
 import TransactionSearch from "app/features/balance/ui/TransactionSearch";
 import PinSettings from "app/features/pinCode/ui/PinSettings";
 import NumberSeparators from "app/features/settings/ui/NumberSeparators";
+import { useColors } from "app/theme/useThemedStyles";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
 const AppNavigator: React.FC = () => {
+  const { header } = useColors();
+
   return (
     <Stack.Navigator
       initialRouteName='Home'
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.greenMint,
+          backgroundColor: header,
         },
         headerTitleAlign: "center",
         headerTitleStyle: { color: colors.white },

@@ -23,6 +23,7 @@ import {
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { changeBalanceStrings } from "constants/strings";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -46,6 +47,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { setShowTotalAmount } = useSetShowTotalAmount();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const { openSheet } = useActionSheet();
+  const tStyles = useThemedStyles(themedStyles);
 
   const canTransfer = wallets.length >= 2;
 
@@ -94,7 +96,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
 
   const renderWallet: ListRenderItem<Wallet> = ({ item }) => {
     return (
-      <View style={[styles.walletContainer, { borderColor: item.color }]}>
+      <View style={[tStyles.walletContainer, { borderColor: item.color }]}>
         <View style={styles.row}>
           <Label style={styles.walletName}>{item.walletName}</Label>
           <VisibilityToggleIcon isVisible={showTotalAmount} onPress={onIsVisiblePress} />
@@ -141,19 +143,23 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
 
 export default WalletList;
 
+const themedStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    walletContainer: {
+      padding: 10,
+      borderRadius: 20,
+      backgroundColor: theme.colors.card,
+      height: WALLET_HEIGHT,
+      borderLeftWidth: 5,
+      borderRightWidth: 5,
+      justifyContent: "space-between",
+    },
+  });
+
 const styles = StyleSheet.create({
   walletCarousel: {
     paddingHorizontal: HORIZONTAL_PADDING,
     height: WALLET_HEIGHT,
-  },
-  walletContainer: {
-    padding: 10,
-    borderRadius: 20,
-    backgroundColor: colors.white,
-    height: WALLET_HEIGHT,
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    justifyContent: "space-between",
   },
   walletValue: {
     fontSize: 30,

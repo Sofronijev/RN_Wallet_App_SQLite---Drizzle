@@ -10,11 +10,13 @@ import { setStartingBalanceMutation, useGetSelectedWalletQuery } from "app/queri
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { startingBalanceStrings } from "constants/strings";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 const BalanceScreen: React.FC = () => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { setStartingBalance } = setStartingBalanceMutation();
   const { openSheet } = useActionSheet();
+  const tStyles = useThemedStyles(styles);
   const hasStartingBalance = !!selectedWallet?.startingBalance;
 
   const onChangeStartingBalance = () => {
@@ -33,12 +35,12 @@ const BalanceScreen: React.FC = () => {
 
   return (
     <>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={tStyles.container} showsVerticalScrollIndicator={false}>
         <WalletList selectedWalletId={selectedWallet?.walletId} />
-        <View style={styles.itemContainer}>
+        <View style={tStyles.itemContainer}>
           <MonthlyBalance />
         </View>
-        <View style={styles.itemContainer}>
+        <View style={tStyles.itemContainer}>
           <RecentTransactions
             isLoading={false}
             title='Recent transactions'
@@ -62,11 +64,13 @@ const BalanceScreen: React.FC = () => {
 
 export default BalanceScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 64,
-  },
-  itemContainer: {
-    marginHorizontal: 16,
-  },
-});
+const styles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      paddingTop: 64,
+      backgroundColor: theme.colors.background,
+    },
+    itemContainer: {
+      marginHorizontal: 16,
+    },
+  });

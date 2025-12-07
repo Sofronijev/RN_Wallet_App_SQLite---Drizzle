@@ -1,6 +1,7 @@
 import { ActivityIndicator, StyleSheet } from "react-native";
 import React from "react";
 import colors from "constants/colors";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type AppActivityIndicatorProps = {
   isLoading: boolean;
@@ -13,10 +14,11 @@ const AppActivityIndicator: React.FC<AppActivityIndicatorProps> = ({
   hideScreen,
   size = "large",
 }) => {
+  const tStyles = useThemedStyles(styles);
   if (!isLoading) return null;
   return (
     <ActivityIndicator
-      style={[styles.activityIndicator, hideScreen && styles.hideScreen]}
+      style={[tStyles.activityIndicator, hideScreen && tStyles.hideScreen]}
       size={size}
       color={colors.greenMint}
     />
@@ -25,13 +27,14 @@ const AppActivityIndicator: React.FC<AppActivityIndicatorProps> = ({
 
 export default AppActivityIndicator;
 
-const styles = StyleSheet.create({
-  activityIndicator: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.white,
-    opacity: 0.5,
-  },
-  hideScreen: {
-    opacity: 1,
-  },
-});
+const styles = (theme: AppTheme) =>
+  StyleSheet.create({
+    activityIndicator: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: theme.colors.background,
+      opacity: 0.5,
+    },
+    hideScreen: {
+      opacity: 1,
+    },
+  });

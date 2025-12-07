@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, PropsWithChildren } from "react";
 import { useColorScheme } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { Theme as NavigationTheme, DefaultTheme, DarkTheme } from "@react-navigation/native";
+import { DefaultTheme, DarkTheme } from "@react-navigation/native";
 import colors from "constants/colors";
 import { AppTheme } from "./useThemedStyles";
 
@@ -11,13 +11,19 @@ const lightTheme: AppTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#007AFF",
+    primary: colors.greenMintDark,
     background: "#F5F5F5",
     card: "#F5F5F5",
     text: "#000000",
     border: "#E5E5E5",
     notification: "#FF3B30",
     header: colors.greenMint,
+    //CUSTOM
+    danger: colors.danger,
+    hyperlink: colors.hyperlink,
+    muted: colors.grey2,
+    redDark: colors.redDark,
+    shadow: colors.black,
   },
 };
 
@@ -25,13 +31,19 @@ const darkTheme: AppTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    primary: "#0A84FF",
+    primary: colors.greenMintDark,
     background: "#121212",
-    card: "#1C1C1E",
+    card: "#202020ff",
     text: "#FFFFFF",
     border: "#38383A",
     notification: "#FF453A",
     header: colors.black,
+    //CUSTOM
+    danger: "#FF5566",
+    hyperlink: "#4FC3FF",
+    muted: "#A0A0A0",
+    redDark: "#D36A58",
+    shadow: colors.black,
   },
 };
 

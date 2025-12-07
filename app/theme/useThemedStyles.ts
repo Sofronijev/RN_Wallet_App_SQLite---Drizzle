@@ -5,6 +5,11 @@ import { useTheme, Theme } from "@react-navigation/native";
 export type AppTheme = Theme & {
   colors: Theme["colors"] & {
     header: string;
+    danger: string;
+    hyperlink: string;
+    muted: string;
+    redDark: string;
+    shadow: string;
   };
 };
 

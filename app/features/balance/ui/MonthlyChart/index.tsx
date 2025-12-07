@@ -12,6 +12,7 @@ import AppActivityIndicator from "components/AppActivityIndicator";
 import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType } from "db";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 const formatBarData = (
   data: GetMonthlyAmountsType,
@@ -38,6 +39,7 @@ const formatBarData = (
 const TooltipComponent: FC<{ value: number | undefined; index: number }> = ({ value, index }) => {
   if (!value) return null;
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const styles = useThemedStyles(themedStyles);
 
   return (
     <View style={[styles.tooltip, index === 0 && { marginLeft: 50 }]}>
@@ -56,6 +58,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
     date
   );
   const { categoriesById } = useGetCategories();
+  const styles = useThemedStyles(themedStyles);
 
   if (!formattedData.length) {
     return null;
@@ -98,6 +101,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         adjustToWidth
         parentWidth={width - 52}
         xAxisColor={colors.grey}
+        yAxisTextStyle={styles.text}
         height={150}
         yAxisExtraHeight={30}
         barBorderRadius={5}
@@ -119,18 +123,22 @@ const MonthlyChart: FC<Props> = ({ date }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-  },
-  tooltip: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.grey,
-    borderRadius: 10,
-    paddingHorizontal: 5,
-  },
-});
+const themedStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 10,
+    },
+    tooltip: {
+      backgroundColor: theme.colors.background,
+      borderWidth: 1,
+      borderColor: colors.grey,
+      borderRadius: 10,
+      paddingHorizontal: 5,
+    },
+    text: {
+      color: theme.colors.text,
+    },
+  });
 
 export default MonthlyChart;

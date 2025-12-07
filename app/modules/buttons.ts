@@ -1,9 +1,9 @@
-import colors from "constants/colors";
+import { AppTheme } from "app/theme/useThemedStyles";
 
 export type ButtonType = "primary" | "danger" | "link";
 
-export const buttonColor: Record<ButtonType, string> = {
-  primary: colors.greenMint,
-  danger: colors.danger,
-  link: colors.hyperlink,
-};
+export const buttonColor = (theme: AppTheme): Record<ButtonType, string> => ({
+  primary: theme.colors.primary,
+  danger: theme.colors.danger,
+  link: theme.colors.hyperlink,
+});
