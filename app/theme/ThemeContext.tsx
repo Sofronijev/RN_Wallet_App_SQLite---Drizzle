@@ -13,7 +13,7 @@ const lightTheme: AppTheme = {
     ...DefaultTheme.colors,
     primary: colors.greenMintDark,
     background: "#F5F5F5",
-    card: "#F5F5F5",
+    card: colors.white,
     text: "#000000",
     border: "#E5E5E5",
     notification: "#FF3B30",

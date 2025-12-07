@@ -12,23 +12,26 @@ import { useGetCategories } from "app/queries/categories";
 import CategoryIcon from "components/CategoryIcon";
 import { TransactionType } from "db";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
   transaction: TransactionType;
 };
 
 const TransactionsRow: React.FC<Props> = ({ transaction }) => {
-  if (!transaction) return null;
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const { categoriesById } = useGetCategories();
+  const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const styles = useThemedStyles(themedStyles);
+
+  if (!transaction) return null;
 
   const hasDescription = !!transaction.description;
   const transactionId = transaction.id;
   const transferId = transaction.transfer_id;
   const transactionReceivedId = typeIds.transfer_received;
-  const { categoriesById } = useGetCategories();
   const category = categoriesById[transaction.categoryId];
   const type = category.types.find((type) => type.id === transaction.type_id);
-  const { decimal, delimiter } = useGetNumberSeparatorQuery();
 
   const isIncome =
     transaction.categoryId === CategoryNumber.income ||
@@ -83,47 +86,47 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
 
 export default TransactionsRow;
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.white,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    justifyContent: "space-between",
-    flex: 1,
-  },
-  icon: {
-    paddingHorizontal: 10,
-  },
-  price: {
-    fontSize: 18,
-    paddingHorizontal: 10,
-    fontWeight: "bold",
-  },
-  descriptionContainer: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "bold",
-  },
-  descriptionText: {
-    fontSize: 16,
-    color: colors.grey4,
-    fontStyle: "italic",
-  },
-  typeText: {
-    fontWeight: "normal",
-    color: colors.grey4,
-  },
-  incomeColor: {
-    color: colors.greenMint,
-  },
-  dateContainer: {
-    flexDirection: "row-reverse",
-  },
-  date: {
-    paddingHorizontal: 10,
-    color: colors.grey4,
-  },
-});
+const themedStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      justifyContent: "space-between",
+      flex: 1,
+    },
+    icon: {
+      paddingHorizontal: 10,
+    },
+    price: {
+      fontSize: 18,
+      paddingHorizontal: 10,
+      fontWeight: "bold",
+    },
+    descriptionContainer: {
+      flex: 1,
+    },
+    label: {
+      fontSize: 15,
+      fontWeight: "bold",
+    },
+    descriptionText: {
+      fontSize: 16,
+      color: theme.colors.muted,
+      fontStyle: "italic",
+    },
+    typeText: {
+      fontWeight: "normal",
+      color: theme.colors.muted,
+    },
+    incomeColor: {
+      color: colors.greenMint,
+    },
+    dateContainer: {
+      flexDirection: "row-reverse",
+    },
+    date: {
+      paddingHorizontal: 10,
+      color: colors.grey4,
+    },
+  });

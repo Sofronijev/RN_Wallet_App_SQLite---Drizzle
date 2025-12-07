@@ -1,7 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
 import Label from "components/Label";
-import colors from "constants/colors";
 import TransactionsRow from "../../../../components/TransactionRow";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import ButtonText from "components/ButtonText";
@@ -61,7 +60,6 @@ export default RecentTransactions;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
     borderRadius: 10,
     padding: 10,
     marginBottom: 100,
@@ -70,7 +68,6 @@ const styles = StyleSheet.create({
     paddingTop: 50,
   },
   title: {
-    color: colors.black,
     fontSize: 18,
     paddingBottom: 20,
     fontWeight: "500",
