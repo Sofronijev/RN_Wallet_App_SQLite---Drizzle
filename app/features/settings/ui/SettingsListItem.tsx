@@ -1,6 +1,7 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
-import Separator from "components/Separator";
+import Label from "components/Label";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
   title: string;
@@ -10,35 +11,38 @@ type Props = {
 };
 
 const SettingsListItem: React.FC<Props> = ({ title, icon, onPress, rightIcon }) => {
+  const styles = useThemedStyles(themeStyles);
   return (
-    <>
-      <TouchableOpacity onPress={onPress} style={styles.container}>
-        <View style={styles.row}>
-          {icon}
-          <Text style={styles.title}>{title}</Text>
-        </View>
-        {rightIcon && rightIcon}
-      </TouchableOpacity>
-      <Separator />
-    </>
+    <TouchableOpacity onPress={onPress} style={styles.container}>
+      <View style={styles.row}>
+        {icon}
+        <Label style={styles.title}>{title}</Label>
+      </View>
+      {rightIcon && rightIcon}
+    </TouchableOpacity>
   );
 };
 
 export default SettingsListItem;
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  title: {
-    paddingLeft: 15,
-    fontSize: 15,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.colors.card,
+      borderRadius: 8,
+      marginBottom: 8,
+      paddingHorizontal: 8,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+    },
+    title: {
+      paddingLeft: 15,
+      fontSize: 15,
+    },
+  });

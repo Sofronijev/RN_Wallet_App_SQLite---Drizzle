@@ -11,7 +11,7 @@ const lightTheme: AppTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: colors.greenMintDark,
+    primary: colors.greenMint,
     background: "#F5F5F5",
     card: colors.white,
     text: "#000000",
@@ -24,6 +24,8 @@ const lightTheme: AppTheme = {
     muted: colors.grey2,
     redDark: colors.redDark,
     shadow: colors.black,
+    selected: colors.greenLight,
+    disabled: colors.disabled,
   },
 };
 
@@ -34,7 +36,7 @@ const darkTheme: AppTheme = {
     primary: colors.greenMintDark,
     background: "#121212",
     card: "#202020ff",
-    text: "#FFFFFF",
+    text: "#EDEDED",
     border: "#38383A",
     notification: "#FF453A",
     header: colors.black,
@@ -44,6 +46,8 @@ const darkTheme: AppTheme = {
     muted: "#A0A0A0",
     redDark: "#D36A58",
     shadow: colors.black,
+    selected: "#244D3A",
+    disabled: "#4A4F55",
   },
 };
 

@@ -50,10 +50,12 @@ const AlertPrompt: React.FC = () => {
   };
 
   const isValid = !!value && data.validator(value);
-
   const buttonColor = !isValid ? colors.disabled : undefined;
 
   const onSave = () => {
+    if (!isValid) {
+      return;
+    }
     if (typeof data.callbackOrButtons === "function") {
       data.callbackOrButtons(value);
     }
@@ -81,10 +83,11 @@ const AlertPrompt: React.FC = () => {
 
       if (Array.isArray(data.callbackOrButtons)) {
         return data.callbackOrButtons.map((button, index) => {
-          const color =
-            button.type === "destructive" && Platform.OS === "ios" ? colors.delete : buttonColor;
+          const basicColor =
+            button.type === "destructive" && Platform.OS === "ios" ? colors.delete : undefined;
           const bold = Platform.OS === "ios" && button.type === "cancel";
-          const disabled = button.type === "cancel" && (button.disabled || !isValid);
+          const disabled = button.disabled || (button.type !== "cancel" && !isValid);
+          const color = disabled ? colors.disabled : basicColor;
           return (
             <Dialog.Button
               key={index}

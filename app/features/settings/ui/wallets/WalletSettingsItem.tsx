@@ -1,6 +1,5 @@
 import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import React from "react";
-import colors from "constants/colors";
 import { formatDecimalDigits, roundDecimals } from "modules/numbers";
 import ButtonText from "components/ButtonText";
 import Label from "components/Label";
@@ -20,6 +19,7 @@ import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { changeBalanceStrings, startingBalanceStrings } from "constants/strings";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
   wallet: WalletType;
@@ -35,6 +35,8 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   const { deleteWallet } = deleteWalletMutation();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const { openSheet } = useActionSheet();
+  const styles = useThemedStyles(themeStyles);
+  const { text, disabled } = useColors();
 
   if (!wallet) return null;
 
@@ -134,14 +136,10 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
         <Label style={styles.name}>{walletName}</Label>
         <View style={styles.iconsContainer}>
           <TouchableOpacity onPress={onEditName}>
-            <MaterialIcons name='edit' size={24} color={colors.black} />
+            <MaterialIcons name='edit' size={24} color={text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={onDeleteWallet} disabled={!canDeleteWallet}>
-            <MaterialIcons
-              name='delete'
-              size={24}
-              color={canDeleteWallet ? colors.black : colors.disabled}
-            />
+            <MaterialIcons name='delete' size={24} color={canDeleteWallet ? text : disabled} />
           </TouchableOpacity>
         </View>
       </View>
@@ -178,35 +176,36 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
 
 export default WalletSettingsItem;
 
-const styles = StyleSheet.create({
-  container: {
-    borderWidth: 1,
-    marginHorizontal: 16,
-    marginVertical: 10,
-    padding: 10,
-    borderRadius: 10,
-    borderColor: colors.grey,
-    backgroundColor: colors.white,
-  },
-  titleContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  iconsContainer: { flexDirection: "row" },
-  name: {
-    fontSize: 20,
-    fontWeight: "bold",
-    paddingBottom: 10,
-  },
-  row: {
-    flexDirection: "row",
-    paddingBottom: 5,
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  colorBox: {
-    height: 25,
-    width: 25,
-    borderRadius: 15,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      borderWidth: 1,
+      marginHorizontal: 16,
+      marginVertical: 10,
+      padding: 10,
+      borderRadius: 10,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.card,
+    },
+    titleContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    iconsContainer: { flexDirection: "row" },
+    name: {
+      fontSize: 20,
+      fontWeight: "bold",
+      paddingBottom: 10,
+    },
+    row: {
+      flexDirection: "row",
+      paddingBottom: 5,
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    colorBox: {
+      height: 25,
+      width: 25,
+      borderRadius: 15,
+    },
+  });

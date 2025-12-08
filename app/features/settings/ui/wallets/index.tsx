@@ -1,16 +1,18 @@
-import { FlatList, View, StyleSheet, TouchableOpacity } from "react-native";
+import { FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import WalletSettingsItem from "./WalletSettingsItem";
 import { createWalletMutation, useGetWalletsWithBalance } from "app/queries/wallets";
 import Label from "components/Label";
-import colors from "constants/colors";
 import AlertPrompt from "components/AlertPrompt";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const WalletSettings: React.FC = () => {
   const { data: wallets, isLoading: isWalletsLoading } = useGetWalletsWithBalance();
   const { createWallet, isLoading: isCreatingLoading } = createWalletMutation();
   const canDeleteWallet = wallets.length > 1;
+  const styles = useThemedStyles(themeStyles);
 
   const onAddNewPress = () => {
     AlertPrompt.prompt("Give your new wallet a name", null, (walletName) => {
@@ -19,7 +21,7 @@ const WalletSettings: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       <FlatList
         data={wallets}
         renderItem={({ item }) => (
@@ -30,29 +32,30 @@ const WalletSettings: React.FC = () => {
         <Label style={styles.addText}>Create new wallet</Label>
       </TouchableOpacity>
       <AppActivityIndicator isLoading={isWalletsLoading || isCreatingLoading} />
-    </View>
+    </SafeAreaView>
   );
 };
 
 export default WalletSettings;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  addNew: {
-    padding: 16,
-    backgroundColor: colors.white,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderTopWidth: 1,
-    borderColor: colors.grey,
-  },
-  addText: {
-    fontSize: 16,
-    color: colors.greenMint,
-    paddingRight: 10,
-    fontWeight: "500",
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    addNew: {
+      padding: 16,
+      backgroundColor: theme.colors.background,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      borderTopWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    addText: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      paddingRight: 10,
+      fontWeight: "500",
+    },
+  });

@@ -1,4 +1,4 @@
-import { AlertButton, KeyboardTypeOptions, NativeEventEmitter } from "react-native";
+import { KeyboardTypeOptions } from "react-native";
 import EventEmitter from "react-native/Libraries/vendor/emitter/EventEmitter"; // eslint-disable-line
 
 // @ts-ignore

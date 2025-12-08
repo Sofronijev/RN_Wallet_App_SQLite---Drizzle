@@ -43,11 +43,11 @@ const AppContent = () => {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <PinCodeStatusProvider>
             <MenuProvider>
-              <ActionSheetProvider>
-                <NavigationContainer theme={theme}>
+              <NavigationContainer theme={theme}>
+                <ActionSheetProvider>
                   <RootNavigator />
-                </NavigationContainer>
-              </ActionSheetProvider>
+                </ActionSheetProvider>
+              </NavigationContainer>
               <AlertPromptProvider />
             </MenuProvider>
           </PinCodeStatusProvider>

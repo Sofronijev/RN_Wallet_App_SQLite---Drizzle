@@ -10,6 +10,8 @@ export type AppTheme = Theme & {
     muted: string;
     redDark: string;
     shadow: string;
+    selected: string;
+    disabled: string;
   };
 };
 

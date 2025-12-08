@@ -3,7 +3,7 @@ import { useAppTheme } from "./ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
 
 export const useThemeSwitcher = () => {
-  const { themeMode, setThemeMode } = useAppTheme();
+  const { themeMode, setThemeMode, theme } = useAppTheme();
 
   const themeModes: Array<"light" | "dark" | "auto"> = ["light", "dark", "auto"];
 
@@ -15,11 +15,11 @@ export const useThemeSwitcher = () => {
   const getThemeIcon = () => {
     switch (themeMode) {
       case "light":
-        return <MaterialIcons name='light-mode' size={32} color={colors.greenMint} />;
+        return <MaterialIcons name='light-mode' size={32} color={theme.colors.text} />;
       case "dark":
-        return <MaterialIcons name='dark-mode' size={32} color={colors.greenMint} />;
+        return <MaterialIcons name='dark-mode' size={32} color={theme.colors.text} />;
       default:
-        return <MaterialIcons name='brightness-6' size={32} color={colors.greenMint} />;
+        return <MaterialIcons name='brightness-6' size={32} color={theme.colors.text} />;
     }
   };
 
