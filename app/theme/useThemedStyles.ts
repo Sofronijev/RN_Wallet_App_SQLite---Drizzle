@@ -13,6 +13,7 @@ export type AppTheme = Theme & {
     selected: string;
     disabled: string;
     placeholder: string;
+    cardInner: string;
   };
 };
 

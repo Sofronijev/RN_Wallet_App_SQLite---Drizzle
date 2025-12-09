@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import colors from "constants/colors";
 import Label from "components/Label";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type SheetHeaderProps = {
   onBack?: () => void;
@@ -11,7 +11,6 @@ type SheetHeaderProps = {
   title: string;
   subtitle?: string;
 };
-export const HEADER_TEXT_HEIGH = 40;
 
 const SheetHeader: React.FC<SheetHeaderProps> = ({
   onBack,
@@ -21,6 +20,8 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({
   title,
   subtitle,
 }) => {
+  const styles = useThemedStyles(themeStyles);
+
   const renderText = (text: React.ReactElement | string) => {
     if (typeof text === "string") {
       return <Label style={styles.text}>{text}</Label>;
@@ -55,32 +56,37 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: { height: HEADER_TEXT_HEIGH, paddingHorizontal: 16, backgroundColor: colors.white },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  title: {
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "600",
-    flex: 2,
-    color: colors.dark,
-  },
-  subtitle: {
-    paddingTop: 4,
-    color: colors.grey4,
-  },
-  icon: {
-    flex: 1,
-    minWidth: 10,
-  },
-  text: {
-    color: colors.hyperlink,
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      backgroundColor: theme.colors.card
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    title: {
+      textAlign: "center",
+      fontSize: 20,
+      fontWeight: "600",
+      flex: 2,
+      color: theme.colors.text,
+    },
+    subtitle: {
+      paddingTop: 4,
+      color: theme.colors.muted,
+    },
+    icon: {
+      flex: 1,
+      minWidth: 10,
+    },
+    text: {
+      color: theme.colors.hyperlink,
+      fontWeight: "bold",
+      fontSize: 16,
+    },
+  });
 
 export default SheetHeader;

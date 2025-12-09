@@ -35,6 +35,7 @@ const lightTheme: AppTheme = {
     selected: colors.greenLight,
     disabled: colors.disabled,
     placeholder: "#9E9E9E",
+    cardInner: colors.grey3,
   },
 };
 
@@ -58,6 +59,7 @@ const darkTheme: AppTheme = {
     selected: "#244D3A",
     disabled: "#4A4F55",
     placeholder: "#7A7A7A",
+    cardInner: "#2C2C2C",
   },
 };
 

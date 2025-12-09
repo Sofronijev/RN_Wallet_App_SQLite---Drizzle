@@ -5,13 +5,13 @@ import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import CustomButton from "components/CustomButton";
-import colors from "constants/colors";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
 import { tapHaptic } from "modules/haptics";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import { BottomSheetView } from "@gorhom/bottom-sheet";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
   onSetAmount: (amount: number) => void;
@@ -28,6 +28,7 @@ const Button: FC<PropsWithChildren<{ onPress: () => void; showOperators?: boolea
   showOperators,
 }) => {
   const width = showOperators ? "25%" : "33.33%";
+  const styles = useThemedStyles(themeStyles);
 
   return (
     <TouchableOpacity onPress={onPress} style={[styles.buttonContainer, { width }]}>
@@ -75,6 +76,8 @@ const NumericKeyboard: FC<Props> = ({
 }) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const styles = useThemedStyles(themeStyles);
+  const colors = useColors();
 
   const setInitialValue = (value: number | undefined) =>
     value ? `${value}`.replace(".", decimal) : "";
@@ -184,7 +187,7 @@ const NumericKeyboard: FC<Props> = ({
         <FontAwesome5
           name={icon}
           size={24}
-          color={icon === "backspace" ? colors.black : colors.greenMint}
+          color={icon === "backspace" ? colors.text : colors.primary}
         />
       );
     } else if (label) {
@@ -222,39 +225,41 @@ const NumericKeyboard: FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 24,
-    flex: 1,
-    gap: 16,
-  },
-  input: {
-    fontSize: 28,
-    textAlign: "right",
-  },
-  numbers: {
-    backgroundColor: colors.grey3,
-    borderRadius: 20,
-    paddingVertical: 8,
-    gap: 16,
-  },
-  row: {
-    flexDirection: "row",
-  },
-  buttonContainer: {
-    width: "25%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    fontSize: 28,
-  },
-  operator: {
-    fontSize: 32,
-    color: colors.greenMint,
-    fontWeight: "bold",
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: 16,
+      paddingBottom: 24,
+      flex: 1,
+      gap: 16,
+    },
+    input: {
+      fontSize: 28,
+      textAlign: "right",
+    },
+    numbers: {
+      backgroundColor: theme.colors.cardInner,
+      borderRadius: 20,
+      paddingVertical: 8,
+      gap: 16,
+    },
+    row: {
+      flexDirection: "row",
+    },
+    buttonContainer: {
+      width: "25%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    buttonText: {
+      fontSize: 28,
+      color: theme.colors.text,
+    },
+    operator: {
+      fontSize: 32,
+      color: theme.colors.primary,
+      fontWeight: "bold",
+    },
+  });
 
 export default NumericKeyboard;

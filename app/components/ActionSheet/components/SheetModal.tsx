@@ -8,6 +8,7 @@ import {
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import { BackHandler, Platform, StyleSheet, useWindowDimensions } from "react-native";
 import { useActionSheet } from "../ActionSheetContext";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
   sheetRef: React.RefObject<BottomSheetModalMethods>;
@@ -15,8 +16,6 @@ type Props = {
   onDismiss?: () => void;
   maxDynamicContentSize?: number;
 };
-
-export const HANDLE_HEIGHT = 24;
 
 const SheetModal: FC<PropsWithChildren<Props>> = ({
   children,
@@ -27,6 +26,8 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
 }) => {
   const { closeSheet, activeSheet } = useActionSheet();
   const { height } = useWindowDimensions();
+  const styles = useThemedStyles(themeStyles);
+  const colors = useColors();
   const maxSize = height - 150;
 
   useLayoutEffect(() => {
@@ -70,20 +71,25 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
       bottomInset={32}
       style={styles.modal}
       maxDynamicContentSize={maxDynamicContentSize ?? maxSize}
+      backgroundStyle={{
+        backgroundColor: colors.card,
+      }}
     >
       {children}
     </BottomSheetModal>
   );
 };
 
-const styles = StyleSheet.create({
-  handle: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  modal: {
-    marginHorizontal: 8,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    handle: {
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+      backgroundColor: theme.colors.card,
+    },
+    modal: {
+      marginHorizontal: 8,
+    },
+  });
 
 export default SheetModal;

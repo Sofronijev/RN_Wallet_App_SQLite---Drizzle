@@ -17,7 +17,6 @@ const keyExtractor = <T extends { id: number }>(item: T) => item.id.toString();
 
 const TransactionBottomSheet: FC<Data> = ({ onSelect }) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
-
   const { data: categories } = useGetCategories();
 
   const onCategoryPress = (item: CategoriesWithType) => {
@@ -53,6 +52,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 8,
+    paddingBottom: 16,
   },
 });
 

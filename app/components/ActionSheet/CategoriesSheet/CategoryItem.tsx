@@ -1,8 +1,12 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React, { memo } from "react";
 import CategoryIcon from "components/CategoryIcon";
-import { CATEGORIES_NUMBER_OF_ROWS, CATEGORY_ITEM_HEIGHT } from "app/features/balance/modules/transaction";
+import {
+  CATEGORIES_NUMBER_OF_ROWS,
+  CATEGORY_ITEM_HEIGHT,
+} from "app/features/balance/modules/transaction";
 import { CategoriesWithType } from "db";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 const categoryWidth = 100 / CATEGORIES_NUMBER_OF_ROWS;
 
@@ -12,6 +16,7 @@ type CategoryItemProps = {
 };
 
 const CategoryItem: React.FC<CategoryItemProps> = ({ onPress, item }) => {
+  const styles = useThemedStyles(themeStyles);
   const { iconColor, iconFamily, name, iconName } = item;
   return (
     <TouchableOpacity style={styles.container} onPress={() => onPress(item)}>
@@ -24,13 +29,15 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ onPress, item }) => {
 };
 export default memo(CategoryItem);
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    width: `${categoryWidth}%`,
-    height: CATEGORY_ITEM_HEIGHT,
-  },
-  label: {
-    fontSize: 13,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      alignItems: "center",
+      width: `${categoryWidth}%`,
+      height: CATEGORY_ITEM_HEIGHT,
+    },
+    label: {
+      fontSize: 13,
+      color: theme.colors.text,
+    },
+  });

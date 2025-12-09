@@ -5,6 +5,7 @@ import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import SheetHeader from "../components/SheetHeader";
 import colors from "constants/colors";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type PickerSheetItem<T extends number | null> = {
   label: string;
@@ -17,14 +18,13 @@ export type PickerSheetProps<T extends number | null> = {
   onSelect: (item: PickerSheetItem<T>["value"]) => void;
 };
 
-const ITEM_HEIGHT = 50;
-
 const PickerSheet = <T extends number | null>({
   title = "",
   data,
   onSelect,
 }: PickerSheetProps<T>) => {
   const sheetRef = useRef<BottomSheetModal>(null);
+  const styles = useThemedStyles(themeStyles);
 
   const onItemPress = (value: T) => () => {
     onSelect?.(value);
@@ -53,21 +53,24 @@ const PickerSheet = <T extends number | null>({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  item: {
-    height: ITEM_HEIGHT,
-  },
-  label: {
-    fontSize: 16,
-    textAlignVertical: "center",
-    flex: 1,
-    color: colors.dark,
-    paddingLeft: 16,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
+    item: {
+      paddingVertical: 8,
+    },
+    label: {
+      fontSize: 16,
+      textAlignVertical: "center",
+      flex: 1,
+      paddingLeft: 16,
+      backgroundColor: theme.colors.cardInner,
+      paddingVertical: 8,
+      borderRadius: 8,
+    },
+  });
 
 export default PickerSheet;
