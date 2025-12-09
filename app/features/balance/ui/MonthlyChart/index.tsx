@@ -48,6 +48,22 @@ const TooltipComponent: FC<{ value: number | undefined; index: number }> = ({ va
   );
 };
 
+const getRoundedUpperBound = (values: number[]) => {
+  // uzmi najveći broj iz niza
+  const max = Math.max(...values);
+  // fallback ako su sve vrednosti <= 0
+  if (max <= 0) return 1;
+  // za male vrednosti (<10) ostavi isti broj
+  if (max < 10) return max;
+  // odredi red veličine (1, 10, 100, 1000, ...)
+  const mag = Math.pow(10, Math.floor(Math.log10(max)));
+  // odredi korak zaokruživanja u zavisnosti od magnitude
+  // velika vrednost → korak 100, srednja → 10, mala → 1
+  const step = mag >= 1000 ? 100 : mag >= 100 ? 10 : 1;
+  // zaokruži maxValue na najbliži veći korak
+  return Math.ceil(max / step) * step;
+};
+
 type Props = { date: Date };
 
 const MonthlyChart: FC<Props> = ({ date }) => {
@@ -59,13 +75,14 @@ const MonthlyChart: FC<Props> = ({ date }) => {
   );
   const { categoriesById } = useGetCategories();
   const styles = useThemedStyles(themedStyles);
+  const { decimal } = useGetNumberSeparatorQuery();
 
   if (!formattedData.length) {
     return null;
   }
 
-  const highestRoundedAmount =
-    Math.ceil(Math.max(...formattedData.map((item) => item.totalAmount)) / 1000) * 1000;
+  const highestRoundedAmount = getRoundedUpperBound(formattedData.map((item) => item.totalAmount));
+
   const barData = formatBarData(formattedData, categoriesById);
 
   const formatYLabel = (label: string) => {
@@ -87,7 +104,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
 
     formatted = formatted
       .replace(/\.?0+([km])$/, "$1") // Remove trailing zeros after the decimal point
-      .replace(/\./g, ",") // Replace all decimal points with commas
+      .replace(/\./g, decimal) // Replace all decimal points with commas
       .replace(/(\d),0(\d[km])/, "$1,$2"); // Handle the formatting like "1,20k" to "1,2k"
 
     return formatted;

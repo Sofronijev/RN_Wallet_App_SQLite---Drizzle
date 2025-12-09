@@ -12,6 +12,7 @@ export type AppTheme = Theme & {
     shadow: string;
     selected: string;
     disabled: string;
+    placeholder: string;
   };
 };
 

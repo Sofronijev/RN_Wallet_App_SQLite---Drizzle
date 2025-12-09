@@ -11,12 +11,13 @@ const Tab = createBottomTabNavigator<HomeStackParamList>();
 
 const HomeNavigator = () => {
   const { header } = useColors();
+  const { primary } = useColors();
 
   return (
     <Tab.Navigator
       initialRouteName='Balance'
       screenOptions={{
-        tabBarActiveTintColor: colors.greenMint,
+        tabBarActiveTintColor: primary,
         headerStyle: {
           backgroundColor: header,
         },

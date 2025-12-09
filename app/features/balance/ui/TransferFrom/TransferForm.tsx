@@ -32,6 +32,7 @@ import { formatIsoDate } from "modules/timeAndDate";
 import AmountInput from "../AmountInput";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 export type TransferFromInputs = {
   date: string;
@@ -57,6 +58,8 @@ const TransferForm: React.FC = () => {
     useGetTransferByIdQuery(editTransferId);
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
+  const styles = useThemedStyles(themeStyles);
+  const { text } = useColors();
 
   useEffect(() => {
     if (editTransferData) {
@@ -193,7 +196,6 @@ const TransferForm: React.FC = () => {
           </View>
           <AmountInput
             onPress={() => openNumericKeyboard(onSetAmountFrom, values.amountFrom)}
-            style={styles.input}
             amount={values.amountFrom}
             walletCurrency={walletFrom?.currencySymbol || walletFrom?.currencyCode}
             placeholder={isDifferentCurrency ? "Amount from" : "Enter Amount"}
@@ -201,7 +203,6 @@ const TransferForm: React.FC = () => {
           {isDifferentCurrency && (
             <AmountInput
               onPress={() => openNumericKeyboard(onSetAmountTo, values.amountTo)}
-              style={styles.input}
               amount={values.amountTo}
               walletCurrency={walletTo?.currencySymbol || walletTo?.currencyCode}
               placeholder='Amount to'
@@ -231,29 +232,28 @@ const TransferForm: React.FC = () => {
 
 export default TransferForm;
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.white },
-  container: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    flex: 1,
-  },
-  inputContainer: {
-    gap: 20,
-  },
-  transferText: {
-    fontWeight: "bold",
-  },
-  submitBtn: {
-    marginTop: 20,
-  },
-  input: {
-    backgroundColor: colors.white,
-  },
-  differentCurrency: {
-    paddingTop: 5,
-    color: colors.grey2,
-    fontSize: 13,
-    textAlign: "justify",
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    flex: { flex: 1, backgroundColor: theme.colors.background },
+    container: {
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      flex: 1,
+    },
+    inputContainer: {
+      gap: 20,
+    },
+    transferText: {
+      fontWeight: "bold",
+      paddingBottom: 4,
+    },
+    submitBtn: {
+      marginTop: 20,
+    },
+    differentCurrency: {
+      paddingTop: 5,
+      color: theme.colors.muted,
+      fontSize: 13,
+      textAlign: "justify",
+    },
+  });

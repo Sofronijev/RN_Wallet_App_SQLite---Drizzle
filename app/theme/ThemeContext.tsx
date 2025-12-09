@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, PropsWithChildren } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  PropsWithChildren,
+  useMemo,
+  useCallback,
+} from "react";
 import { useColorScheme } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { DefaultTheme, DarkTheme } from "@react-navigation/native";
@@ -26,6 +34,7 @@ const lightTheme: AppTheme = {
     shadow: colors.black,
     selected: colors.greenLight,
     disabled: colors.disabled,
+    placeholder: "#9E9E9E",
   },
 };
 
@@ -48,6 +57,7 @@ const darkTheme: AppTheme = {
     shadow: colors.black,
     selected: "#244D3A",
     disabled: "#4A4F55",
+    placeholder: "#7A7A7A",
   },
 };
 
@@ -71,18 +81,16 @@ export const ThemeProvider: React.FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   const isDark = themeMode === "dark" || (themeMode === "auto" && systemColorScheme === "dark");
-  const theme = isDark ? darkTheme : lightTheme;
+  const theme = useMemo(() => (isDark ? darkTheme : lightTheme), [isDark]);
 
-  const setThemeMode = async (mode: ThemeMode) => {
+  const setThemeMode = useCallback(async (mode: ThemeMode) => {
     setThemeModeState(mode);
     await SecureStore.setItemAsync("themeMode", mode);
-  };
+  }, []);
 
-  return (
-    <ThemeContext.Provider value={{ themeMode, setThemeMode, theme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  const contextValue = useMemo(() => ({ themeMode, setThemeMode, theme }), [themeMode, theme]);
+
+  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 };
 
 export const useAppTheme = () => {

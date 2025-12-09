@@ -4,7 +4,6 @@ import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import colors from "constants/colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { formatIsoDate } from "modules/timeAndDate";
 import AppActivityIndicator from "components/AppActivityIndicator";
@@ -42,6 +41,8 @@ import ShadowBoxView from "components/ShadowBoxView";
 import AmountInput from "../AmountInput";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import colors from "constants/colors";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -61,6 +62,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
+  const styles = useThemedStyles(themeStyles);
+  const { primary } = useColors();
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
@@ -206,7 +209,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       iconSize: 40,
     })
   ) : (
-    <MaterialIcons name='category' size={40} color={colors.greenMint} />
+    <MaterialIcons name='category' size={40} color={primary} />
   );
 
   return (
@@ -251,40 +254,41 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
 export default TransactionForm;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-    paddingTop: 20,
-  },
-  inputsContainer: {
-    marginHorizontal: 16,
-    marginBottom: 40,
-  },
-  flexRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 8,
-  },
-  flex: {
-    flex: 1,
-  },
-  input: {
-    marginTop: 20,
-  },
-  button: {
-    marginTop: 20,
-  },
-  walletPicker: {
-    paddingTop: 20,
-  },
-  paddingVertical: {
-    paddingVertical: 10,
-  },
-  icon: {
-    width: 40,
-  },
-  label: { fontSize: 18, flex: 1 },
-  placeHolder: { color: colors.grey4 },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+      paddingTop: 20,
+    },
+    inputsContainer: {
+      marginHorizontal: 16,
+      marginBottom: 40,
+    },
+    flexRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 8,
+    },
+    flex: {
+      flex: 1,
+    },
+    input: {
+      marginTop: 20,
+    },
+    button: {
+      marginTop: 20,
+    },
+    walletPicker: {
+      paddingTop: 20,
+    },
+    paddingVertical: {
+      paddingVertical: 10,
+    },
+    icon: {
+      width: 40,
+    },
+    label: { fontSize: 18, flex: 1 },
+    placeHolder: { color: theme.colors.placeholder },
+  });

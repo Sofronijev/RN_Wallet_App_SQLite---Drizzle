@@ -1,8 +1,8 @@
 import { FlatList, ListRenderItem, StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
-import colors from "constants/colors";
 import Label from "components/Label";
 import { WalletType } from "app/queries/wallets";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
   selected: number;
@@ -11,17 +11,20 @@ type Props = {
 };
 
 const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect }) => {
+  const styles = useThemedStyles(themeStyles);
+  const colors = useColors();
+
   const renderItem: ListRenderItem<WalletType> = ({ item }) => {
     const isSelected = selected === item.walletId;
     const onPress = () => onSelect(item.walletId);
     const currency = item.currencySymbol || item.currencyCode;
+
     return (
       <TouchableOpacity
         style={[
           styles.walletContainer,
-          { borderColor: item.color },
           isSelected && {
-            backgroundColor: colors.greenLight,
+            backgroundColor: colors.selected,
           },
         ]}
         onPress={onPress}
@@ -48,19 +51,21 @@ const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect }) => {
 
 export default WalletPicker;
 
-const styles = StyleSheet.create({
-  container: {
-    height: 40,
-  },
-  walletContainer: {
-    borderColor: colors.grey3,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginRight: 10,
-    justifyContent: "center",
-  },
-  text: {
-    fontSize: 15,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      height: 40,
+    },
+    walletContainer: {
+      borderColor: theme.colors.border,
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      marginRight: 10,
+      justifyContent: "center",
+      backgroundColor: theme.colors.card,
+    },
+    text: {
+      fontSize: 15,
+    },
+  });
