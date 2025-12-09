@@ -1,6 +1,6 @@
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React, { FC, ReactElement } from "react";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { useColors } from "app/theme/useThemedStyles";
 
 type Props = {
   item: number | string | ReactElement;
@@ -8,9 +8,10 @@ type Props = {
 };
 
 const PinButton: FC<Props> = ({ item, onPress }) => {
+  const colors = useColors();
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.text}>{item}</Text>
+      <Text style={[styles.text, { color: colors.text }]}>{item}</Text>
     </TouchableOpacity>
   );
 };

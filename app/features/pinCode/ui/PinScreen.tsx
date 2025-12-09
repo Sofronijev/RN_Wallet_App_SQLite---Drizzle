@@ -6,13 +6,12 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-
-import colors from "constants/colors";
 import PinButton from "./PinButton";
 import Feather from "@expo/vector-icons/Feather";
 import { usePinCodeStatus } from "./PinCodeStatusProvider";
 import { useGetPinCodeDataQuery } from "app/queries/user";
 import { tapHaptic } from "modules/haptics";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 const PinScreen: FC = () => {
   const [pin, setPin] = useState("");
@@ -22,6 +21,8 @@ const PinScreen: FC = () => {
   const currentPinLength = pin.length;
   const savedPinLength = pinCode.length;
   const pinDots = Array(savedPinLength).fill(0);
+  const styles = useThemedStyles(themeStyles);
+  const colors = useColors();
 
   const clearPinError = () => {
     if (pinError) {
@@ -107,7 +108,7 @@ const PinScreen: FC = () => {
           <PinButton onPress={onNumberPress(0)} item={0} />
           <PinButton
             onPress={onDelete}
-            item={<Feather name='delete' size={40} color={colors.black} />}
+            item={<Feather name='delete' size={40} color={colors.text} />}
           />
         </View>
       </View>
@@ -117,40 +118,42 @@ const PinScreen: FC = () => {
 
 export default PinScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.white,
-    flex: 1,
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-  buttonRow: {
-    flexDirection: "row",
-  },
-  pinContainer: {
-    flexDirection: "row",
-    gap: 20,
-    paddingTop: 50,
-    paddingBottom: 40,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  pin: {
-    borderWidth: 2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderColor: colors.greenMint,
-  },
-  fillPin: {
-    backgroundColor: colors.greenMint,
-  },
-  pinError: {
-    textAlign: "center",
-    color: colors.danger,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.background,
+      flex: 1,
+      justifyContent: "space-around",
+      alignItems: "center",
+    },
+    buttonRow: {
+      flexDirection: "row",
+    },
+    pinContainer: {
+      flexDirection: "row",
+      gap: 20,
+      paddingTop: 50,
+      paddingBottom: 40,
+      justifyContent: "center",
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: "bold",
+      textAlign: "center",
+      color: theme.colors.text,
+    },
+    pin: {
+      borderWidth: 2,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderColor: theme.colors.primary,
+    },
+    fillPin: {
+      backgroundColor: theme.colors.primary,
+    },
+    pinError: {
+      textAlign: "center",
+      color: theme.colors.danger,
+    },
+  });
