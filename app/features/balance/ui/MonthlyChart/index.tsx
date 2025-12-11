@@ -49,19 +49,29 @@ const TooltipComponent: FC<{ value: number | undefined; index: number }> = ({ va
 };
 
 const getRoundedUpperBound = (values: number[]) => {
-  // uzmi najveći broj iz niza
   const max = Math.max(...values);
-  // fallback ako su sve vrednosti <= 0
+
   if (max <= 0) return 1;
-  // za male vrednosti (<10) ostavi isti broj
-  if (max < 10) return max;
-  // odredi red veličine (1, 10, 100, 1000, ...)
-  const mag = Math.pow(10, Math.floor(Math.log10(max)));
-  // odredi korak zaokruživanja u zavisnosti od magnitude
-  // velika vrednost → korak 100, srednja → 10, mala → 1
-  const step = mag >= 1000 ? 100 : mag >= 100 ? 10 : 1;
-  // zaokruži maxValue na najbliži veći korak
-  return Math.ceil(max / step) * step;
+
+  // za male brojeve < 10 — zaokruži jednostavno
+  if (max < 10) {
+    return Math.ceil(max);
+  }
+
+  // red veličine (10, 100, 1000, ...)
+  const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
+
+  // korak za zaokruživanje:
+  // 10  → 1
+  // 100 → 10
+  // 1000 → 100
+  // 10000 → 1000
+  const step = magnitude / 10;
+
+  // zaokruži naviše na ovaj korak
+  let rounded = Math.ceil(max / step) * step;
+
+  return rounded;
 };
 
 type Props = { date: Date };
@@ -82,7 +92,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
   }
 
   const highestRoundedAmount = getRoundedUpperBound(formattedData.map((item) => item.totalAmount));
-
+  console.log(highestRoundedAmount);
   const barData = formatBarData(formattedData, categoriesById);
 
   const formatYLabel = (label: string) => {

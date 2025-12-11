@@ -3,6 +3,7 @@ import React from "react";
 import colors from "constants/colors";
 import Label from "components/Label";
 import { Type } from "db";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
   selected: number | undefined;
@@ -11,20 +12,14 @@ type Props = {
 };
 
 const TypeSelector: React.FC<Props> = ({ types, selected, onSelect }) => {
+  const styles = useThemedStyles(themeStyles);
+
   const renderItem: ListRenderItem<Type> = ({ item }) => {
     const isSelected = selected === item.id;
     const onPress = () => onSelect(!isSelected ? item : undefined);
 
     return (
-      <TouchableOpacity
-        style={[
-          styles.type,
-          isSelected && {
-            backgroundColor: colors.greenLight,
-          },
-        ]}
-        onPress={onPress}
-      >
+      <TouchableOpacity style={[styles.type, isSelected && styles.selected]} onPress={onPress}>
         <Label>
           <Label style={styles.text}>{`${item.name}`}</Label>
         </Label>
@@ -47,19 +42,24 @@ const TypeSelector: React.FC<Props> = ({ types, selected, onSelect }) => {
 
 export default TypeSelector;
 
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 8,
-  },
-  type: {
-    borderColor: colors.grey4,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 4,
-    justifyContent: "center",
-  },
-  text: {
-    fontSize: 15,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      paddingTop: 8,
+    },
+    type: {
+      borderColor: theme.colors.border,
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 4,
+      justifyContent: "center",
+      backgroundColor: theme.colors.cardInner,
+    },
+    text: {
+      fontSize: 15,
+    },
+    selected: {
+      backgroundColor: theme.colors.selected,
+    },
+  });
