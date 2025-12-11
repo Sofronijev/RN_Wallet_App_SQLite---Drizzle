@@ -166,7 +166,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const onSetAmount = (amount: number) => {
-    setFieldValue("amount", amount);
+    setFieldValue("amount", amount, true);
     if (!values.category?.id) {
       showCategoriesSheet();
     }
