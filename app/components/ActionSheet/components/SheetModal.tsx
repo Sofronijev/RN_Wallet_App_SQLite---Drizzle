@@ -9,6 +9,7 @@ import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/typ
 import { BackHandler, Platform, StyleSheet, useWindowDimensions } from "react-native";
 import { useActionSheet } from "../ActionSheetContext";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
   sheetRef: React.RefObject<BottomSheetModalMethods>;
@@ -29,6 +30,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
   const styles = useThemedStyles(themeStyles);
   const colors = useColors();
   const maxSize = height - 150;
+  const { bottom } = useSafeAreaInsets();
 
   useLayoutEffect(() => {
     requestAnimationFrame(() => sheetRef?.current?.present());
@@ -68,7 +70,7 @@ const SheetModal: FC<PropsWithChildren<Props>> = ({
       // Mora da ima BottomSheetView ili neki drugi kao container da bi radio
       enableDynamicSizing={!snapPoints}
       detached
-      bottomInset={32}
+      bottomInset={bottom ?? 40}
       style={styles.modal}
       maxDynamicContentSize={maxDynamicContentSize ?? maxSize}
       backgroundStyle={{

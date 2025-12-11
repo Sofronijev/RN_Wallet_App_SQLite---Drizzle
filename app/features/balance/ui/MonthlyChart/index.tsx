@@ -92,7 +92,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
   }
 
   const highestRoundedAmount = getRoundedUpperBound(formattedData.map((item) => item.totalAmount));
-  console.log(highestRoundedAmount);
+
   const barData = formatBarData(formattedData, categoriesById);
 
   const formatYLabel = (label: string) => {

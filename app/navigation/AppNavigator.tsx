@@ -1,4 +1,5 @@
 import React from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeNavigator from "./HomeNavigator";
 import colors from "constants/colors";
@@ -11,11 +12,12 @@ import TransactionSearch from "app/features/balance/ui/TransactionSearch";
 import PinSettings from "app/features/pinCode/ui/PinSettings";
 import NumberSeparators from "app/features/settings/ui/NumberSeparators";
 import { useColors } from "app/theme/useThemedStyles";
+import HeaderIcon from "components/HeaderIcon";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
 const AppNavigator: React.FC = () => {
-  const { header } = useColors();
+  const { header, text } = useColors();
 
   return (
     <Stack.Navigator
@@ -44,10 +46,9 @@ const AppNavigator: React.FC = () => {
         options={{
           animation: "slide_from_bottom",
           title: transactionStrings.transactionSearch,
-          // TODO - create FILTERS screen
           // headerRight: () => (
           //   <HeaderIcon onPress={() => console.log("Open filters")}>
-          //     <Ionicons name='filter' size={24} color={colors.white} />
+          //     <Ionicons name='filter' size={24} color={text} />
           //   </HeaderIcon>
           // ),
         }}

@@ -13,6 +13,7 @@ import { db } from "db";
 import migrations from "drizzle/migrations";
 import RootNavigator from "navigation/RootNavigator";
 import { ThemeProvider, useAppTheme } from "app/theme/ThemeContext";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
@@ -41,16 +42,18 @@ const AppContent = () => {
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <PinCodeStatusProvider>
-            <MenuProvider>
-              <NavigationContainer theme={theme}>
-                <ActionSheetProvider>
-                  <RootNavigator />
-                </ActionSheetProvider>
-              </NavigationContainer>
-              <AlertPromptProvider />
-            </MenuProvider>
-          </PinCodeStatusProvider>
+          <SafeAreaProvider>
+            <PinCodeStatusProvider>
+              <MenuProvider>
+                <NavigationContainer theme={theme}>
+                  <ActionSheetProvider>
+                    <RootNavigator />
+                  </ActionSheetProvider>
+                </NavigationContainer>
+                <AlertPromptProvider />
+              </MenuProvider>
+            </PinCodeStatusProvider>
+          </SafeAreaProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
     </View>
