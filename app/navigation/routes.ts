@@ -15,6 +15,7 @@ export type AppStackParamList = {
   };
   PinSettings: undefined;
   NumberSeparators: undefined;
+  TransactionFilters: undefined;
 };
 
 export type AuthStackParamList = {

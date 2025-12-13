@@ -1,14 +1,8 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import React, { memo } from "react";
 import CategoryIcon from "components/CategoryIcon";
-import {
-  CATEGORIES_NUMBER_OF_ROWS,
-  CATEGORY_ITEM_HEIGHT,
-} from "app/features/balance/modules/transaction";
 import { CategoriesWithType } from "db";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-
-const categoryWidth = 100 / CATEGORIES_NUMBER_OF_ROWS;
 
 type CategoryItemProps = {
   onPress: (item: CategoriesWithType) => void;
@@ -33,8 +27,6 @@ const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       alignItems: "center",
-      width: `${categoryWidth}%`,
-      height: CATEGORY_ITEM_HEIGHT,
     },
     label: {
       fontSize: 13,

@@ -1,5 +1,5 @@
 import React, { FC, useRef } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import CategoryItem from "./CategoryItem";
 import { CATEGORIES_NUMBER_OF_ROWS } from "app/features/balance/modules/transaction";
@@ -26,7 +26,9 @@ const TransactionBottomSheet: FC<Data> = ({ onSelect }) => {
   };
 
   const renderItem = ({ item }: { item: CategoriesWithType }) => (
-    <CategoryItem item={item} onPress={onCategoryPress} />
+    <View style={{ flexBasis: `${100 / CATEGORIES_NUMBER_OF_ROWS}%`, alignItems: "center" }}>
+      <CategoryItem item={item} onPress={onCategoryPress} />
+    </View>
   );
 
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
@@ -53,6 +55,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 8,
     paddingBottom: 16,
+    gap: 8,
   },
 });
 

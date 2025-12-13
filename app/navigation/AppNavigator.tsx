@@ -1,5 +1,4 @@
 import React from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeNavigator from "./HomeNavigator";
 import colors from "constants/colors";
@@ -12,12 +11,13 @@ import TransactionSearch from "app/features/balance/ui/TransactionSearch";
 import PinSettings from "app/features/pinCode/ui/PinSettings";
 import NumberSeparators from "app/features/settings/ui/NumberSeparators";
 import { useColors } from "app/theme/useThemedStyles";
-import HeaderIcon from "components/HeaderIcon";
+import TransactionFiltersIcon from "app/features/balance/ui/TransactionSearch/TransactionFiltersIcon";
+import TransactionFilters from "app/features/balance/ui/TransactionSearch/TransactionFilters";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
 const AppNavigator: React.FC = () => {
-  const { header, text } = useColors();
+  const { header } = useColors();
 
   return (
     <Stack.Navigator
@@ -46,11 +46,7 @@ const AppNavigator: React.FC = () => {
         options={{
           animation: "slide_from_bottom",
           title: transactionStrings.transactionSearch,
-          // headerRight: () => (
-          //   <HeaderIcon onPress={() => console.log("Open filters")}>
-          //     <Ionicons name='filter' size={24} color={text} />
-          //   </HeaderIcon>
-          // ),
+          headerRight: () => <TransactionFiltersIcon />,
         }}
       />
       <Stack.Screen
@@ -83,6 +79,14 @@ const AppNavigator: React.FC = () => {
         options={{
           animation: "default",
           title: "Number separators",
+        }}
+      />
+      <Stack.Screen
+        name='TransactionFilters'
+        component={TransactionFilters}
+        options={{
+          animation: "slide_from_right",
+          title: "Filters",
         }}
       />
     </Stack.Navigator>
