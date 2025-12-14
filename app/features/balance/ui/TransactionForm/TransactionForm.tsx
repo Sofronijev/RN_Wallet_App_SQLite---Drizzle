@@ -154,19 +154,23 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const typeOptions = values.category?.id ? categoriesById[values.category.id]?.types ?? [] : [];
 
   // Zbog problema sa validacijom dodao sam async/await, da bi se sacekala promena
-  const onSelectCategory = async (category: Category) => {
+  const onSelectCategory = async (categoryId: number) => {
+    const category = categoriesById[categoryId];
     await setFieldValue("category", category);
     const type = category.id === 12 ? categoriesById[category.id].types[0] : null;
-    await setFieldValue("type", type, true);
+    await setFieldValue("type", type, hasSubmittedForm);
   };
 
   const showCategoriesSheet = () => {
     Keyboard.dismiss();
-    openSheet({ type: SHEETS.CATEGORY_PICKER, props: { onSelect: onSelectCategory } });
+    openSheet({
+      type: SHEETS.CATEGORY_PICKER,
+      props: { onSelect: onSelectCategory, initialSelected: values.category?.id },
+    });
   };
 
   const onSetAmount = (amount: number) => {
-    setFieldValue("amount", amount, true);
+    setFieldValue("amount", amount, hasSubmittedForm);
     if (!values.category?.id) {
       showCategoriesSheet();
     }

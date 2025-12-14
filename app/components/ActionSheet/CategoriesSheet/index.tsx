@@ -1,4 +1,4 @@
-import React, { FC, useRef } from "react";
+import React, { FC, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import CategoryItem from "./CategoryItem";
@@ -6,30 +6,79 @@ import { CATEGORIES_NUMBER_OF_ROWS } from "app/features/balance/modules/transact
 import SheetModal from "../components/SheetModal";
 import SheetHeader from "../components/SheetHeader";
 import { useGetCategories } from "app/queries/categories";
-import { CategoriesWithType, Category, Type } from "db";
+import { CategoriesWithType } from "db";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useColors } from "app/theme/useThemedStyles";
+import colors from "constants/colors";
 
-type Data = {
-  onSelect: (category: Category, types: Type[]) => void;
-};
+type Data =
+  | {
+      multiple?: false;
+      onSelect: (categoryId: number) => void;
+      initialSelected?: number;
+    }
+  | {
+      multiple: true;
+      onSelect: (data: Record<CategoriesWithType["id"], boolean>) => void;
+      initialSelected?: Record<CategoriesWithType["id"], boolean>;
+    };
 
 const keyExtractor = <T extends { id: number }>(item: T) => item.id.toString();
 
-const TransactionBottomSheet: FC<Data> = ({ onSelect }) => {
+const TransactionBottomSheet: FC<Data> = ({ onSelect, multiple, initialSelected }) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const { data: categories } = useGetCategories();
 
-  const onCategoryPress = (item: CategoriesWithType) => {
-    const { types, ...category } = item;
-    sheetRef.current?.close();
-    onSelect(category, types);
+  const setInitialSelected = () => {
+    if (!multiple) return {};
+    return initialSelected ?? {};
   };
 
-  const renderItem = ({ item }: { item: CategoriesWithType }) => (
-    <View style={{ flexBasis: `${100 / CATEGORIES_NUMBER_OF_ROWS}%`, alignItems: "center" }}>
-      <CategoryItem item={item} onPress={onCategoryPress} />
-    </View>
+  const [selected, setSelected] = useState<Record<CategoriesWithType["id"], boolean>>(
+    setInitialSelected()
   );
+  const colors = useColors();
+
+  const onCategoryPress = (item: CategoriesWithType) => {
+    if (!multiple) {
+      onSelect(item.id);
+      sheetRef.current?.close();
+    } else {
+      setSelected((prev) => {
+        if (prev[item.id]) {
+          const { [item.id]: _deleted, ...rest } = prev;
+          return rest;
+        }
+
+        return {
+          ...prev,
+          [item.id]: true,
+        };
+      });
+    }
+  };
+
+  const onChooseMultiple = () => {
+    if (multiple) {
+      sheetRef.current?.close();
+      onSelect(selected);
+    }
+  };
+
+  const renderItem = ({ item }: { item: CategoriesWithType }) => {
+    const isSelected = multiple ? selected[item.id] : initialSelected === item.id;
+    return (
+      <View style={styles.item}>
+        <CategoryItem item={item} onPress={onCategoryPress} />
+        {isSelected && (
+          <View style={styles.checkmark}>
+            <Ionicons name='checkmark-circle' size={30} color={colors.primary} />
+          </View>
+        )}
+      </View>
+    );
+  };
 
   // BUG - IOS BUG - On first render, clicking on category will close sheet and not show the types (looks like it disappears), after that it will work normally
   // BUG - when there is textInput with autofocus prop the bottom sheet will open - FIXED with setting "softwareKeyboardLayoutMode": "pan" in app.json
@@ -43,7 +92,13 @@ const TransactionBottomSheet: FC<Data> = ({ onSelect }) => {
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         contentContainerStyle={styles.container}
-        ListHeaderComponent={() => <SheetHeader title='Pick a category' />}
+        ListHeaderComponent={() => (
+          <SheetHeader
+            title={multiple ? "Pick categories" : "Pick category"}
+            nextText={multiple ? "Choose" : undefined}
+            onNext={onChooseMultiple}
+          />
+        )}
         stickyHeaderIndices={[0]}
       />
     </SheetModal>
@@ -56,6 +111,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingBottom: 16,
     gap: 8,
+  },
+  checkmark: {
+    position: "absolute",
+    top: 35,
+    right: 10,
+    backgroundColor: colors.white,
+    borderRadius: 15,
+  },
+  item: {
+    flexBasis: `${100 / CATEGORIES_NUMBER_OF_ROWS}%`,
+    alignItems: "center",
   },
 });
 

@@ -32,25 +32,27 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({
 
   const showLeftButton = !!backText && typeof onBack === "function";
   const showRightButton = !!nextText && typeof onNext === "function";
-  const showIcons = showLeftButton || showRightButton;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        {showIcons && (
-          <TouchableOpacity onPress={onBack} style={styles.icon}>
-            {showLeftButton && renderText(backText)}
+        {showLeftButton && (
+          <TouchableOpacity onPress={onBack} style={styles.iconLeft}>
+            {renderText(backText)}
           </TouchableOpacity>
         )}
+
         <Label numberOfLines={1} style={styles.title}>
           {title}
         </Label>
-        {showIcons && (
-          <TouchableOpacity onPress={onNext} style={styles.icon}>
-            {showRightButton && renderText(nextText)}
+
+        {showRightButton && (
+          <TouchableOpacity onPress={onNext} style={styles.iconRight}>
+            {renderText(nextText)}
           </TouchableOpacity>
         )}
       </View>
+
       {subtitle && <Label style={styles.subtitle}>{subtitle}</Label>}
     </View>
   );
@@ -59,28 +61,39 @@ const SheetHeader: React.FC<SheetHeaderProps> = ({
 const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
-      paddingHorizontal: 16,
       paddingBottom: 16,
-      backgroundColor: theme.colors.card
+      backgroundColor: theme.colors.card,
     },
     header: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
     },
     title: {
       textAlign: "center",
-      fontSize: 20,
+      fontSize: 16,
       fontWeight: "600",
-      flex: 2,
       color: theme.colors.text,
     },
     subtitle: {
       paddingTop: 4,
       color: theme.colors.muted,
+      paddingHorizontal: 16,
     },
-    icon: {
-      flex: 1,
-      minWidth: 10,
+    iconLeft: {
+      position: "absolute",
+      left: 16,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+    },
+    iconRight: {
+      position: "absolute",
+      right: 16,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
     },
     text: {
       color: theme.colors.hyperlink,

@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
@@ -9,25 +9,55 @@ import AppCheckbox from "components/AppCheckbox";
 
 type Props = {
   category: CategoriesWithType;
+  onDelete: (id: number) => void;
+  selectedTypes?: Record<number, boolean>;
+  onTypeSelect: (categoryId: number, typeId: number) => void;
 };
 
-const CategoryFilterItem: React.FC<Props> = ({ category }) => {
+const CategoryFilterItem: React.FC<Props> = ({
+  category,
+  onDelete,
+  selectedTypes,
+  onTypeSelect,
+}) => {
   const styles = useThemedStyles(themeStyles);
   const colors = useColors();
-
+  const deleteCategory = () => {
+    onDelete(category.id);
+  };
   return (
-    <View key={category.id} style={styles.category}>
-      <View style={styles.row}>
-        <AppCheckbox />
-        <CategoryIcon
-          iconSize={16}
-          color={category.iconColor}
-          iconFamily={category.iconFamily}
-          name={category.iconName}
-        />
-        <Label>{category.name}</Label>
+    <View>
+      <TouchableOpacity key={category.id} style={styles.category}>
+        <View style={styles.row}>
+          <TouchableOpacity onPress={deleteCategory}>
+            <MaterialIcons name='close' size={20} color={colors.muted} />
+          </TouchableOpacity>
+          <CategoryIcon
+            iconSize={16}
+            color={category.iconColor}
+            iconFamily={category.iconFamily}
+            name={category.iconName}
+          />
+          <Label>{category.name}</Label>
+        </View>
+        <TouchableOpacity onPress={deleteCategory}>
+          <MaterialIcons name='chevron-right' size={30} color={colors.muted} />
+        </TouchableOpacity>
+      </TouchableOpacity>
+      <View style={styles.types}>
+        {category.types.map((type) => {
+          return (
+            <TouchableOpacity
+              style={styles.row}
+              key={type.id}
+              onPress={() => onTypeSelect(category.id, type.id)}
+            >
+              <AppCheckbox isChecked={selectedTypes?.[type.id]} pointerEvents='none' />
+              <Label>{type.name}</Label>
+            </TouchableOpacity>
+          );
+        })}
       </View>
-      <MaterialIcons name='chevron-right' size={30} color={colors.text} />
     </View>
   );
 };
@@ -49,5 +79,10 @@ const themeStyles = (theme: AppTheme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: 16,
+    },
+    types: {
+      paddingHorizontal: 32,
+      paddingVertical: 8,
+      gap: 4,
     },
   });
