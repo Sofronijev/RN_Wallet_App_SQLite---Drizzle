@@ -1,6 +1,6 @@
 import { db, NewTransaction, TransactionType } from "db";
 import { transactions } from "db/schema";
-import { and, count, desc, eq, not, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, inArray, not, sql, sum } from "drizzle-orm";
 import { CategoryNumber } from "modules/categories";
 
 export const getTransactions = (walletId: number, limit?: number, offset?: number) => {
@@ -26,21 +26,39 @@ export const getTransactions = (walletId: number, limit?: number, offset?: numbe
   return Promise.all([query, countQuery]);
 };
 
-export const getInfiniteTransactions = async (walletId: number, page: number, pageSize: number) => {
-  const countQuery = await db
-    .select({ count: count() })
-    .from(transactions)
-    .where(eq(transactions.wallet_id, walletId));
+export const getInfiniteTransactions = async (
+  walletId: number,
+  page: number,
+  pageSize: number,
+  categoryIds?: number[],
+  typeIds?: number[]
+) => {
+  const conditions = [eq(transactions.wallet_id, walletId)];
 
+  if (categoryIds && categoryIds.length > 0) {
+    conditions.push(inArray(transactions.categoryId, categoryIds));
+  }
+
+  if (typeIds && typeIds.length > 0) {
+    conditions.push(inArray(transactions.type_id, typeIds));
+  }
+
+  const whereClause = and(...conditions);
+
+  // Count query
+  const countQuery = await db.select({ count: count() }).from(transactions).where(whereClause);
+
+  // Data query
   const data = await db
     .select()
     .from(transactions)
-    .where(eq(transactions.wallet_id, walletId))
+    .where(whereClause)
     .orderBy(desc(transactions.date))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
 
-  const hasNextPage = page * pageSize <= countQuery[0].count;
+  const totalCount = countQuery[0].count;
+  const hasNextPage = page * pageSize < totalCount;
 
   return {
     data,

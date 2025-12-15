@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import colors from "constants/colors";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import Label from "components/Label";
@@ -9,6 +9,7 @@ import ButtonText from "components/ButtonText";
 const nullScreenIcon = {
   wallet: <Ionicons name='wallet-outline' size={100} color={colors.greyNullScreen} />,
   chart: <MaterialCommunityIcons name='finance' size={100} color={colors.greyNullScreen} />,
+  search: <MaterialIcons name='search' size={100} color={colors.greyNullScreen} />,
 };
 
 type IconTypes = keyof typeof nullScreenIcon;
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
   },
   button: {
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
+    textTransform: "uppercase",
+    fontWeight: "bold",
   },
 });

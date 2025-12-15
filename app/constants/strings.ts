@@ -32,6 +32,15 @@ export const transactionStrings = {
   editTransaction: "Edit transaction",
   addTransaction: "Add transaction",
   transactionSearch: "All transactions",
+  noTransactions: {
+    title: "No transactions found",
+    subtitle: "Try adjusting or clearing your filters",
+  },
+  noTransactionSearch: {
+    title: "No transactions added",
+    subtitle: "Start tracking your expenses and incomes to gain better control of your finances",
+  },
+  resetFilters: "Reset filters",
 };
 
 export const transferStrings = {

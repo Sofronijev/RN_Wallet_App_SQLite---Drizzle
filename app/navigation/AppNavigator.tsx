@@ -13,6 +13,7 @@ import NumberSeparators from "app/features/settings/ui/NumberSeparators";
 import { useColors } from "app/theme/useThemedStyles";
 import TransactionFiltersIcon from "app/features/balance/ui/TransactionSearch/TransactionFiltersIcon";
 import TransactionFilters from "app/features/balance/ui/TransactionSearch/TransactionFilters";
+import { TransactionFiltersProvider } from "app/features/balance/ui/TransactionSearch/context/TransactionFiltersContext";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -20,76 +21,78 @@ const AppNavigator: React.FC = () => {
   const { header } = useColors();
 
   return (
-    <Stack.Navigator
-      initialRouteName='Home'
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: header,
-        },
-        headerTitleAlign: "center",
-        headerTitleStyle: { color: colors.white },
-        headerTintColor: colors.white,
-      }}
-    >
-      <Stack.Screen name='Home' component={HomeNavigator} options={{ headerShown: false }} />
-      <Stack.Screen
-        name='Transaction'
-        component={TransactionForm}
-        options={{
-          animation: "slide_from_bottom",
-          title: transactionStrings.addTransaction,
+    <TransactionFiltersProvider>
+      <Stack.Navigator
+        initialRouteName='Home'
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: header,
+          },
+          headerTitleAlign: "center",
+          headerTitleStyle: { color: colors.white },
+          headerTintColor: colors.white,
         }}
-      />
-      <Stack.Screen
-        name='TransactionSearch'
-        component={TransactionSearch}
-        options={{
-          animation: "slide_from_bottom",
-          title: transactionStrings.transactionSearch,
-          headerRight: () => <TransactionFiltersIcon />,
-        }}
-      />
-      <Stack.Screen
-        name='WalletSettings'
-        component={WalletSettings}
-        options={{
-          animation: "default",
-          title: "Wallet settings",
-        }}
-      />
-      <Stack.Screen
-        name='TransferForm'
-        component={TransferForm}
-        options={{
-          animation: "slide_from_bottom",
-          title: transferStrings.createTransfer,
-        }}
-      />
-      <Stack.Screen
-        name='PinSettings'
-        component={PinSettings}
-        options={{
-          animation: "default",
-          title: "Pin Code",
-        }}
-      />
-      <Stack.Screen
-        name='NumberSeparators'
-        component={NumberSeparators}
-        options={{
-          animation: "default",
-          title: "Number separators",
-        }}
-      />
-      <Stack.Screen
-        name='TransactionFilters'
-        component={TransactionFilters}
-        options={{
-          animation: "slide_from_right",
-          title: "Filters",
-        }}
-      />
-    </Stack.Navigator>
+      >
+        <Stack.Screen name='Home' component={HomeNavigator} options={{ headerShown: false }} />
+        <Stack.Screen
+          name='Transaction'
+          component={TransactionForm}
+          options={{
+            animation: "slide_from_bottom",
+            title: transactionStrings.addTransaction,
+          }}
+        />
+        <Stack.Screen
+          name='TransactionSearch'
+          component={TransactionSearch}
+          options={{
+            animation: "slide_from_bottom",
+            title: transactionStrings.transactionSearch,
+            headerRight: () => <TransactionFiltersIcon />,
+          }}
+        />
+        <Stack.Screen
+          name='WalletSettings'
+          component={WalletSettings}
+          options={{
+            animation: "default",
+            title: "Wallet settings",
+          }}
+        />
+        <Stack.Screen
+          name='TransferForm'
+          component={TransferForm}
+          options={{
+            animation: "slide_from_bottom",
+            title: transferStrings.createTransfer,
+          }}
+        />
+        <Stack.Screen
+          name='PinSettings'
+          component={PinSettings}
+          options={{
+            animation: "default",
+            title: "Pin Code",
+          }}
+        />
+        <Stack.Screen
+          name='NumberSeparators'
+          component={NumberSeparators}
+          options={{
+            animation: "default",
+            title: "Number separators",
+          }}
+        />
+        <Stack.Screen
+          name='TransactionFilters'
+          component={TransactionFilters}
+          options={{
+            animation: "slide_from_right",
+            title: "Filters",
+          }}
+        />
+      </Stack.Navigator>
+    </TransactionFiltersProvider>
   );
 };
 

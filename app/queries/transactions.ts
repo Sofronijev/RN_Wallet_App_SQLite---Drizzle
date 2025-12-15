@@ -84,24 +84,31 @@ export const useGetTransactionsQuery = (
 };
 
 type InfiniteTransactionsReturn = Awaited<ReturnType<typeof getInfiniteTransactions>>;
+type InfiniteTransactionsReq = {
+  walletId: number | null | undefined;
+  pageSize?: number;
+  categoryIds?: number[];
+  typeIds?: number[];
+  isFocused?: boolean;
+};
 
-export const useGetTransactionsInfiniteQuery = (
-  walletId: number | null | undefined,
-  pageSize = 30
-) => {
+export const useGetTransactionsInfiniteQuery = (reqData: InfiniteTransactionsReq) => {
+  const { walletId, pageSize = 30, categoryIds, typeIds, isFocused } = reqData;
+
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isError, isLoading } =
     useInfiniteQuery({
-      enabled: !!walletId,
-      queryKey: [queryKeys.transactions, walletId, pageSize],
+      enabled: !!walletId && isFocused,
+      queryKey: [queryKeys.transactions, walletId, pageSize, categoryIds, typeIds],
       getNextPageParam: (prevData: InfiniteTransactionsReturn) => {
         return prevData?.nextPage;
       },
       queryFn: walletId
-        ? ({ pageParam }) => getInfiniteTransactions(walletId, pageParam, pageSize)
+        ? ({ pageParam }) =>
+            getInfiniteTransactions(walletId, pageParam, pageSize, categoryIds, typeIds)
         : skipToken,
       initialPageParam: 1,
-      // staleTime: 1000 * 60 * 5,
     });
+
   const transactions = data?.pages?.flatMap((page) => page.data) ?? [];
 
   return {

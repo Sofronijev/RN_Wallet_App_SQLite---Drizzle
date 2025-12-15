@@ -8,7 +8,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "apk": "eas build -p android --profile preview",
+    "apk_eas": "eas build -p android --profile preview",
+    "apk": "npx expo run:android --variant release",
     "prebuild": "npx expo prebuild",
     "db:generate": "npx drizzle-kit generate",
     "db:customMigrate": "npx drizzle-kit generate --custom"

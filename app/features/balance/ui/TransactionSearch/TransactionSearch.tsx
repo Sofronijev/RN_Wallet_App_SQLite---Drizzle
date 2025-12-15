@@ -7,14 +7,26 @@ import { TransactionType } from "db";
 import { useGetTransactionsInfiniteQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { useTransactionFilters } from "./context/TransactionFiltersContext";
+import { transactionStrings } from "constants/strings";
+import { useIsFocused } from "@react-navigation/native";
 
 const TransactionSearch = () => {
+  // Pratim da li je fokusiran da ne pokrecem Query dok se filteri menjaju
+  const isFocused = useIsFocused();
+
+  const { filters, filtersCounter } = useTransactionFilters();
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const {
     data: transactions,
     fetchNextPage,
     hasNextPage,
-  } = useGetTransactionsInfiniteQuery(selectedWallet?.walletId);
+  } = useGetTransactionsInfiniteQuery({
+    walletId: selectedWallet?.walletId,
+    categoryIds: filters.categories,
+    typeIds: filters.types,
+    isFocused,
+  });
   const styles = useThemedStyles(themeStyles);
 
   const searchMoreTransactions = () => {
@@ -23,13 +35,24 @@ const TransactionSearch = () => {
     }
   };
 
+  if (!transactions.length && !!filtersCounter) {
+    return (
+      <NullScreen
+        icon='search'
+        isLoading={false}
+        title={transactionStrings.noTransactions.title}
+        subtitle={transactionStrings.noTransactions.subtitle}
+      />
+    );
+  }
+
   if (!transactions.length) {
     return (
       <NullScreen
         icon='wallet'
         isLoading={false}
-        title='No transactions added'
-        subtitle='Start tracking your expenses and incomes to gain better control of your finances'
+        title={transactionStrings.noTransactionSearch.title}
+        subtitle={transactionStrings.noTransactionSearch.subtitle}
       />
     );
   }
