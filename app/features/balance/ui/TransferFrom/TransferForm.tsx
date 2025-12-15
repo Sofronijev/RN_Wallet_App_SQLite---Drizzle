@@ -26,7 +26,7 @@ import {
   editTransferMutation,
   useGetTransferByIdQuery,
 } from "app/queries/transfers";
-import HeaderIcon from "components/HeaderIcon";
+import HeaderIcon from "components/Header/HeaderIcon";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { formatIsoDate } from "modules/timeAndDate";
 import AmountInput from "../AmountInput";

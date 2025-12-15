@@ -10,24 +10,22 @@ import {
 } from "react";
 
 const initialFilters: Filters = {
-  categories: [],
-  types: [],
+  categories: {},
+  types: {},
 };
 
+export type SelectedCategories = Record<CategoriesWithType["id"], boolean>;
+export type SelectedTypes = Record<number, Record<number, boolean>>;
+
 type Filters = {
-  categories: number[];
-  types: number[];
+  categories: SelectedCategories;
+  types: SelectedTypes;
 };
 
 type TransactionFiltersContextType = {
   filters: Filters;
   filtersCounter: number;
-  selectedCategories: SelectedCategories;
-  onCategoriesSelect: (data: SelectedCategories) => void;
-  onCategoryDelete: (id: number) => void;
-  selectedTypes: SelectedTypes;
-  onTypeSelect: (categoryId: number, typeId: number) => void;
-  applyFilters: () => void;
+  applyFilters: (filters: Filters) => void;
   resetFilters: () => void;
 };
 
@@ -35,113 +33,34 @@ const TransactionFiltersContext = createContext<TransactionFiltersContextType | 
   undefined
 );
 
-type SelectedCategories = Record<CategoriesWithType["id"], boolean>;
-type SelectedTypes = Record<number, Record<number, boolean>>;
-
 export const TransactionFiltersProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const [selectedCategories, setSelectedCategories] = useState<SelectedCategories>({});
-  const [selectedTypes, setSelectedTypes] = useState<SelectedTypes>({});
   const [savedFilters, setSavedFilters] = useState<Filters>(initialFilters);
 
-  const onCategoriesSelect = useCallback((data: SelectedCategories) => {
-    setSelectedCategories(data);
+  const filtersCounter = useMemo(() => {
+    const hasCategories = objectKeys(savedFilters.categories).length > 0;
+    const hasTypes = Object.values(savedFilters.types).some((typesById) =>
+      Object.values(typesById).some(Boolean)
+    );
+
+    return (hasCategories ? 1 : 0) + (hasTypes ? 1 : 0);
+  }, [savedFilters]);
+
+  const applyFilters = useCallback((filters: Filters) => {
+    setSavedFilters(filters);
   }, []);
-
-  const onCategoryDelete = useCallback((id: number) => {
-    setSelectedCategories((prev) => {
-      const { [id]: _deleted, ...rest } = prev;
-      return rest;
-    });
-    setSelectedTypes((prev) => {
-      const { [id]: _deleted, ...rest } = prev;
-      return rest;
-    });
-  }, []);
-
-  const onTypeSelect = useCallback((categoryId: number, typeId: number) => {
-    setSelectedTypes((prev) => {
-      const categoryTypes = prev[categoryId] ?? {};
-
-      if (categoryTypes[typeId]) {
-        const { [typeId]: _removed, ...restTypes } = categoryTypes;
-
-        return {
-          ...prev,
-          [categoryId]: restTypes,
-        };
-      }
-
-      return {
-        ...prev,
-        [categoryId]: {
-          ...categoryTypes,
-          [typeId]: true,
-        },
-      };
-    });
-  }, []);
-
-  const selectedCategoriesArray = useMemo(
-    () => objectKeys(selectedCategories),
-    [selectedCategories]
-  );
-
-  const selectedTypesArray = useMemo(
-    () =>
-      objectKeys(selectedTypes).flatMap((categoryId) =>
-        objectKeys(selectedTypes[categoryId]).map(Number)
-      ),
-    [selectedTypes]
-  );
-
-  const filtersCounter = useMemo(
-    () => (selectedCategoriesArray.length > 0 ? 1 : 0) + (selectedTypesArray.length > 0 ? 1 : 0),
-    [selectedCategoriesArray.length, selectedTypesArray.length]
-  );
-
-  const applyFilters = useCallback(() => {
-    setSavedFilters({
-      categories: selectedCategoriesArray.map(Number),
-      types: selectedTypesArray,
-    });
-  }, [selectedCategoriesArray, selectedTypesArray]);
 
   const resetFilters = useCallback(() => {
-    setSelectedCategories({});
-    setSelectedTypes({});
+    setSavedFilters(initialFilters);
   }, []);
-
-  const filters = useMemo(
-    () => ({
-      categories: selectedCategoriesArray.map(Number),
-      types: selectedTypesArray,
-    }),
-    [selectedCategoriesArray, selectedTypesArray]
-  );
 
   const contextValue = useMemo<TransactionFiltersContextType>(
     () => ({
-      filters,
-      selectedCategories,
-      onCategoriesSelect,
-      onCategoryDelete,
-      onTypeSelect,
-      selectedTypes,
+      filters: savedFilters,
       filtersCounter,
       applyFilters,
       resetFilters,
     }),
-    [
-      savedFilters,
-      selectedCategories,
-      onCategoriesSelect,
-      onCategoryDelete,
-      onTypeSelect,
-      selectedTypes,
-      filtersCounter,
-      applyFilters,
-      resetFilters,
-    ]
+    [savedFilters, filtersCounter, applyFilters, resetFilters]
   );
 
   return (

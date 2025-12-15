@@ -9,12 +9,9 @@ import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { useTransactionFilters } from "./context/TransactionFiltersContext";
 import { transactionStrings } from "constants/strings";
-import { useIsFocused } from "@react-navigation/native";
+import { objectKeys } from "modules/utils";
 
 const TransactionSearch = () => {
-  // Pratim da li je fokusiran da ne pokrecem Query dok se filteri menjaju
-  const isFocused = useIsFocused();
-
   const { filters, filtersCounter } = useTransactionFilters();
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const {
@@ -23,9 +20,10 @@ const TransactionSearch = () => {
     hasNextPage,
   } = useGetTransactionsInfiniteQuery({
     walletId: selectedWallet?.walletId,
-    categoryIds: filters.categories,
-    typeIds: filters.types,
-    isFocused,
+    categoryIds: objectKeys(filters.categories).map(Number),
+    typeIds: objectKeys(filters.types).flatMap((categoryId) =>
+      objectKeys(filters.types[categoryId]).map(Number)
+    ),
   });
   const styles = useThemedStyles(themeStyles);
 

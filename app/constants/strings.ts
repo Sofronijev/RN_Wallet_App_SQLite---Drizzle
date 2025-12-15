@@ -72,3 +72,7 @@ export const startingBalanceStrings = {
   title: "Enter your starting balance",
   subtitle: "This will also update your current balance.",
 };
+
+export const dialogStrings = {
+  apply: "Apply",
+};

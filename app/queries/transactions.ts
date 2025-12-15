@@ -93,11 +93,11 @@ type InfiniteTransactionsReq = {
 };
 
 export const useGetTransactionsInfiniteQuery = (reqData: InfiniteTransactionsReq) => {
-  const { walletId, pageSize = 30, categoryIds, typeIds, isFocused } = reqData;
+  const { walletId, pageSize = 30, categoryIds, typeIds } = reqData;
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isError, isLoading } =
     useInfiniteQuery({
-      enabled: !!walletId && isFocused,
+      enabled: !!walletId,
       queryKey: [queryKeys.transactions, walletId, pageSize, categoryIds, typeIds],
       getNextPageParam: (prevData: InfiniteTransactionsReturn) => {
         return prevData?.nextPage;

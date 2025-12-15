@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import HeaderIcon from "components/HeaderIcon";
+import HeaderIcon from "components/Header/HeaderIcon";
 import colors from "constants/colors";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";

@@ -15,7 +15,7 @@ import {
 } from "../../modules/transactionFormValidation";
 import { RouteProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import HeaderIcon from "components/HeaderIcon";
+import HeaderIcon from "components/Header/HeaderIcon";
 import {
   deleteTransactionAlert,
   formatFormAmountValue,
