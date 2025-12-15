@@ -6,7 +6,7 @@ const colors = {
   grey3: "#eeeeee",
   grey4: "#939393",
   greenMint: "#3EB489",
-  greenMintDark: "#5FD6A4",
+  greenMintDark: "#43A38A",
   error: "#ff0033",
   redDark: "#B5533E",
   hyperlink: "#0896FF",
