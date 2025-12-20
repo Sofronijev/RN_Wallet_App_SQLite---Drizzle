@@ -108,7 +108,8 @@ export const getMonthlyAmountsByCategory = async (walletId: number, date: string
         not(eq(transactions.categoryId, CategoryNumber.income))
       )
     )
-    .groupBy(transactions.categoryId);
+    .groupBy(transactions.categoryId)
+    .orderBy(desc(sql`ABS(SUM(${transactions.amount}))`));
 
 export const getTransactionById = (id: number) =>
   db.query.transactions.findFirst({

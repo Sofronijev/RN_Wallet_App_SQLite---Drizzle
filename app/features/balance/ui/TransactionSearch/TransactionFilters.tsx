@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
@@ -14,10 +14,10 @@ import {
   useTransactionFilters,
 } from "./context/TransactionFiltersContext";
 import { objectKeys } from "modules/utils";
-import Label from "components/Label";
-import { dialogStrings, transactionStrings } from "constants/strings";
+import { dialogStrings } from "constants/strings";
 import { useNavigation } from "@react-navigation/native";
 import HeaderTextButton from "components/Header/HeaderTextButton";
+import CustomButton from "components/CustomButton";
 
 const TransactionFilters: FC = () => {
   const navigation = useNavigation();
@@ -42,7 +42,7 @@ const TransactionFilters: FC = () => {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <HeaderTextButton onPress={onApply}>{dialogStrings.apply}</HeaderTextButton>
+        <HeaderTextButton onPress={resetFilters}>{dialogStrings.reset}</HeaderTextButton>
       ),
     });
   }, [onApply]);
@@ -86,9 +86,9 @@ const TransactionFilters: FC = () => {
   }, []);
 
   const resetFilters = () => {
-    setSelectedCategories({})
-    setSelectedTypes({})
-  }
+    setSelectedCategories({});
+    setSelectedTypes({});
+  };
 
   const pickCategories = () => {
     openSheet({
@@ -124,9 +124,8 @@ const TransactionFilters: FC = () => {
           })}
         </View>
       </ScrollView>
-      <TouchableOpacity onPress={resetFilters}>
-        <Label style={styles.resetButton}>{transactionStrings.resetFilters}</Label>
-      </TouchableOpacity>
+
+      <CustomButton title={dialogStrings.apply} onPress={onApply} style={styles.applyButton} />
     </SafeAreaView>
   );
 };
@@ -142,12 +141,8 @@ const themeStyles = (theme: AppTheme) =>
       gap: 8,
     },
     categoryLabel: { flexDirection: "row", paddingBottom: 16 },
-    resetButton: {
-      padding: 16,
-      textAlign: "center",
-      fontSize: 20,
-      backgroundColor: theme.colors.cardInner,
-      fontWeight: "600",
+    applyButton: {
+      marginBottom: 8,
     },
   });
 

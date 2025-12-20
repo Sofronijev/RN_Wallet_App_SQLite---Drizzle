@@ -29,7 +29,7 @@ const themedStyles = (theme: AppTheme) =>
       right: 20,
     },
     button: {
-      backgroundColor: colors.greenMint,
+      backgroundColor: theme.colors.primary,
       width: 60,
       height: 60,
       borderRadius: 30,

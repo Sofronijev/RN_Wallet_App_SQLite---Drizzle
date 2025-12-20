@@ -40,7 +40,6 @@ export const transactionStrings = {
     title: "No transactions added",
     subtitle: "Start tracking your expenses and incomes to gain better control of your finances",
   },
-  resetFilters: "Reset filters",
 };
 
 export const transferStrings = {
@@ -75,4 +74,5 @@ export const startingBalanceStrings = {
 
 export const dialogStrings = {
   apply: "Apply",
+  reset: "Reset",
 };
