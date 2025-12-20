@@ -106,7 +106,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
 
   const onEditName = () => {
     AlertPrompt.prompt(
-      "Give your wallet a new name",
+      "Rename your wallet",
       null,
       (walletName) => {
         changeWalletName({ id: walletId, walletName });
@@ -133,13 +133,14 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <Label style={styles.name}>{walletName}</Label>
+        <ButtonText title={walletName} buttonStyle={styles.name} onPress={onEditName} />
         <View style={styles.iconsContainer}>
-          <TouchableOpacity onPress={onEditName}>
-            <MaterialIcons name='edit' size={24} color={text} />
-          </TouchableOpacity>
           <TouchableOpacity onPress={onDeleteWallet} disabled={!canDeleteWallet}>
-            <MaterialIcons name='delete' size={24} color={canDeleteWallet ? text : disabled} />
+            <MaterialIcons
+              name='delete-outline'
+              size={24}
+              color={canDeleteWallet ? text : disabled}
+            />
           </TouchableOpacity>
         </View>
       </View>

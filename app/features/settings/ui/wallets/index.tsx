@@ -15,7 +15,7 @@ const WalletSettings: React.FC = () => {
   const styles = useThemedStyles(themeStyles);
 
   const onAddNewPress = () => {
-    AlertPrompt.prompt("Give your new wallet a name", null, (walletName) => {
+    AlertPrompt.prompt("Give your wallet a name", null, (walletName) => {
       createWallet({ walletName });
     });
   };

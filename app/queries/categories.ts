@@ -10,14 +10,24 @@ export const useGetCategories = () => {
   });
   const categories = data ?? [];
 
-  const categoriesById = categories.reduce<Record<number, CategoriesWithType>>((acc, item) => {
-    acc[item.id] = item;
-    return acc;
-  }, {});
+  const normalizedCategories = categories.reduce<{
+    categoriesById: Record<number, CategoriesWithType>;
+    categoriesAllId: number[];
+  }>(
+    (acc, item) => {
+      acc.categoriesById[item.id] = item;
+      acc.categoriesAllId.push(item.id);
+      return acc;
+    },
+    {
+      categoriesById: {},
+      categoriesAllId: [],
+    }
+  );
 
   return {
     data: data ?? [],
-    categoriesById,
+    ...normalizedCategories,
     isLoading: isLoading || isFetching,
     isError,
   };

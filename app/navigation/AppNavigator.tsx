@@ -14,6 +14,7 @@ import { useColors } from "app/theme/useThemedStyles";
 import TransactionFiltersIcon from "app/features/balance/ui/TransactionSearch/TransactionFiltersIcon";
 import TransactionFilters from "app/features/balance/ui/TransactionSearch/TransactionFilters";
 import { TransactionFiltersProvider } from "app/features/balance/ui/TransactionSearch/context/TransactionFiltersContext";
+import CategorySettings from "app/features/settings/ui/categories/CategorySettings";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -89,6 +90,14 @@ const AppNavigator: React.FC = () => {
           options={{
             animation: "slide_from_right",
             title: "Filters",
+          }}
+        />
+        <Stack.Screen
+          name='CategorySettings'
+          component={CategorySettings}
+          options={{
+            animation: "default",
+            title: "Wallet settings",
           }}
         />
       </Stack.Navigator>

@@ -6,20 +6,25 @@ import { Type } from "db";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
-  selected: number | undefined;
-  onSelect: (type: Type | undefined) => void;
+  selected?: number | undefined;
+  onSelect?: (type: Type | undefined) => void;
   types: Type[];
+  disableSelect?: boolean;
 };
 
-const TypeSelector: React.FC<Props> = ({ types, selected, onSelect }) => {
+const TypeSelector: React.FC<Props> = ({ types, selected, onSelect, disableSelect }) => {
   const styles = useThemedStyles(themeStyles);
 
   const renderItem: ListRenderItem<Type> = ({ item }) => {
     const isSelected = selected === item.id;
-    const onPress = () => onSelect(!isSelected ? item : undefined);
+    const onPress = () => onSelect?.(!isSelected ? item : undefined);
 
     return (
-      <TouchableOpacity style={[styles.type, isSelected && styles.selected]} onPress={onPress}>
+      <TouchableOpacity
+        style={[styles.type, isSelected && styles.selected]}
+        onPress={onPress}
+        disabled={disableSelect}
+      >
         <Label>
           <Label style={styles.text}>{`${item.name}`}</Label>
         </Label>

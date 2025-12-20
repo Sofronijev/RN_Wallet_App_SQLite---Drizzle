@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 import React from "react";
 import Label from "components/Label";
 import HeaderIcon from "./HeaderIcon";
+import colors from "constants/colors";
 
 type HeaderTextButtonProps = {
   onPress: () => void;
@@ -22,5 +23,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "bold",
+    color: colors.white,
   },
 });
