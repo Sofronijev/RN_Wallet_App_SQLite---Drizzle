@@ -11,6 +11,7 @@ type Props = {
   name: string;
   color: string;
   iconSize?: number;
+  plain?: boolean;
 };
 
 const iconMap: Record<string, any> = {
@@ -26,13 +27,17 @@ export const getCategoryIcon = ({ iconFamily, name, iconSize, color }: Props) =>
   return <IconComponent name={name} size={iconSize ?? ICON_SIZE} color={color} />;
 };
 
-const CategoryIcon: React.FC<Props> = ({ iconSize, iconFamily, name, color }) => {
-  const IconComponent = getCategoryIcon({ iconFamily, iconSize, color: colors.white, name });
+const CategoryIcon: React.FC<Props> = ({ iconSize, iconFamily, name, color, plain }) => {
+  const iconColor = plain ? color : colors.white;
+
+  const IconComponent = getCategoryIcon({ iconFamily, iconSize, color: iconColor, name });
   if (!IconComponent) {
     return null;
   }
 
-  return <View style={[styles.container, { backgroundColor: color }]}>{IconComponent}</View>;
+  return (
+    <View style={[styles.container, !plain && { backgroundColor: color }]}>{IconComponent}</View>
+  );
 };
 
 export default memo(CategoryIcon);

@@ -1,4 +1,6 @@
-import { db } from "db";
+import { db, NewCategory } from "db";
+import { categories } from "db/schema";
+import { eq } from "drizzle-orm";
 
 export const getAllCategoriesWithTypes = () => {
   return db.query.categories.findMany({
@@ -7,3 +9,8 @@ export const getAllCategoriesWithTypes = () => {
     },
   });
 };
+
+export const deleteCategory = (id: number) => db.delete(categories).where(eq(categories.id, id));
+
+export const addCategory = (transaction: NewCategory) =>
+  db.insert(categories).values(transaction);

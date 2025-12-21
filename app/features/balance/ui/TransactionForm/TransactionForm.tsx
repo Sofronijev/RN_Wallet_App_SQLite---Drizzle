@@ -291,7 +291,7 @@ const themeStyles = (theme: AppTheme) =>
       paddingVertical: 10,
     },
     icon: {
-      width: 40,
+      width: 45,
     },
     label: { fontSize: 18, flex: 1 },
     placeHolder: { color: theme.colors.placeholder },

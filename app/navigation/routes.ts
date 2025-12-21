@@ -17,6 +17,7 @@ export type AppStackParamList = {
   NumberSeparators: undefined;
   TransactionFilters: undefined;
   CategorySettings: undefined;
+  CategoryForm:  { id: number } | undefined;
 };
 
 export type AuthStackParamList = {

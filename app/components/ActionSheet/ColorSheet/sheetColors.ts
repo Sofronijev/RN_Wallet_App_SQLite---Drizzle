@@ -30,5 +30,5 @@ export const colorsArray = [
   "#FFB6C1",
   "#D3D3D3",
   "#2F4F4F",
-  "#000000",
+  "#363636ff",
 ];

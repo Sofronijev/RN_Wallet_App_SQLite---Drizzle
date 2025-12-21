@@ -76,3 +76,7 @@ export const dialogStrings = {
   apply: "Apply",
   reset: "Reset",
 };
+
+export const categoryStrings = {
+  categoryPlaceholder: "Category name",
+};

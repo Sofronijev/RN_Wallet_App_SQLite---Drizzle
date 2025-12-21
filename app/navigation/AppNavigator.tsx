@@ -15,6 +15,7 @@ import TransactionFiltersIcon from "app/features/balance/ui/TransactionSearch/Tr
 import TransactionFilters from "app/features/balance/ui/TransactionSearch/TransactionFilters";
 import { TransactionFiltersProvider } from "app/features/balance/ui/TransactionSearch/context/TransactionFiltersContext";
 import CategorySettings from "app/features/settings/ui/categories/CategorySettings";
+import CategoryForm from "app/features/settings/ui/categories/CategoryForm";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -97,7 +98,15 @@ const AppNavigator: React.FC = () => {
           component={CategorySettings}
           options={{
             animation: "default",
-            title: "Wallet settings",
+            title: "Category settings",
+          }}
+        />
+        <Stack.Screen
+          name='CategoryForm'
+          component={CategoryForm}
+          options={{
+            animation: "default",
+            title: "Add category",
           }}
         />
       </Stack.Navigator>

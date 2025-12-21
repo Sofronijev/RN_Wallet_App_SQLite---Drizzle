@@ -1,13 +1,7 @@
-import {
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useGetCategories } from "app/queries/categories";
+import { useDeleteCategoryMutation, useGetCategories } from "app/queries/categories";
 import ShadowBoxView from "components/ShadowBoxView";
 import { getCategoryIcon } from "components/CategoryIcon";
 import colors from "constants/colors";
@@ -15,47 +9,58 @@ import { useColors } from "app/theme/useThemedStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Label from "components/Label";
 import TypeSelector from "app/features/balance/ui/TransactionForm/TypeSelector";
+import { CategoryNumber } from "modules/categories";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AppStackParamList } from "navigation/routes";
 
 const keyExtractor = (item: number) => `${item}`;
 
 const CategorySettings: React.FC = () => {
   const { categoriesById, categoriesAllId } = useGetCategories();
+  const { deleteCategory } = useDeleteCategoryMutation();
   const { text, disabled } = useColors();
+  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
-  const canDeleteCategory = categoriesAllId.length > 0;
-
-  const onDeleteCategory = () => {};
+  const atLeastOneCategory = categoriesAllId.length > 1;
 
   const renderItem = ({ item }: { item: number }) => {
     const category = categoriesById[item];
     if (!category) return null;
-    const { types, iconColor, iconFamily, iconName, name } = category;
+    const { types, id, iconColor, iconFamily, iconName, name } = category;
     const renderIcon = getCategoryIcon({
       color: colors.white,
       iconFamily,
       name: iconName,
       iconSize: 36,
     });
+    const isBalanceCorrCategory = category.id === CategoryNumber.balanceCorrection;
+
+    const openFormScreen = () => {
+      navigation.navigate("CategoryForm", { id });
+    };
 
     return (
-      <TouchableWithoutFeedback style={styles.flex}>
+      <Pressable style={styles.flex} onPress={openFormScreen}>
         <ShadowBoxView style={styles.itemContainer}>
           <View style={[styles.icon, { backgroundColor: iconColor }]}>{renderIcon}</View>
           <View style={styles.flex}>
             <View style={styles.row}>
               <Label style={styles.label}>{name}</Label>
-              <TouchableOpacity onPress={onDeleteCategory} disabled={!canDeleteCategory}>
-                <MaterialIcons
-                  name='delete-outline'
-                  size={24}
-                  color={canDeleteCategory ? text : disabled}
-                />
-              </TouchableOpacity>
+              {!isBalanceCorrCategory && (
+                <TouchableOpacity onPress={() => deleteCategory(id)} disabled={!atLeastOneCategory}>
+                  <MaterialIcons
+                    name='delete-outline'
+                    size={24}
+                    color={atLeastOneCategory ? text : disabled}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
             <TypeSelector types={types} disableSelect />
           </View>
         </ShadowBoxView>
-      </TouchableWithoutFeedback>
+      </Pressable>
     );
   };
 
