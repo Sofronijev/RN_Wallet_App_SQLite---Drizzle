@@ -8,8 +8,6 @@ import SheetHeader from "../components/SheetHeader";
 import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType } from "db";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import { useColors } from "app/theme/useThemedStyles";
-import colors from "constants/colors";
 import CheckMark from "components/CheckMark";
 
 type Data =
@@ -38,7 +36,6 @@ const TransactionBottomSheet: FC<Data> = ({ onSelect, multiple, initialSelected 
   const [selected, setSelected] = useState<Record<CategoriesWithType["id"], boolean>>(
     setInitialSelected()
   );
-  const colors = useColors();
 
   const onCategoryPress = (item: CategoriesWithType) => {
     if (!multiple) {

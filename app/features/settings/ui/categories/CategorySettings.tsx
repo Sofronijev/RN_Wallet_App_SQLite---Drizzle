@@ -41,28 +41,26 @@ const CategorySettings: React.FC = () => {
     };
 
     return (
-      <ShadowBoxView style={styles.itemContainer}>
-        <Pressable onPress={openFormScreen}>
+      <Pressable onPress={openFormScreen}>
+        <ShadowBoxView style={styles.itemContainer}>
           <View style={[styles.icon, { backgroundColor: iconColor }]}>{renderIcon}</View>
-        </Pressable>
-        <View style={styles.flex}>
-          <View style={styles.row}>
-            <Pressable style={styles.flex} onPress={openFormScreen}>
+          <View style={styles.flex}>
+            <View style={styles.row}>
               <Label style={styles.label}>{name}</Label>
-            </Pressable>
-            {!isBalanceCorrCategory && (
-              <TouchableOpacity onPress={() => deleteCategory(id)} disabled={!atLeastOneCategory}>
-                <MaterialIcons
-                  name='delete-outline'
-                  size={24}
-                  color={atLeastOneCategory ? text : disabled}
-                />
-              </TouchableOpacity>
-            )}
+              {!isBalanceCorrCategory && (
+                <TouchableOpacity onPress={() => deleteCategory(id)} disabled={!atLeastOneCategory}>
+                  <MaterialIcons
+                    name='delete-outline'
+                    size={24}
+                    color={atLeastOneCategory ? text : disabled}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+            {!!types.length && <TypeSelector types={types} disableSelect />}
           </View>
-          <TypeSelector types={types} onSelect={openFormScreen} />
-        </View>
-      </ShadowBoxView>
+        </ShadowBoxView>
+      </Pressable>
     );
   };
 

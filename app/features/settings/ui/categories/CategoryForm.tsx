@@ -7,29 +7,34 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { RouteProp } from "@react-navigation/native";
 import {
   useAddCategoryMutation,
+  useDeleteCategoryMutation,
   useEditCategoryMutation,
   useGetCategories,
 } from "app/queries/categories";
 import { useFormik } from "formik";
-import colors from "constants/colors";
 import { NewCategory } from "db";
 import StyledLabelInput from "components/StyledLabelInput";
 import { categoryStrings } from "constants/strings";
 import CategoryIcon from "components/CategoryIcon";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import TwoOptionSelector from "components/TwoOptionsSelector";
 import Label from "components/Label";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import CustomButton from "components/CustomButton";
 import InputErrorLabel from "components/InputErrorLabel";
+import { colorsArray } from "components/ActionSheet/ColorSheet/sheetColors";
+import { IconSheetIcons } from "components/ActionSheet/IconSheet/icons";
+import HeaderIcon from "components/Header/HeaderIcon";
+import colors from "constants/colors";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -63,23 +68,43 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
   const { categoriesById } = useGetCategories();
   const { addCategory } = useAddCategoryMutation();
   const { editCategory } = useEditCategoryMutation();
+  const { deleteCategory } = useDeleteCategoryMutation();
   const categoryToEdit = editCategoryId ? categoriesById[editCategoryId] : null;
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const styles = useThemedStyles(themedStyles);
   const { openSheet } = useActionSheet();
+  const { muted } = useColors();
+
+  const initialRandomColor = useMemo(
+    () => colorsArray[Math.floor(Math.random() * colorsArray.length)],
+    []
+  );
+
+  const initialRandomIcon = useMemo(
+    () => IconSheetIcons[Math.floor(Math.random() * IconSheetIcons.length)],
+    []
+  );
 
   useEffect(() => {
     if (categoryToEdit) {
       navigation.setOptions({
         title: "Edit category",
-        // headerRight: () => (
-        //   <HeaderIcon onPress={onDelete}>
-        //     <Ionicons name='trash-sharp' size={24} color={colors.white} />
-        //   </HeaderIcon>
-        // ),
+        headerRight: () => (
+          <HeaderIcon onPress={onDeleteCategory}>
+            <Ionicons name='trash-sharp' size={24} color={colors.white} />
+          </HeaderIcon>
+        ),
       });
     }
   }, [categoryToEdit]);
+
+  const onDeleteCategory = () => {
+    if (!editCategoryId) return;
+
+    Keyboard.dismiss();
+    deleteCategory(editCategoryId);
+    navigation.goBack();
+  };
 
   const onTransactionSubmit = async (values: CategorySchema) => {
     Keyboard.dismiss();
@@ -108,9 +133,8 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
           name: categoryToEdit.name,
         }
       : {
-          iconColor: colors.white,
-          iconFamily: "MaterialCommunityIcons",
-          iconName: "shape",
+          iconColor: initialRandomColor,
+          ...initialRandomIcon,
           name: "",
         },
     validationSchema: categorySchema,
@@ -189,7 +213,11 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
           right={{ label: "Expense", value: "expense" }}
         />
         <View style={styles.typesContainer}>
-          <Label style={styles.subCat}>Subcategories</Label>
+          <TouchableOpacity style={styles.row}>
+            <Label style={styles.subCat}>Subcategories</Label>
+            <MaterialIcons name='add' size={25} color={muted} />
+          </TouchableOpacity>
+
           {categoryToEdit &&
             categoryToEdit.types.map((type) => {
               return (
@@ -250,7 +278,6 @@ const themedStyles = (theme: AppTheme) =>
       borderBottomRightRadius: 8,
     },
     subCat: {
-      paddingBottom: 8,
       fontWeight: "600",
       color: theme.colors.muted,
     },

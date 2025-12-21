@@ -1,4 +1,8 @@
-export const IconSheetIcons = [
+import { CategoriesWithType } from "db";
+
+export type IconData = { iconFamily: CategoriesWithType["iconFamily"]; iconName: string };
+
+export const IconSheetIcons: IconData[] = [
   { iconFamily: "FontAwesome", iconName: "money" },
   { iconFamily: "FontAwesome5", iconName: "gift" },
   { iconFamily: "FontAwesome", iconName: "home" },

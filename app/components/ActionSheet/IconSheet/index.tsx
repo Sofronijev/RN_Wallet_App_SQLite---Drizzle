@@ -6,12 +6,10 @@ import SheetModal from "../components/SheetModal";
 import SheetHeader from "../components/SheetHeader";
 import colors from "constants/colors";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import { IconSheetIcons } from "./icons";
-import { CategoriesWithType } from "db";
+import { IconData, IconSheetIcons } from "./icons";
+
 import CategoryIcon from "components/CategoryIcon";
 import CheckMark from "components/CheckMark";
-
-type IconData = { iconFamily: CategoriesWithType["iconFamily"]; iconName: string };
 
 type Data = {
   onSelect: (color: IconData) => void;
