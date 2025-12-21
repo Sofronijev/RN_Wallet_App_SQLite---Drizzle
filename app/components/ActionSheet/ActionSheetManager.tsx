@@ -5,6 +5,7 @@ import CategoriesSheet from "./CategoriesSheet";
 import NumericKeyboard from "./NumbericKeyboard";
 import CurrencySheet from "./CurrencySheet";
 import PickerSheet from "./PickerSheet";
+import IconSheet from "./IconSheet";
 
 export const SHEETS = {
   COLOR_PICKER: "COLOR_PICKER",
@@ -12,6 +13,7 @@ export const SHEETS = {
   NUMERIC_KEYBOARD: "NUMERIC_KEYBOARD",
   CURRENCY_PICKER: "CURRENCY_PICKER",
   PICKER_SHEET: "PICKER_SHEET",
+  ICON_PICKER: "ICON_PICKER",
 } as const;
 
 export type SheetPropsMap = {
@@ -20,6 +22,7 @@ export type SheetPropsMap = {
   [SHEETS.NUMERIC_KEYBOARD]: ComponentProps<typeof NumericKeyboard>;
   [SHEETS.CURRENCY_PICKER]: ComponentProps<typeof CurrencySheet>;
   [SHEETS.PICKER_SHEET]: ComponentProps<typeof PickerSheet>;
+  [SHEETS.ICON_PICKER]: ComponentProps<typeof IconSheet>;
 };
 
 const ActionSheetManager = () => {
@@ -41,6 +44,8 @@ const ActionSheetManager = () => {
         return <CurrencySheet {...activeSheet.props} />;
       case SHEETS.PICKER_SHEET:
         return <PickerSheet {...activeSheet.props} />;
+      case SHEETS.ICON_PICKER:
+        return <IconSheet {...activeSheet.props} />;
 
       default:
         return null;

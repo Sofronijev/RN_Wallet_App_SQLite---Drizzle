@@ -9,7 +9,7 @@ const ICON_SIZE = 28;
 type Props = {
   iconFamily: CategoriesWithType["iconFamily"];
   name: string;
-  color: string;
+  color?: string;
   iconSize?: number;
   plain?: boolean;
 };
@@ -24,7 +24,7 @@ const iconMap: Record<string, any> = {
 export const getCategoryIcon = ({ iconFamily, name, iconSize, color }: Props) => {
   const IconComponent = iconMap[iconFamily];
 
-  return <IconComponent name={name} size={iconSize ?? ICON_SIZE} color={color} />;
+  return <IconComponent name={name} size={iconSize ?? ICON_SIZE} color={color ?? colors.white} />;
 };
 
 const CategoryIcon: React.FC<Props> = ({ iconSize, iconFamily, name, color, plain }) => {

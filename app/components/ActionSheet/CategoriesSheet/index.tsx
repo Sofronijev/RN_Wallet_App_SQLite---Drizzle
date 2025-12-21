@@ -8,9 +8,9 @@ import SheetHeader from "../components/SheetHeader";
 import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType } from "db";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useColors } from "app/theme/useThemedStyles";
 import colors from "constants/colors";
+import CheckMark from "components/CheckMark";
 
 type Data =
   | {
@@ -71,11 +71,7 @@ const TransactionBottomSheet: FC<Data> = ({ onSelect, multiple, initialSelected 
     return (
       <View style={styles.item}>
         <CategoryItem item={item} onPress={onCategoryPress} />
-        {isSelected && (
-          <View style={styles.checkmark}>
-            <Ionicons name='checkmark-circle' size={30} color={colors.primary} />
-          </View>
-        )}
+        {isSelected && <CheckMark position={{ top: 35, right: 10 }} />}
       </View>
     );
   };
@@ -111,13 +107,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingBottom: 16,
     gap: 8,
-  },
-  checkmark: {
-    position: "absolute",
-    top: 35,
-    right: 10,
-    backgroundColor: colors.white,
-    borderRadius: 15,
   },
   item: {
     flexBasis: `${100 / CATEGORIES_NUMBER_OF_ROWS}%`,

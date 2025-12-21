@@ -41,26 +41,28 @@ const CategorySettings: React.FC = () => {
     };
 
     return (
-      <Pressable style={styles.flex} onPress={openFormScreen}>
-        <ShadowBoxView style={styles.itemContainer}>
+      <ShadowBoxView style={styles.itemContainer}>
+        <Pressable onPress={openFormScreen}>
           <View style={[styles.icon, { backgroundColor: iconColor }]}>{renderIcon}</View>
-          <View style={styles.flex}>
-            <View style={styles.row}>
+        </Pressable>
+        <View style={styles.flex}>
+          <View style={styles.row}>
+            <Pressable style={styles.flex} onPress={openFormScreen}>
               <Label style={styles.label}>{name}</Label>
-              {!isBalanceCorrCategory && (
-                <TouchableOpacity onPress={() => deleteCategory(id)} disabled={!atLeastOneCategory}>
-                  <MaterialIcons
-                    name='delete-outline'
-                    size={24}
-                    color={atLeastOneCategory ? text : disabled}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-            <TypeSelector types={types} disableSelect />
+            </Pressable>
+            {!isBalanceCorrCategory && (
+              <TouchableOpacity onPress={() => deleteCategory(id)} disabled={!atLeastOneCategory}>
+                <MaterialIcons
+                  name='delete-outline'
+                  size={24}
+                  color={atLeastOneCategory ? text : disabled}
+                />
+              </TouchableOpacity>
+            )}
           </View>
-        </ShadowBoxView>
-      </Pressable>
+          <TypeSelector types={types} onSelect={openFormScreen} />
+        </View>
+      </ShadowBoxView>
     );
   };
 
@@ -88,6 +90,8 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 16,
     borderRadius: 10,
+    width: 100,
+    alignItems: "center",
   },
   itemContainer: {
     marginVertical: 8,
@@ -100,6 +104,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 18,
+    fontWeight: "500",
   },
   row: {
     paddingTop: 8,

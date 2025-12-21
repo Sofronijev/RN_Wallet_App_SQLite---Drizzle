@@ -1,6 +1,5 @@
 import { FlatList, ListRenderItem, StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
-import colors from "constants/colors";
 import Label from "components/Label";
 import { Type } from "db";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";

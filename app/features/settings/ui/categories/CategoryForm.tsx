@@ -1,10 +1,22 @@
-import { Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import * as Yup from "yup";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { RouteProp } from "@react-navigation/native";
-import { useAddCategoryMutation, useGetCategories } from "app/queries/categories";
+import {
+  useAddCategoryMutation,
+  useEditCategoryMutation,
+  useGetCategories,
+} from "app/queries/categories";
 import { useFormik } from "formik";
 import colors from "constants/colors";
 import { NewCategory } from "db";
@@ -16,6 +28,8 @@ import TwoOptionSelector from "components/TwoOptionsSelector";
 import Label from "components/Label";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
+import CustomButton from "components/CustomButton";
+import InputErrorLabel from "components/InputErrorLabel";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -48,18 +62,37 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
   const editCategoryId = route.params?.id;
   const { categoriesById } = useGetCategories();
   const { addCategory } = useAddCategoryMutation();
+  const { editCategory } = useEditCategoryMutation();
   const categoryToEdit = editCategoryId ? categoriesById[editCategoryId] : null;
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const styles = useThemedStyles(themedStyles);
   const { openSheet } = useActionSheet();
 
+  useEffect(() => {
+    if (categoryToEdit) {
+      navigation.setOptions({
+        title: "Edit category",
+        // headerRight: () => (
+        //   <HeaderIcon onPress={onDelete}>
+        //     <Ionicons name='trash-sharp' size={24} color={colors.white} />
+        //   </HeaderIcon>
+        // ),
+      });
+    }
+  }, [categoryToEdit]);
+
   const onTransactionSubmit = async (values: CategorySchema) => {
     Keyboard.dismiss();
     const requestData: NewCategory = {
       ...values,
+      name: values.name.trim(),
       type: "custom",
     };
     if (editCategoryId) {
+      editCategory({
+        ...requestData,
+        id: editCategoryId,
+      });
     } else {
       addCategory(requestData);
     }
@@ -92,6 +125,7 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const openColorsSheet = () => {
+    Keyboard.dismiss();
     openSheet({
       type: SHEETS.COLOR_PICKER,
       props: {
@@ -103,47 +137,71 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
     });
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.row}>
-        <View style={styles.iconContainer}>
-          <TouchableOpacity>
-            <CategoryIcon
-              color={values.iconColor}
-              iconFamily={values.iconFamily}
-              name={values.iconName}
-              iconSize={50}
-              plain
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.colorContainer} onPress={openColorsSheet}>
-            <View style={[{ backgroundColor: values.iconColor }, styles.colorBox]}></View>
-          </TouchableOpacity>
-        </View>
+  const openIconsSheet = () => {
+    Keyboard.dismiss();
+    openSheet({
+      type: SHEETS.ICON_PICKER,
+      props: {
+        onSelect: (icon) => {
+          setFieldValue("iconFamily", icon.iconFamily);
+          setFieldValue("iconName", icon.iconName);
+        },
+        color: values.iconColor,
+        selected: { iconFamily: values.iconFamily, iconName: values.iconName },
+      },
+    });
+  };
 
-        <View style={styles.flex}>
-          <StyledLabelInput
-            value={values.name}
-            onChangeText={handleChange("name")}
-            placeholder={categoryStrings.categoryPlaceholder}
-          />
+  return (
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={90}
+    >
+      <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={styles.container}>
+        <View style={styles.row}>
+          <View style={styles.iconContainer}>
+            <TouchableOpacity onPress={openIconsSheet}>
+              <CategoryIcon
+                color={values.iconColor}
+                iconFamily={values.iconFamily}
+                name={values.iconName}
+                iconSize={50}
+                plain
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.colorContainer} onPress={openColorsSheet}>
+              <View style={[{ backgroundColor: values.iconColor }, styles.colorBox]}></View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.flex}>
+            <StyledLabelInput
+              value={values.name}
+              onChangeText={handleChange("name")}
+              placeholder={categoryStrings.categoryPlaceholder}
+            />
+            <InputErrorLabel text={errors.name} isVisible={!!errors.name} />
+          </View>
         </View>
-      </View>
-      <TwoOptionSelector
-        left={{ label: "Income", value: "income" }}
-        right={{ label: "Expense", value: "expense" }}
-      />
-      <View style={styles.typesContainer}>
-        {categoryToEdit &&
-          categoryToEdit.types.map((type) => {
-            return (
-              <View style={styles.type}>
-                <Label>{type.name}</Label>
-              </View>
-            );
-          })}
-      </View>
-    </View>
+        <TwoOptionSelector
+          left={{ label: "Income", value: "income" }}
+          right={{ label: "Expense", value: "expense" }}
+        />
+        <View style={styles.typesContainer}>
+          <Label style={styles.subCat}>Subcategories</Label>
+          {categoryToEdit &&
+            categoryToEdit.types.map((type) => {
+              return (
+                <View key={type.id} style={styles.type}>
+                  <Label>{type.name}</Label>
+                </View>
+              );
+            })}
+        </View>
+        <CustomButton title='Save' onPress={onSubmit} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -154,6 +212,7 @@ const themedStyles = (theme: AppTheme) =>
     container: {
       paddingVertical: 24,
       paddingHorizontal: 16,
+      flexGrow: 1,
     },
     row: {
       flexDirection: "row",
@@ -189,5 +248,10 @@ const themedStyles = (theme: AppTheme) =>
       overflow: "hidden",
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
+    },
+    subCat: {
+      paddingBottom: 8,
+      fontWeight: "600",
+      color: theme.colors.muted,
     },
   });

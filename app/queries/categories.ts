@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./index";
-import { addCategory, deleteCategory, getAllCategoriesWithTypes } from "app/services/categoryQueries";
-import { CategoriesWithType, NewCategory } from "db";
+import {
+  addCategory,
+  deleteCategory,
+  editCategory,
+  getAllCategoriesWithTypes,
+} from "app/services/categoryQueries";
+import { CategoriesWithType, EditCategory, NewCategory } from "db";
 
 export const useGetCategories = () => {
   const { data, isLoading, isFetching, isError } = useQuery({
@@ -72,6 +77,22 @@ export const useAddCategoryMutation = () => {
 
   return {
     addCategory: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const useEditCategoryMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (transaction: EditCategory) => editCategory(transaction),
+    onSuccess: () => {
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.categories] });
+    },
+  });
+
+  return {
+    editCategory: mutate,
     isLoading: isPending,
     isError,
   };
