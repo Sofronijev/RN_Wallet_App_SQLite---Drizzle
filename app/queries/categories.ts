@@ -68,13 +68,12 @@ export const useDeleteCategoryMutation = () => {
 
 export const useAddCategoryMutation = () => {
   const clientQuery = useQueryClient();
-  const { mutate, isPending, isError } = useMutation({
-    mutationFn: (transaction: NewCategory) => addCategory(transaction),
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: (data: NewCategory) => addCategory(data),
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.categories] });
     },
   });
-
   return {
     addCategory: mutate,
     isLoading: isPending,
@@ -84,13 +83,12 @@ export const useAddCategoryMutation = () => {
 
 export const useEditCategoryMutation = () => {
   const clientQuery = useQueryClient();
-  const { mutate, isPending, isError } = useMutation({
-    mutationFn: (transaction: EditCategory) => editCategory(transaction),
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: (data: EditCategory) => editCategory(data),
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.categories] });
     },
   });
-
   return {
     editCategory: mutate,
     isLoading: isPending,

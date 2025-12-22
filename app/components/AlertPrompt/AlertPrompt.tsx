@@ -1,8 +1,8 @@
-import { Keyboard, Platform, View } from "react-native";
+import { Keyboard, Platform } from "react-native";
 import React, { useEffect, useState } from "react";
 import Dialog from "react-native-dialog";
 import { AlertEmitter, Prompt, PromptButtons } from "./index";
-import colors from "constants/colors";
+import { useColors } from "app/theme/useThemedStyles";
 
 const initialState: Prompt = {
   title: "",
@@ -18,6 +18,7 @@ const AlertPrompt: React.FC = () => {
   const [data, setData] = useState<Prompt>(initialState);
   const [value, setValue] = useState("");
   const [visible, setVisible] = useState(false);
+  const themeColors = useColors();
 
   const close = () => {
     Keyboard.dismiss();
@@ -50,7 +51,7 @@ const AlertPrompt: React.FC = () => {
   };
 
   const isValid = !!value && data.validator(value);
-  const buttonColor = !isValid ? colors.disabled : undefined;
+  const buttonColor = !isValid ? themeColors.disabled : undefined;
 
   const onSave = () => {
     if (!isValid) {
@@ -84,10 +85,10 @@ const AlertPrompt: React.FC = () => {
       if (Array.isArray(data.callbackOrButtons)) {
         return data.callbackOrButtons.map((button, index) => {
           const basicColor =
-            button.type === "destructive" && Platform.OS === "ios" ? colors.delete : undefined;
+            button.type === "destructive" && Platform.OS === "ios" ? themeColors.danger : undefined;
           const bold = Platform.OS === "ios" && button.type === "cancel";
           const disabled = button.disabled || (button.type !== "cancel" && !isValid);
-          const color = disabled ? colors.disabled : basicColor;
+          const color = disabled ? themeColors.disabled : basicColor;
           return (
             <Dialog.Button
               key={index}
@@ -122,25 +123,28 @@ const AlertPrompt: React.FC = () => {
   };
 
   return (
-    <View>
-      <Dialog.Container visible={visible}>
-        <Dialog.Title>{data.title}</Dialog.Title>
-        <Dialog.Description>{data.message}</Dialog.Description>
-        <Dialog.Input
-          value={value}
-          placeholder={data.defaultValue}
-          onChangeText={onChangeText}
-          onSubmitEditing={onSubmitEditing}
-          autoFocus
-          underlineColorAndroid={colors.grey}
-          keyboardType={data.keyboardType}
-        />
-        {isDefaultUI() && (
-          <Dialog.Button label='Cancel' onPress={close} bold={Platform.OS === "ios"} />
-        )}
-        {renderButtons()}
-      </Dialog.Container>
-    </View>
+    <Dialog.Container
+      visible={visible}
+      contentStyle={{ backgroundColor: themeColors.cardInner, borderRadius: 10 }}
+    >
+      <Dialog.Title style={{ color: themeColors.text }}>{data.title}</Dialog.Title>
+      <Dialog.Description style={{ color: themeColors.text }}>{data.message}</Dialog.Description>
+      <Dialog.Input
+        value={value}
+        placeholder={data.placeholder}
+        placeholderTextColor={themeColors.placeholder}
+        onChangeText={onChangeText}
+        onSubmitEditing={onSubmitEditing}
+        autoFocus
+        underlineColorAndroid={themeColors.border}
+        keyboardType={data.keyboardType}
+        style={{ color: themeColors.text }}
+      />
+      {isDefaultUI() && (
+        <Dialog.Button label='Cancel' onPress={close} bold={Platform.OS === "ios"} />
+      )}
+      {renderButtons && renderButtons()}
+    </Dialog.Container>
   );
 };
 

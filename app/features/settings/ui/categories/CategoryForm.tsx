@@ -35,6 +35,7 @@ import { colorsArray } from "components/ActionSheet/ColorSheet/sheetColors";
 import { IconSheetIcons } from "components/ActionSheet/IconSheet/icons";
 import HeaderIcon from "components/Header/HeaderIcon";
 import colors from "constants/colors";
+import AlertPrompt from "components/AlertPrompt";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -59,6 +60,17 @@ const categorySchema = Yup.object({
     .max(255)
     .required("Icon name is required"),
   iconColor: Yup.string().trim().required("Icon color is required"),
+  types: Yup.array().of(
+    Yup.object({
+      name: Yup.string().trim(),
+      id: Yup.number().nullable(),
+      type: Yup.mixed<"custom" | "system">().oneOf(["custom", "system"]),
+      categoryId: Yup.number().nullable(),
+      tempId: Yup.number().nullable(),
+    })
+      .default([])
+      .required()
+  ),
 });
 
 type CategorySchema = Yup.InferType<typeof categorySchema>;
@@ -69,6 +81,7 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
   const { addCategory } = useAddCategoryMutation();
   const { editCategory } = useEditCategoryMutation();
   const { deleteCategory } = useDeleteCategoryMutation();
+
   const categoryToEdit = editCategoryId ? categoriesById[editCategoryId] : null;
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const styles = useThemedStyles(themedStyles);
@@ -106,13 +119,15 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
     navigation.goBack();
   };
 
-  const onTransactionSubmit = async (values: CategorySchema) => {
+  const onCategorySubmit = async (values: CategorySchema) => {
     Keyboard.dismiss();
     const requestData: NewCategory = {
       ...values,
       name: values.name.trim(),
       type: "custom",
+      types: values.types ?? [],
     };
+
     if (editCategoryId) {
       editCategory({
         ...requestData,
@@ -131,15 +146,17 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
           iconFamily: categoryToEdit.iconFamily,
           iconName: categoryToEdit.iconName,
           name: categoryToEdit.name,
+          types: categoryToEdit.types,
         }
       : {
           iconColor: initialRandomColor,
           ...initialRandomIcon,
           name: "",
+          types: [],
         },
     validationSchema: categorySchema,
     validateOnChange: hasSubmittedForm,
-    onSubmit: onTransactionSubmit,
+    onSubmit: onCategorySubmit,
     enableReinitialize: true,
   });
 
@@ -173,6 +190,58 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
         color: values.iconColor,
         selected: { iconFamily: values.iconFamily, iconName: values.iconName },
       },
+    });
+  };
+
+  const editTypeName = (oldName: string, id: number) => (newName: string) => {
+    if (newName.trim() === oldName.trim()) return;
+
+    setFieldValue(
+      "types",
+      (values.types ?? []).map((type) => {
+        const typeId = type.id || type.tempId;
+        return typeId === id ? { ...type, name: newName } : type;
+      })
+    );
+  };
+
+  const onEditType = (typeId: number, name: string) => {
+    Keyboard.dismiss();
+    AlertPrompt.prompt("Edit subcategory name", null, editTypeName(name, typeId), {
+      defaultValue: name,
+      placeholder: "Subcategory name",
+    });
+  };
+
+  const onDeleteType = (id: number) => {
+    Keyboard.dismiss();
+    setFieldValue(
+      "types",
+      (values.types ?? []).filter((type) => {
+        const typeId = type.id || type.tempId;
+
+        return typeId !== id;
+      })
+    );
+  };
+
+  const onNewTypeName = (name: string) => {
+    setFieldValue("types", [
+      ...(values.types ?? []),
+      {
+        categoryId: editCategoryId ? editCategoryId : null,
+        name,
+        type: "custom",
+        id: null,
+        tempId: Date.now(),
+      },
+    ]);
+  };
+
+  const onAddType = () => {
+    Keyboard.dismiss();
+    AlertPrompt.prompt("Create subcategory name", null, onNewTypeName, {
+      placeholder: "Subcategory name",
     });
   };
 
@@ -213,16 +282,22 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
           right={{ label: "Expense", value: "expense" }}
         />
         <View style={styles.typesContainer}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={() => onAddType()}>
             <Label style={styles.subCat}>Subcategories</Label>
             <MaterialIcons name='add' size={25} color={muted} />
           </TouchableOpacity>
 
-          {categoryToEdit &&
-            categoryToEdit.types.map((type) => {
+          {!!values.types?.length &&
+            values.types.map((type) => {
+              const id = type.id || type.tempId;
               return (
-                <View key={type.id} style={styles.type}>
-                  <Label>{type.name}</Label>
+                <View key={id} style={styles.type}>
+                  <TouchableOpacity onPress={() => onEditType(id, type.name)} style={styles.flex}>
+                    <Label>{type.name}</Label>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => onDeleteType(id)}>
+                    <MaterialIcons name='close' size={20} color={muted} />
+                  </TouchableOpacity>
                 </View>
               );
             })}
@@ -258,12 +333,16 @@ const themedStyles = (theme: AppTheme) =>
       borderColor: theme.colors.border,
       width: 100,
       alignItems: "center",
+      gap: 8,
     },
     type: {
       backgroundColor: theme.colors.cardInner,
       borderRadius: 8,
       marginVertical: 4,
       padding: 8,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
     typesContainer: {
       paddingVertical: 24,

@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDeleteCategoryMutation, useGetCategories } from "app/queries/categories";
@@ -37,7 +37,14 @@ const CategorySettings: React.FC = () => {
     const isBalanceCorrCategory = category.id === CategoryNumber.balanceCorrection;
 
     const openFormScreen = () => {
-      navigation.navigate("CategoryForm", { id });
+      if (isBalanceCorrCategory) {
+        Alert.alert(
+          "Cannot edit this category",
+          "This category is important for the app to track your balance and cannot be edited or deleted."
+        );
+      } else {
+        navigation.navigate("CategoryForm", { id });
+      }
     };
 
     return (

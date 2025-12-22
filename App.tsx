@@ -49,8 +49,8 @@ const AppContent = () => {
                   <ActionSheetProvider>
                     <RootNavigator />
                   </ActionSheetProvider>
+                  <AlertPromptProvider />
                 </NavigationContainer>
-                <AlertPromptProvider />
               </MenuProvider>
             </PinCodeStatusProvider>
           </SafeAreaProvider>

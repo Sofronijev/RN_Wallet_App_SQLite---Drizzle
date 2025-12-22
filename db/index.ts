@@ -37,5 +37,8 @@ export type CategoriesWithType = InferSelectModel<typeof schema.categories> & {
 export type Category = InferSelectModel<typeof schema.categories>;
 export type Type = InferSelectModel<typeof schema.types>;
 
-export type NewCategory = InferInsertModel<typeof schema.categories>;
-export type EditCategory = Partial<Omit<NewCategory, "id">> & { id: number };
+export type NewCategory = InferInsertModel<typeof schema.categories> & { types: EditType[] };
+export type EditCategory = Partial<Omit<NewCategory, "id">> & { id: number; types: EditType[] };
+
+export type NewType = InferInsertModel<typeof schema.types>;
+export type EditType = Omit<NewType, "id"> & { id: number };
