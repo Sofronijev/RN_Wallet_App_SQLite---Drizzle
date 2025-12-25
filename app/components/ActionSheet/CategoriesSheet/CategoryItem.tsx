@@ -14,7 +14,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ onPress, item }) => {
   const { iconColor, iconFamily, name, iconName } = item;
   return (
     <TouchableOpacity style={styles.container} onPress={() => onPress(item)}>
-      <CategoryIcon iconSize={35} color={iconColor} iconFamily={iconFamily} name={iconName} />
+      <CategoryIcon iconSize={40} color={iconColor} iconFamily={iconFamily} name={iconName} />
       <Text numberOfLines={1} style={styles.label}>
         {name}
       </Text>

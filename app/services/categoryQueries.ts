@@ -23,6 +23,8 @@ export const addCategory = async (data: NewCategory) => {
 
     const catId = insertedCategory.id;
 
+    if (!newTypes?.length) return;
+
     const formattedTypes = newTypes.map((type) => ({
       ...type,
       categoryId: catId,

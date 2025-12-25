@@ -25,7 +25,7 @@ import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
 import { getCategoryIcon } from "components/CategoryIcon";
-import { Type, TransactionWithDetails, Category } from "db";
+import { Type, TransactionWithDetails } from "db";
 import {
   addTransactionMutation,
   deleteTransactionMutation,
@@ -155,7 +155,9 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   // Zbog problema sa validacijom dodao sam async/await, da bi se sacekala promena
   const onSelectCategory = async (categoryId: number) => {
+    console.log("categoryId", categoryId);
     const category = categoriesById[categoryId];
+    console.log(category);
     await setFieldValue("category", category);
     const type = category.id === 12 ? categoriesById[category.id].types[0] : null;
     await setFieldValue("type", type, hasSubmittedForm);
@@ -165,7 +167,11 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     Keyboard.dismiss();
     openSheet({
       type: SHEETS.CATEGORY_PICKER,
-      props: { onSelect: onSelectCategory, initialSelected: values.category?.id },
+      props: {
+        onSelect: onSelectCategory,
+        initialSelected: values.category?.id,
+        showNewCategoryButton: true,
+      },
     });
   };
 

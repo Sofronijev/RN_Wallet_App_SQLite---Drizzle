@@ -3,7 +3,6 @@ import { CategoryNumber, typeIds } from "modules/categories";
 import { ResponseError } from "modules/types";
 import { Alert } from "react-native";
 
-export const CATEGORIES_NUMBER_OF_ROWS = 5;
 export const CATEGORY_ITEM_HEIGHT = 90;
 
 export const handleTransactionError = (error: ResponseError) => {
