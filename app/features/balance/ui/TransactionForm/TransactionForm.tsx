@@ -155,9 +155,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   // Zbog problema sa validacijom dodao sam async/await, da bi se sacekala promena
   const onSelectCategory = async (categoryId: number) => {
-    console.log("categoryId", categoryId);
     const category = categoriesById[categoryId];
-    console.log(category);
     await setFieldValue("category", category);
     const type = category.id === 12 ? categoriesById[category.id].types[0] : null;
     await setFieldValue("type", type, hasSubmittedForm);
@@ -244,7 +242,13 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
               {values.category?.name ?? "Select category"}
             </Label>
           </TouchableOpacity>
-          <TypeSelector types={typeOptions} onSelect={onSelectType} selected={values.type?.id} />
+          <TypeSelector
+            categoryId={values.category?.id}
+            types={typeOptions}
+            onSelect={onSelectType}
+            selected={values.type?.id}
+            showAddNewButton
+          />
         </ShadowBoxView>
         <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
         <InputErrorLabel text={errors.type} isVisible={!!errors.type} />

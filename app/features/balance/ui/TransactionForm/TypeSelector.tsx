@@ -3,29 +3,54 @@ import React from "react";
 import Label from "components/Label";
 import { Type } from "db";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { useAddTypeMutation } from "app/queries/types";
+import AlertPrompt from "components/AlertPrompt";
 
 type Props = {
   selected?: number | undefined;
   onSelect?: (type: Type | undefined) => void;
   types: Type[];
+  categoryId?: number;
   disableSelect?: boolean;
+  showAddNewButton?: boolean;
 };
 
-const TypeSelector: React.FC<Props> = ({ types, selected, onSelect, disableSelect }) => {
+const TypeSelector: React.FC<Props> = ({
+  types,
+  categoryId,
+  selected,
+  onSelect,
+  disableSelect,
+  showAddNewButton,
+}) => {
   const styles = useThemedStyles(themeStyles);
+  const { addType } = useAddTypeMutation();
+
+  if (!categoryId) return null;
+
+  const typesData: Type[] = showAddNewButton
+    ? [...types, { id: 0, name: "+ Add", type: "system", categoryId }]
+    : types;
+
+  const onAddNew = () => {
+    AlertPrompt.prompt("Add new subcategory name", null, (name: string) => {
+      addType({ categoryId, name });
+    });
+  };
 
   const renderItem: ListRenderItem<Type> = ({ item }) => {
     const isSelected = selected === item.id;
-    const onPress = () => onSelect?.(!isSelected ? item : undefined);
+    const isAddButton = showAddNewButton && item.id === 0;
+    const onPress = () => (isAddButton ? onAddNew() : onSelect?.(!isSelected ? item : undefined));
 
     return (
       <TouchableOpacity
-        style={[styles.type, isSelected && styles.selected]}
+        style={[styles.type, isSelected && styles.selected, isAddButton && styles.addButton]}
         onPress={onPress}
         disabled={disableSelect}
       >
         <Label>
-          <Label style={styles.text}>{`${item.name}`}</Label>
+          <Label style={[styles.text, isAddButton && styles.addButtonText]}>{`${item.name}`}</Label>
         </Label>
       </TouchableOpacity>
     );
@@ -34,7 +59,7 @@ const TypeSelector: React.FC<Props> = ({ types, selected, onSelect, disableSelec
   return (
     <View style={styles.container}>
       <FlatList
-        data={types}
+        data={typesData}
         horizontal
         renderItem={renderItem}
         showsHorizontalScrollIndicator={false}
@@ -65,5 +90,11 @@ const themeStyles = (theme: AppTheme) =>
     },
     selected: {
       backgroundColor: theme.colors.selected,
+    },
+    addButtonText: {
+      color: theme.colors.muted,
+    },
+    addButton: {
+      backgroundColor: theme.colors.card,
     },
   });
