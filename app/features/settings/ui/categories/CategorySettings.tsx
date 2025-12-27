@@ -19,7 +19,7 @@ const keyExtractor = (item: number) => `${item}`;
 const CategorySettings: React.FC = () => {
   const { categoriesById, categoriesAllId } = useGetCategories();
   const { deleteCategory } = useDeleteCategoryMutation();
-  const { text, disabled } = useColors();
+  const { text } = useColors();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
   const onDeleteCategory = (id: number) => {

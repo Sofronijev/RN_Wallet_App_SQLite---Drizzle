@@ -13,7 +13,7 @@ export const formatDecimalDigits = (
   );
 };
 
-export const isNumber = (value: string | number) => !isNaN(+value);
+export const isNumber = (value: string) => /^[0-9]+$/.test(value);
 
 export const hideValues = (value: string) => value.replace(/./g, "*");
 

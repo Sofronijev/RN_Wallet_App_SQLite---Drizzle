@@ -52,7 +52,7 @@ const PinSettings = () => {
   const onSetPin = (initialSetup?: boolean) => {
     AlertPrompt.prompt(
       "Set Your PIN",
-      "Please create a PIN between 4 and 8 digits. \n\nMake sure to write it down or save it safely. If you lose it, you won’t be able to reset it, and all your data will be lost.",
+      "Please create a PIN between 4 and 8 digits.\nOnly numbers are allowed (no symbols or decimals).\n\nMake sure to write it down or save it safely. If you lose it, you won’t be able to reset it, and all your data will be lost.",
       [
         {
           onPress: () => (initialSetup ? setIsPinEnabled(false) : undefined),
