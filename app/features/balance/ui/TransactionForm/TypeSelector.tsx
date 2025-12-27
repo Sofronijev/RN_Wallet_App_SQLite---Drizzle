@@ -10,7 +10,7 @@ type Props = {
   selected?: number | undefined;
   onSelect?: (type: Type | undefined) => void;
   types: Type[];
-  categoryId?: number;
+  categoryId: number;
   disableSelect?: boolean;
   showAddNewButton?: boolean;
 };

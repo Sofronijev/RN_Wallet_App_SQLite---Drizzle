@@ -10,4 +10,5 @@ export const queryKeys = {
   pinCode: "pinCode",
   showTotalAmount: "showTotalAmount",
   numberSeparator: "numberSeparator",
+  types: "types",
 } as const;

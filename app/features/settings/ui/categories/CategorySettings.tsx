@@ -64,7 +64,9 @@ const CategorySettings: React.FC = () => {
                 </TouchableOpacity>
               )}
             </View>
-            {!!types.length && <TypeSelector types={types} disableSelect />}
+            {!!types.length && (
+              <TypeSelector types={types} disableSelect categoryId={category.id} />
+            )}
           </View>
         </ShadowBoxView>
       </Pressable>

@@ -242,13 +242,15 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
               {values.category?.name ?? "Select category"}
             </Label>
           </TouchableOpacity>
-          <TypeSelector
-            categoryId={values.category?.id}
-            types={typeOptions}
-            onSelect={onSelectType}
-            selected={values.type?.id}
-            showAddNewButton
-          />
+          {values.category?.id && (
+            <TypeSelector
+              categoryId={values.category?.id}
+              types={typeOptions}
+              onSelect={onSelectType}
+              selected={values.type?.id}
+              showAddNewButton
+            />
+          )}
         </ShadowBoxView>
         <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
         <InputErrorLabel text={errors.type} isVisible={!!errors.type} />
