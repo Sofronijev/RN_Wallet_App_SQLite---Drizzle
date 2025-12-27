@@ -22,7 +22,16 @@ const CategorySettings: React.FC = () => {
   const { text, disabled } = useColors();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
-  const atLeastOneCategory = categoriesAllId.length > 1;
+  const onDeleteCategory = (id: number) => {
+    Alert.alert(
+      "Delete this category?",
+      "All transactions related to this category will be permanently deleted. This action cannot be undone.",
+      [
+        { text: "Cancel" },
+        { onPress: () => deleteCategory(id), text: "Delete", style: "destructive" },
+      ]
+    );
+  };
 
   const renderItem = ({ item }: { item: number }) => {
     const category = categoriesById[item];
@@ -55,12 +64,8 @@ const CategorySettings: React.FC = () => {
             <View style={styles.row}>
               <Label style={styles.label}>{name}</Label>
               {!isBalanceCorrCategory && (
-                <TouchableOpacity onPress={() => deleteCategory(id)} disabled={!atLeastOneCategory}>
-                  <MaterialIcons
-                    name='delete-outline'
-                    size={24}
-                    color={atLeastOneCategory ? text : disabled}
-                  />
+                <TouchableOpacity onPress={() => onDeleteCategory(id)}>
+                  <MaterialIcons name='delete-outline' size={24} color={text} />
                 </TouchableOpacity>
               )}
             </View>
