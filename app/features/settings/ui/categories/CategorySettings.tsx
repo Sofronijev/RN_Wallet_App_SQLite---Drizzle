@@ -3,8 +3,7 @@ import React from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDeleteCategoryMutation, useGetCategories } from "app/queries/categories";
 import ShadowBoxView from "components/ShadowBoxView";
-import { getCategoryIcon } from "components/CategoryIcon";
-import colors from "constants/colors";
+import CategoryIcon from "components/CategoryIcon";
 import { useColors } from "app/theme/useThemedStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Label from "components/Label";
@@ -37,12 +36,6 @@ const CategorySettings: React.FC = () => {
     const category = categoriesById[item];
     if (!category) return null;
     const { types, id, iconColor, iconFamily, iconName, name } = category;
-    const renderIcon = getCategoryIcon({
-      color: colors.white,
-      iconFamily,
-      name: iconName,
-      iconSize: 36,
-    });
     const isBalanceCorrCategory = category.id === CategoryNumber.balanceCorrection;
 
     const openFormScreen = () => {
@@ -57,24 +50,31 @@ const CategorySettings: React.FC = () => {
     };
 
     return (
-      <Pressable onPress={openFormScreen}>
-        <ShadowBoxView style={styles.itemContainer}>
-          <View style={[styles.icon, { backgroundColor: iconColor }]}>{renderIcon}</View>
-          <View style={styles.flex}>
+      <ShadowBoxView style={styles.itemContainer}>
+        <Pressable onPress={openFormScreen}>
+          <View style={styles.topRow}>
             <View style={styles.row}>
+              <CategoryIcon
+                name={iconName}
+                iconFamily={iconFamily}
+                color={iconColor}
+                iconSize={35}
+                plain
+              />
               <Label style={styles.label}>{name}</Label>
-              {!isBalanceCorrCategory && (
-                <TouchableOpacity onPress={() => onDeleteCategory(id)}>
-                  <MaterialIcons name='delete-outline' size={24} color={text} />
-                </TouchableOpacity>
-              )}
             </View>
-            {!!types.length && (
-              <TypeSelector types={types} disableSelect categoryId={category.id} />
+            {!isBalanceCorrCategory && (
+              <TouchableOpacity onPress={() => onDeleteCategory(id)}>
+                <MaterialIcons name='delete-outline' size={24} color={text} />
+              </TouchableOpacity>
             )}
           </View>
-        </ShadowBoxView>
-      </Pressable>
+        </Pressable>
+
+        <View>
+          {!!types.length && <TypeSelector types={types} disableSelect categoryId={category.id} />}
+        </View>
+      </ShadowBoxView>
     );
   };
 
@@ -98,17 +98,15 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: 16,
   },
-  icon: {
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    width: 100,
+  row: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
   itemContainer: {
-    marginVertical: 8,
-    flexDirection: "row",
+    marginVertical: 4,
     marginHorizontal: 16,
+    paddingVertical: 8,
     flex: 1,
   },
   flex: {
@@ -116,10 +114,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 18,
-    fontWeight: "500",
   },
-  row: {
-    paddingTop: 8,
+  topRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
