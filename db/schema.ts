@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 
 const DEFAULT_USER_ID = 1;
 
@@ -19,6 +19,12 @@ export const users = sqliteTable("Users", {
   isPinEnabled: integer("isPinEnabled", { mode: "boolean" }).default(false).notNull(),
   showTotalAmount: integer("showTotalAmount", { mode: "boolean" }).default(true).notNull(),
   inactivePinTimeout: integer("inactivePinTimeout").default(sql`NULL`),
+  primaryWalletId: integer("primaryWalletId")
+    .references((): AnySQLiteColumn => wallet.walletId, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    })
+    .default(sql`NULL`),
 });
 
 // Types Table
@@ -34,6 +40,7 @@ export const types = sqliteTable("Types", {
       onDelete: "cascade",
     })
     .notNull(),
+  sortOrder: integer("sortOrder").default(0).notNull(),
 });
 
 // Categories Table
@@ -49,6 +56,13 @@ export const categories = sqliteTable("Categories", {
   }).notNull(),
   iconName: text("iconName", { length: 255 }).notNull(),
   iconColor: text("iconColor", { length: 255 }).notNull(),
+  transactionType: text("transactionType", {
+    length: 20,
+    enum: ["income", "expense"],
+  })
+    .default("expense")
+    .notNull(),
+  sortOrder: integer("sortOrder").default(0).notNull(),
 });
 
 // Wallet Table
@@ -86,8 +100,10 @@ export const transactions = sqliteTable("Transactions", {
     })
     .default(DEFAULT_USER_ID)
     .notNull(),
-  type_id: integer("type_id")
-    .references(() => types.id, { onUpdate: "cascade", onDelete: "cascade" }),
+  type_id: integer("type_id").references(() => types.id, {
+    onUpdate: "cascade",
+    onDelete: "cascade",
+  }),
   categoryId: integer("categoryId")
     .references(() => categories.id, { onUpdate: "cascade", onDelete: "cascade" })
     .notNull(),
@@ -140,6 +156,10 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   transfers: many(transfer),
   wallet: many(wallet),
   selectedWallet: one(wallet, { fields: [users.selectedWalletId], references: [wallet.walletId] }),
+  primaryWallet: one(wallet, {
+    fields: [users.primaryWalletId],
+    references: [wallet.walletId],
+  }),
 }));
 
 export const typesRelations = relations(types, ({ many, one }) => ({
