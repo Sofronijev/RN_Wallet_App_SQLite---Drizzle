@@ -5,57 +5,22 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1737915290105,
-      "tag": "0000_parched_cyclops",
+      "when": 1767051382965,
+      "tag": "0000_deep_centennial",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "6",
-      "when": 1737915562858,
-      "tag": "0001_seedUser",
+      "when": 1767051916961,
+      "tag": "0001_fill_initial_user",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "6",
-      "when": 1737916050473,
-      "tag": "0002_seedWallet",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1737916163334,
-      "tag": "0003_seedCategories",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1737916234656,
-      "tag": "0004_seedTypes",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1738521645604,
-      "tag": "0005_add_pin_code",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1762795354273,
-      "tag": "0006_empty_argent",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "6",
-      "when": 1766954430292,
-      "tag": "0007_bouncy_omega_red",
+      "when": 1767051994178,
+      "tag": "0002_fill_initial_wallets",
       "breakpoints": true
     }
   ]

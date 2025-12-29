@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "406f0e85-59fc-4acf-8515-a23803fb7668",
+  "id": "19bc7c51-3739-40c2-bb1a-d37e7c2766d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "Categories": {
@@ -49,6 +49,22 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "transactionType": {
+          "name": "transactionType",
+          "type": "text(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'expense'"
+        },
+        "sortOrder": {
+          "name": "sortOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
         }
       },
       "indexes": {},
@@ -101,7 +117,7 @@
           "name": "type_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "categoryId": {
@@ -330,6 +346,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "sortOrder": {
+          "name": "sortOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
         }
       },
       "indexes": {},
@@ -415,6 +439,46 @@
           "notNull": true,
           "autoincrement": false,
           "default": "','"
+        },
+        "pinCode": {
+          "name": "pinCode",
+          "type": "text(8)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "isPinEnabled": {
+          "name": "isPinEnabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "showTotalAmount": {
+          "name": "showTotalAmount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "inactivePinTimeout": {
+          "name": "inactivePinTimeout",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "NULL"
+        },
+        "primaryWalletId": {
+          "name": "primaryWalletId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "NULL"
         }
       },
       "indexes": {
@@ -426,7 +490,21 @@
           "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "Users_primaryWalletId_Wallet_walletId_fk": {
+          "name": "Users_primaryWalletId_Wallet_walletId_fk",
+          "tableFrom": "Users",
+          "tableTo": "Wallet",
+          "columnsFrom": [
+            "primaryWalletId"
+          ],
+          "columnsTo": [
+            "walletId"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

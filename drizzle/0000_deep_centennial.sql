@@ -4,7 +4,9 @@ CREATE TABLE `Categories` (
 	`type` text(255) DEFAULT 'custom' NOT NULL,
 	`iconFamily` text(255) NOT NULL,
 	`iconName` text(255) NOT NULL,
-	`iconColor` text(255) NOT NULL
+	`iconColor` text(255) NOT NULL,
+	`transactionType` text(20) DEFAULT 'expense' NOT NULL,
+	`sortOrder` integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `Transactions` (
@@ -13,7 +15,7 @@ CREATE TABLE `Transactions` (
 	`description` text(300),
 	`date` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`user_id` integer DEFAULT 1 NOT NULL,
-	`type_id` integer NOT NULL,
+	`type_id` integer,
 	`categoryId` integer NOT NULL,
 	`wallet_id` integer NOT NULL,
 	`transfer_id` integer,
@@ -42,6 +44,7 @@ CREATE TABLE `Types` (
 	`name` text(255) NOT NULL,
 	`type` text(255) DEFAULT 'custom' NOT NULL,
 	`categoryId` integer NOT NULL,
+	`sortOrder` integer DEFAULT 0 NOT NULL,
 	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
@@ -53,7 +56,13 @@ CREATE TABLE `Users` (
 	`timestamp` text DEFAULT (current_timestamp) NOT NULL,
 	`selectedWalletId` integer DEFAULT 1,
 	`delimiter` text(5) DEFAULT '.' NOT NULL,
-	`decimal` text(5) DEFAULT ',' NOT NULL
+	`decimal` text(5) DEFAULT ',' NOT NULL,
+	`pinCode` text(8) DEFAULT '' NOT NULL,
+	`isPinEnabled` integer DEFAULT false NOT NULL,
+	`showTotalAmount` integer DEFAULT true NOT NULL,
+	`inactivePinTimeout` integer DEFAULT NULL,
+	`primaryWalletId` integer DEFAULT NULL,
+	FOREIGN KEY (`primaryWalletId`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE set null
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `Users_email_unique` ON `Users` (`email`);--> statement-breakpoint
