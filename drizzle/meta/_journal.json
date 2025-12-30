@@ -29,6 +29,13 @@
       "when": 1767110811919,
       "tag": "0003_initial_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1767115111933,
+      "tag": "0004_initial_types",
+      "breakpoints": true
     }
   ]
 }
