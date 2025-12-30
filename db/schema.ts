@@ -5,7 +5,7 @@ const DEFAULT_USER_ID = 1;
 
 // Users Table
 export const users = sqliteTable("Users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey(),
   username: text("username", { length: 255 }).default(""),
   password: text("password", { length: 255 }),
   email: text("email", { length: 255 }).unique(),
@@ -29,9 +29,9 @@ export const users = sqliteTable("Users", {
 
 // Types Table
 export const types = sqliteTable("Types", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey(),
   name: text("name", { length: 255 }).notNull(),
-  type: text("type", { length: 255, enum: ["custom", "system"] })
+  type: text("type", { length: 20, enum: ["custom", "system"] })
     .default("custom")
     .notNull(),
   categoryId: integer("categoryId")
@@ -41,13 +41,16 @@ export const types = sqliteTable("Types", {
     })
     .notNull(),
   sortOrder: integer("sortOrder").default(0).notNull(),
+  transactionType: text("transactionType", { length: 20, enum: ["income", "expense"] }).default(
+    sql`NULL`
+  ),
 });
 
 // Categories Table
 export const categories = sqliteTable("Categories", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey(),
   name: text("name", { length: 255 }).notNull(),
-  type: text("type", { length: 255, enum: ["custom", "system"] })
+  type: text("type", { length: 20, enum: ["custom", "system"] })
     .default("custom")
     .notNull(),
   iconFamily: text("iconFamily", {
@@ -58,7 +61,7 @@ export const categories = sqliteTable("Categories", {
   iconColor: text("iconColor", { length: 255 }).notNull(),
   transactionType: text("transactionType", {
     length: 20,
-    enum: ["income", "expense"],
+    enum: ["income", "expense", "custom"],
   })
     .default("expense")
     .notNull(),
@@ -67,7 +70,7 @@ export const categories = sqliteTable("Categories", {
 
 // Wallet Table
 export const wallet = sqliteTable("Wallet", {
-  walletId: integer("walletId").primaryKey({ autoIncrement: true }),
+  walletId: integer("walletId").primaryKey(),
   userId: integer("user_id")
     .references(() => users.id, {
       onDelete: "cascade",
@@ -87,7 +90,7 @@ export const wallet = sqliteTable("Wallet", {
 
 // Transactions Table
 export const transactions = sqliteTable("Transactions", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey(),
   amount: real("amount").notNull(),
   description: text("description", { length: 300 }),
   date: text("date")
@@ -123,7 +126,7 @@ export const transactions = sqliteTable("Transactions", {
 
 // Transfer Table
 export const transfer = sqliteTable("Transfer", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey(),
   date: text("date")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
