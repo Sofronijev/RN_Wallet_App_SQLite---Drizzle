@@ -69,7 +69,11 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     Keyboard.dismiss();
     if (values.category && values.walletId) {
       const transactionData = {
-        amount: formatFormAmountValue(values.amount, values.category.id, values.type?.id),
+        amount: formatFormAmountValue(
+          values.amount,
+          values.category.transactionType,
+          values.type?.transactionType
+        ),
         description: values.description,
         date: formatIsoDate(values.date),
         type_id: values.type?.id ?? null,

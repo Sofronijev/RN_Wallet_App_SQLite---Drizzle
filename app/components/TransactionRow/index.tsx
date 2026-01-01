@@ -3,7 +3,6 @@ import React from "react";
 import colors from "constants/colors";
 import Label from "components/Label";
 import { formatDecimalDigits } from "modules/numbers";
-import { CategoryNumber, typeIds } from "modules/categories";
 import { formatDayString } from "modules/timeAndDate";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -13,6 +12,7 @@ import CategoryIcon from "components/CategoryIcon";
 import { TransactionType } from "db";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { isIncomeTransaction } from "app/features/balance/modules/transaction";
 
 type Props = {
   transaction: TransactionType;
@@ -29,13 +29,10 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   const hasDescription = !!transaction.description;
   const transactionId = transaction.id;
   const transferId = transaction.transfer_id;
-  const transactionReceivedId = typeIds.transfer_received;
   const category = categoriesById[transaction.categoryId];
   const type = category.types.find((type) => type.id === transaction.type_id);
 
-  const isIncome =
-    transaction.categoryId === CategoryNumber.income ||
-    transaction.type_id === transactionReceivedId;
+  const isIncome = isIncomeTransaction(category.transactionType, type?.transactionType);
 
   const openEditTransaction = () => {
     if (transferId) {
