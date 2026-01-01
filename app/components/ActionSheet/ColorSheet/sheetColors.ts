@@ -1,5 +1,5 @@
 export const colorsArray = [
-  "#FF5733",
+  "#D64045",
   "#FF6347",
   "#FF7F50",
   "#FFA500",

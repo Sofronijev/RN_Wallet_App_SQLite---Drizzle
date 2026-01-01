@@ -39,6 +39,7 @@ const TransactionBottomSheet: FC<Data> = ({
 }) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const { data: categories } = useGetCategories();
+
   const colors = useColors();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
