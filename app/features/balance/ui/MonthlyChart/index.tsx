@@ -87,11 +87,9 @@ const MonthlyChart: FC<Props> = ({ date }) => {
   const styles = useThemedStyles(themedStyles);
   const { decimal } = useGetNumberSeparatorQuery();
 
-  if (!formattedData.length) {
-    return null;
-  }
-
-  const highestRoundedAmount = getRoundedUpperBound(formattedData.map((item) => item.totalAmount));
+  const highestRoundedAmount = formattedData.length
+    ? getRoundedUpperBound(formattedData.map((item) => item.totalAmount))
+    : 5;
 
   const barData = formatBarData(formattedData, categoriesById);
 
@@ -145,6 +143,11 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         animationDuration={300}
         leftShiftForLastIndexTooltip={16}
       />
+      {!formattedData.length && (
+        <View style={styles.emptyWrapper}>
+          <Label style={styles.emptyText}>No data for this month</Label>
+        </View>
+      )}
       <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
     </View>
   );
@@ -165,6 +168,19 @@ const themedStyles = (theme: AppTheme) =>
     },
     text: {
       color: theme.colors.text,
+    },
+    emptyWrapper: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    emptyText: {
+      backgroundColor: theme.colors.cardInner,
+      color: theme.colors.muted,
+      padding: 8,
+      borderRadius: 8,
+      borderColor: theme.colors.border,
+      borderWidth: 1,
     },
   });
 

@@ -82,7 +82,6 @@ const MonthlyBalance: React.FC = () => {
         </Label>
       </View>
       <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
-
       <MonthlyChart date={selectedMonth} />
     </ShadowBoxView>
   );
