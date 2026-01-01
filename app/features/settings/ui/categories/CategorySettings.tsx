@@ -8,7 +8,6 @@ import { useColors } from "app/theme/useThemedStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Label from "components/Label";
 import TypeSelector from "app/features/balance/ui/TransactionForm/TypeSelector";
-import { CategoryNumber } from "modules/categories";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
@@ -18,7 +17,7 @@ const keyExtractor = (item: number) => `${item}`;
 const CategorySettings: React.FC = () => {
   const { categoriesById, categoriesAllId } = useGetCategories();
   const { deleteCategory } = useDeleteCategoryMutation();
-  const { text } = useColors();
+  const { text, disabled } = useColors();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
   const onDeleteCategory = (id: number) => {
@@ -36,13 +35,13 @@ const CategorySettings: React.FC = () => {
     const category = categoriesById[item];
     if (!category) return null;
     const { types, id, iconColor, iconFamily, iconName, name } = category;
-    const isBalanceCorrCategory = category.id === CategoryNumber.balanceCorrection;
+    const isSystemCategory = category.type === "system";
 
     const openFormScreen = () => {
-      if (isBalanceCorrCategory) {
+      if (isSystemCategory) {
         Alert.alert(
           "Cannot edit this category",
-          "This category is important for the app to track your balance and cannot be edited or deleted."
+          "This category is required to correctly track your balance and can’t be edited or deleted."
         );
       } else {
         navigation.navigate("CategoryForm", { id });
@@ -63,10 +62,12 @@ const CategorySettings: React.FC = () => {
               />
               <Label style={styles.label}>{name}</Label>
             </View>
-            {!isBalanceCorrCategory && (
+            {!isSystemCategory ? (
               <TouchableOpacity onPress={() => onDeleteCategory(id)}>
                 <MaterialIcons name='delete-outline' size={24} color={text} />
               </TouchableOpacity>
+            ) : (
+              <MaterialIcons name='lock-outline' size={24} color={disabled} />
             )}
           </View>
         </Pressable>
