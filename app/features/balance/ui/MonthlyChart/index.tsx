@@ -13,6 +13,7 @@ import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType } from "db";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import LabelInfo from "components/LabelInfo";
 
 const formatBarData = (
   data: GetMonthlyAmountsType,
@@ -145,7 +146,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
       />
       {!formattedData.length && (
         <View style={styles.emptyWrapper}>
-          <Label style={styles.emptyText}>No data for this month</Label>
+          <LabelInfo text='No data for this month' />
         </View>
       )}
       <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
@@ -173,14 +174,6 @@ const themedStyles = (theme: AppTheme) =>
       ...StyleSheet.absoluteFillObject,
       justifyContent: "center",
       alignItems: "center",
-    },
-    emptyText: {
-      backgroundColor: theme.colors.cardInner,
-      color: theme.colors.muted,
-      padding: 8,
-      borderRadius: 8,
-      borderColor: theme.colors.border,
-      borderWidth: 1,
     },
   });
 
