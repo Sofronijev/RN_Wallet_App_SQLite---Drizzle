@@ -1,5 +1,4 @@
 export enum CategoryNumber {
-  "income" = 1,
   "balanceCorrection" = 12,
 }
 

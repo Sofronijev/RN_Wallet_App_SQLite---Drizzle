@@ -1,8 +1,7 @@
 import { addMonths, format } from "date-fns";
 import { db, NewTransaction, TransactionType } from "db";
-import { transactions } from "db/schema";
+import { categories, transactions } from "db/schema";
 import { and, count, desc, eq, gte, inArray, lt, not, sql, sum } from "drizzle-orm";
-import { CategoryNumber } from "modules/categories";
 
 export const getTransactions = (walletId: number, limit?: number, offset?: number) => {
   const query = db
@@ -106,13 +105,14 @@ export const getMonthlyAmountsByCategory = async (walletId: number, monthYear: s
       totalAmount: sql`ABS(SUM(${transactions.amount}))`.mapWith(transactions.amount), // Ensure totalAmount is always positive
     })
     .from(transactions)
+    .innerJoin(categories, eq(transactions.categoryId, categories.id))
     .where(
       and(
         eq(transactions.wallet_id, walletId),
         gte(transactions.date, monthStart),
         lt(transactions.date, nextMonthStart),
-        not(eq(transactions.categoryId, CategoryNumber.balanceCorrection)),
-        not(eq(transactions.categoryId, CategoryNumber.income))
+        not(eq(categories.type, "system")),
+        not(eq(categories.transactionType, "income"))
       )
     )
     .groupBy(transactions.categoryId)
