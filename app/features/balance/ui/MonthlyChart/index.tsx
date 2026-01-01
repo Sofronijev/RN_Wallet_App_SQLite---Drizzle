@@ -74,7 +74,7 @@ const getRoundedUpperBound = (values: number[]) => {
   return rounded;
 };
 
-type Props = { date: Date };
+type Props = { date: string };
 
 const MonthlyChart: FC<Props> = ({ date }) => {
   const { width } = useWindowDimensions();

@@ -31,10 +31,9 @@ const styles = (theme: AppTheme) =>
   StyleSheet.create({
     activityIndicator: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: theme.colors.background,
-      opacity: 0.5,
     },
     hideScreen: {
+      backgroundColor: theme.colors.background,
       opacity: 1,
     },
   });

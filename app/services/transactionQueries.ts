@@ -1,6 +1,7 @@
+import { addMonths, format } from "date-fns";
 import { db, NewTransaction, TransactionType } from "db";
 import { transactions } from "db/schema";
-import { and, count, desc, eq, inArray, not, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, lt, not, sql, sum } from "drizzle-orm";
 import { CategoryNumber } from "modules/categories";
 
 export const getTransactions = (walletId: number, limit?: number, offset?: number) => {
@@ -67,8 +68,10 @@ export const getInfiniteTransactions = async (
   };
 };
 
-export const getMonthlyBalance = async (walletId: number, date: string) =>
-  await db
+export const getMonthlyBalance = async (walletId: number, date: string) => {
+  const monthStart = `${date}-01`;
+  const nextMonthStart = format(addMonths(new Date(`${date}-01`), 1), "yyyy-MM-01");
+  return await db
     .select({
       expense:
         sql`SUM(CASE WHEN ${transactions.amount} < 0 THEN ${transactions.amount} ELSE 0 END)`.mapWith(
@@ -84,16 +87,20 @@ export const getMonthlyBalance = async (walletId: number, date: string) =>
     .where(
       and(
         eq(transactions.wallet_id, walletId),
-        sql` strftime('%Y', ${transactions.date}) = strftime('%Y', ${date})`,
-        sql` strftime('%m', ${transactions.date}) = strftime('%m', ${date})`
+        gte(transactions.date, monthStart),
+        lt(transactions.date, nextMonthStart)
       )
     )
     .groupBy(transactions.wallet_id);
+};
 
 export type GetMonthlyAmountsType = Awaited<ReturnType<typeof getMonthlyAmountsByCategory>>;
 
-export const getMonthlyAmountsByCategory = async (walletId: number, date: string) =>
-  await db
+export const getMonthlyAmountsByCategory = async (walletId: number, monthYear: string) => {
+  const monthStart = `${monthYear}-01`;
+  const nextMonthStart = format(addMonths(new Date(monthStart), 1), "yyyy-MM-01");
+
+  return await db
     .select({
       categoryId: transactions.categoryId,
       totalAmount: sql`ABS(SUM(${transactions.amount}))`.mapWith(transactions.amount), // Ensure totalAmount is always positive
@@ -102,14 +109,15 @@ export const getMonthlyAmountsByCategory = async (walletId: number, date: string
     .where(
       and(
         eq(transactions.wallet_id, walletId),
-        sql`strftime('%Y', ${transactions.date}) = strftime('%Y', ${date})`,
-        sql`strftime('%m', ${transactions.date}) = strftime('%m', ${date})`,
+        gte(transactions.date, monthStart),
+        lt(transactions.date, nextMonthStart),
         not(eq(transactions.categoryId, CategoryNumber.balanceCorrection)),
         not(eq(transactions.categoryId, CategoryNumber.income))
       )
     )
     .groupBy(transactions.categoryId)
     .orderBy(desc(sql`ABS(SUM(${transactions.amount}))`));
+};
 
 export const getTransactionById = (id: number) =>
   db.query.transactions.findFirst({

@@ -2,13 +2,13 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React, { useState } from "react";
 import Label from "components/Label";
 import colors from "constants/colors";
-import { getMonthAndYear } from "modules/timeAndDate";
+import { getMonthAndYear, monthYearFormat } from "modules/timeAndDate";
 import { formatDecimalDigits } from "modules/numbers";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { transactionStrings } from "constants/strings";
-import { addMonths, subMonths } from "date-fns";
+import { addMonths, format, subMonths } from "date-fns";
 import { useGetMonthlyBalanceQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import MonthlyChart from "../MonthlyChart";
@@ -16,27 +16,36 @@ import ShadowBoxView from "components/ShadowBoxView";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
-const TODAY = new Date();
+const MONTH_START_DAY = "01";
+
+const getMonthStartDate = (monthYeah: string) => new Date(`${monthYeah}-${MONTH_START_DAY}`);
+const getCurrentMonth = () => format(new Date(), monthYearFormat);
 
 const MonthlyBalance: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(TODAY);
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth);
   const { data: selectedWallet, isLoading: selectedWalletLoading } = useGetSelectedWalletQuery();
-  const { data, isLoading } = useGetMonthlyBalanceQuery(selectedWallet?.walletId, selectedDate);
+  const { data, isLoading } = useGetMonthlyBalanceQuery(selectedWallet?.walletId, selectedMonth);
   const { balance, expense, income } = data;
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const styles = useThemedStyles(themedStyles);
   const { text } = useColors();
 
-  const formattedMonth = getMonthAndYear(selectedDate);
+  const formattedMonth = getMonthAndYear(selectedMonth);
 
   const addMonth = () => {
-    setSelectedDate(addMonths(selectedDate, 1));
+    setSelectedMonth((monthYear) =>
+      format(addMonths(getMonthStartDate(monthYear), 1), monthYearFormat)
+    );
   };
+
   const deductMonth = () => {
-    setSelectedDate(subMonths(selectedDate, 1));
+    setSelectedMonth((monthYear) =>
+      format(subMonths(getMonthStartDate(monthYear), 1), monthYearFormat)
+    );
   };
+
   const setCurrentMonth = () => {
-    setSelectedDate(TODAY);
+    setSelectedMonth(getCurrentMonth());
   };
 
   return (
@@ -74,7 +83,7 @@ const MonthlyBalance: React.FC = () => {
       </View>
       <AppActivityIndicator isLoading={isLoading || selectedWalletLoading} />
 
-      <MonthlyChart date={selectedDate} />
+      <MonthlyChart date={selectedMonth} />
     </ShadowBoxView>
   );
 };

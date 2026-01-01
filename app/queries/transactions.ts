@@ -15,20 +15,17 @@ import {
   getTransactionById,
   getTransactions,
 } from "app/services/transactionQueries";
-import { format } from "date-fns";
-import { apiIsoFormat } from "modules/timeAndDate";
 import { queryKeys } from "./index";
 import { NewTransaction, TransactionType } from "db";
 
 export const useGetMonthlyBalanceQuery = (
   walletId: number | null | undefined,
-  date: number | Date
+  monthYear: string
 ) => {
   const { data, isError, isLoading, isFetching } = useQuery({
-    enabled: !!walletId && !!date,
-    // staleTime: 1000 * 60 * 5,
-    queryKey: [queryKeys.monthlyBalance, walletId, date],
-    queryFn: walletId ? () => getMonthlyBalance(walletId, format(date, apiIsoFormat)) : skipToken,
+    enabled: !!walletId && !!monthYear,
+    queryKey: [queryKeys.monthlyBalance, walletId, monthYear],
+    queryFn: walletId ? () => getMonthlyBalance(walletId!, monthYear) : skipToken,
   });
   const monthlyBalance = data?.[0] ? data[0] : { balance: 0, expense: 0, income: 0 };
 
@@ -41,14 +38,12 @@ export const useGetMonthlyBalanceQuery = (
 
 export const useGetMonthlyGraphDataQuery = (
   walletId: number | null | undefined,
-  date: number | Date
+  monthYear: string
 ) => {
   const { data, isError, isLoading, isFetching } = useQuery({
-    enabled: !!walletId && !!date,
-    queryKey: [queryKeys.monthlyGraph, walletId, date],
-    queryFn: walletId
-      ? () => getMonthlyAmountsByCategory(walletId, format(date, apiIsoFormat))
-      : skipToken,
+    enabled: !!walletId && !!monthYear,
+    queryKey: [queryKeys.monthlyGraph, walletId, monthYear],
+    queryFn: walletId ? () => getMonthlyAmountsByCategory(walletId, monthYear) : skipToken,
   });
   const graphData = data ?? [];
 

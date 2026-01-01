@@ -1,10 +1,11 @@
 import { dateAndTimeStrings } from "constants/strings";
-import { addMonths, format, formatISO, isToday, isYesterday } from "date-fns";
+import { format, formatISO, isToday, isYesterday } from "date-fns";
 
 export const dateIsoFormat = "yyyy-MM-dd";
 export const dayAndMonthFormat = "dd MMM";
 export const calendarDateFormat = "E, dd MMM yyyy";
 export const monthYearFormat = "yyyy-MM";
+
 // Format used on the Drizzle SQLite db
 export const apiIsoFormat = "yyyy-MM-dd'T'HH:mm:ssXXX";
 
