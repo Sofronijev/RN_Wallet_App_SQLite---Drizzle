@@ -1,28 +1,26 @@
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import colors from "constants/colors";
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 type Option<T> = { value: T; label: string };
 
-interface TwoOptionSelectorProps<T> {
+type TwoOptionSelectorProps<T> = {
   left: Option<T>;
   right: Option<T>;
-  initialSelected?: T;
-  onChange?: (selected: Option<T>) => void;
-}
+  selected: T;
+  onChange?: (selected: T) => void;
+};
 
 function TwoOptionSelector<T>({
   left,
   right,
-  initialSelected = left.value,
+  selected = left.value,
   onChange,
 }: TwoOptionSelectorProps<T>) {
-  const [selected, setSelected] = useState<T>(initialSelected);
   const styles = useThemedStyles(themedStyles);
 
-  const handleSelect = (option: Option<T>) => {
-    setSelected(option.value);
+  const handleSelect = (option: T) => {
     onChange?.(option);
   };
 
@@ -30,7 +28,7 @@ function TwoOptionSelector<T>({
     <View style={styles.container}>
       <TouchableOpacity
         style={[styles.option, selected === left.value && styles.selected]}
-        onPress={() => handleSelect(left)}
+        onPress={() => handleSelect(left.value)}
       >
         <Text style={[styles.label, selected === left.value && styles.labelSelected]}>
           {left.label}
@@ -39,7 +37,7 @@ function TwoOptionSelector<T>({
 
       <TouchableOpacity
         style={[styles.option, selected === right.value && styles.selected]}
-        onPress={() => handleSelect(right)}
+        onPress={() => handleSelect(right.value)}
       >
         <Text style={[styles.label, selected === right.value && styles.labelSelected]}>
           {right.label}

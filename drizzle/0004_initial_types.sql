@@ -4,7 +4,7 @@ INSERT
 VALUES
 (1, 'Wage', 'system', 1, NULL, 10),
 (2, 'Interests', 'system', 1, NULL, 20),
-(3, 'Gifts', 'system', 1, NULL, 30),
+(3, 'Gifts received', 'system', 1, NULL, 30),
 (4, 'Refunds', 'system', 1, NULL, 40),
 (5, 'Financial aid', 'system', 1, NULL, 50),
 

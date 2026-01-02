@@ -20,7 +20,7 @@ import {
   useGetCategories,
 } from "app/queries/categories";
 import { useFormik } from "formik";
-import { NewCategory } from "db";
+import { Category, NewCategory } from "db";
 import StyledLabelInput from "components/StyledLabelInput";
 import { categoryStrings } from "constants/strings";
 import CategoryIcon from "components/CategoryIcon";
@@ -42,12 +42,23 @@ type Props = {
   route: RouteProp<AppStackParamList, "CategoryForm">;
 };
 
+type TransactionTypeLabel = "Income" | "Expense" | "Custom";
+
+type TransactionTypeOption = { label: TransactionTypeLabel; value: Category["transactionType"] };
+
+const transactionType: Record<Category["transactionType"], TransactionTypeOption> = {
+  income: { label: "Income", value: "income" },
+  expense: { label: "Expense", value: "expense" },
+  custom: { label: "Expense", value: "custom" },
+};
+
 const categorySchema = Yup.object({
   name: Yup.string()
     .trim()
     .min(1, "Name is required")
     .max(255, "Name is too long")
     .required("Name is required"),
+  transactionType: Yup.mixed<Category["transactionType"]>().required(),
   iconFamily: Yup.mixed<"FontAwesome" | "FontAwesome5" | "MaterialCommunityIcons" | "Ionicons">()
     .oneOf(
       ["FontAwesome", "FontAwesome5", "MaterialCommunityIcons", "Ionicons"],
@@ -64,7 +75,7 @@ const categorySchema = Yup.object({
     Yup.object({
       name: Yup.string().trim(),
       id: Yup.number().nullable(),
-      type: Yup.mixed<"custom" | "system">().oneOf(["custom", "system"]),
+      type: Yup.mixed<Category["type"]>().oneOf(["custom", "system"]),
       categoryId: Yup.number().nullable(),
       tempId: Yup.number().nullable(),
     })
@@ -147,18 +158,24 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
           iconName: categoryToEdit.iconName,
           name: categoryToEdit.name,
           types: categoryToEdit.types,
+          transactionType: categoryToEdit.transactionType,
         }
       : {
           iconColor: initialRandomColor,
           ...initialRandomIcon,
           name: "",
           types: [],
+          transactionType: transactionType.expense.value,
         },
     validationSchema: categorySchema,
     validateOnChange: hasSubmittedForm,
     onSubmit: onCategorySubmit,
     enableReinitialize: true,
   });
+
+  const isTransactionTypeChanged = categoryToEdit
+    ? categoryToEdit?.transactionType !== values.transactionType
+    : false;
 
   const onSubmit = () => {
     setHasSubmittedForm(true);
@@ -245,6 +262,10 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
     });
   };
 
+  const onChangeTransactionType = (selected: CategorySchema["transactionType"]) => {
+    setFieldValue("transactionType", selected);
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -278,9 +299,17 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
         <TwoOptionSelector
-          left={{ label: "Income", value: "income" }}
-          right={{ label: "Expense", value: "expense" }}
+          selected={values.transactionType}
+          left={transactionType.income}
+          right={transactionType.expense}
+          onChange={onChangeTransactionType}
         />
+        {isTransactionTypeChanged && (
+          <Label style={styles.infoLabel}>
+            This change applies to future transactions only. Previously recorded transactions will
+            remain unchanged.
+          </Label>
+        )}
         <View style={styles.typesContainer}>
           <TouchableOpacity style={styles.row} onPress={() => onAddType()}>
             <Label style={styles.subCat}>Subcategories</Label>
@@ -358,6 +387,10 @@ const themedStyles = (theme: AppTheme) =>
     },
     subCat: {
       fontWeight: "600",
+      color: theme.colors.muted,
+    },
+    infoLabel: {
+      paddingTop: 8,
       color: theme.colors.muted,
     },
   });
