@@ -6,7 +6,7 @@ import colors from "constants/colors";
 import Label from "components/Label";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import { useGetMonthlyGraphDataQuery } from "app/queries/transactions";
-import { formatDecimalDigits } from "modules/numbers";
+import { formatDecimalDigits, formatLabelNumber } from "modules/numbers";
 import { GetMonthlyAmountsType } from "app/services/transactionQueries";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { useGetCategories } from "app/queries/categories";
@@ -94,31 +94,6 @@ const MonthlyChart: FC<Props> = ({ date }) => {
 
   const barData = formatBarData(formattedData, categoriesById);
 
-  const formatYLabel = (label: string) => {
-    const yNumber = parseFloat(label);
-    const million = 1_000_000;
-    const thousand = 1000;
-    const toDecimal = (num: number, letter: string) => (yNumber / num).toFixed(2) + letter;
-    let formatted;
-
-    if (yNumber >= million) {
-      formatted = toDecimal(million, "m");
-    } else if (yNumber >= thousand) {
-      formatted = toDecimal(thousand, "k");
-    } else if (yNumber === 0) {
-      formatted = "";
-    } else {
-      formatted = `${yNumber}`;
-    }
-
-    formatted = formatted
-      .replace(/\.?0+([km])$/, "$1") // Remove trailing zeros after the decimal point
-      .replace(/\./g, decimal) // Replace all decimal points with commas
-      .replace(/(\d),0(\d[km])/, "$1,$2"); // Handle the formatting like "1,20k" to "1,2k"
-
-    return formatted;
-  };
-
   return (
     <View key={selectedWallet?.walletId} style={styles.container}>
       <BarChart
@@ -138,7 +113,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         autoCenterTooltip
         maxValue={highestRoundedAmount}
         noOfSections={5}
-        formatYLabel={formatYLabel}
+        formatYLabel={formatLabelNumber}
         yAxisLabelWidth={50}
         isAnimated
         animationDuration={300}

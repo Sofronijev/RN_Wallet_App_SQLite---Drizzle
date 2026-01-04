@@ -11,4 +11,5 @@ export const queryKeys = {
   showTotalAmount: "showTotalAmount",
   numberSeparator: "numberSeparator",
   types: "types",
+  totalBalanceHistory: "totalBalanceHistory",
 } as const;

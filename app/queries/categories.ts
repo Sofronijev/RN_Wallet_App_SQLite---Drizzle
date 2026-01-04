@@ -56,6 +56,9 @@ export const useDeleteCategoryMutation = () => {
       clientQuery.invalidateQueries({
         queryKey: [queryKeys.wallets],
       });
+      clientQuery.invalidateQueries({
+        queryKey: [queryKeys.totalBalanceHistory],
+      });
     },
   });
 
@@ -83,7 +86,7 @@ export const useAddCategoryMutation = () => {
 
 export const useEditCategoryMutation = () => {
   const clientQuery = useQueryClient();
-  const { mutate, isPending, isError, error } = useMutation({
+  const { mutate, isPending, isError } = useMutation({
     mutationFn: (data: EditCategory) => editCategory(data),
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.categories] });

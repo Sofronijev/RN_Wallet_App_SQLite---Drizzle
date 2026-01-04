@@ -11,6 +11,7 @@ import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { startingBalanceStrings } from "constants/strings";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import TotalHistoryChart from "../HistoryChart/TotalHistoryChart";
 
 const BalanceScreen: React.FC = () => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
@@ -41,6 +42,9 @@ const BalanceScreen: React.FC = () => {
           <MonthlyBalance />
         </View>
         <View style={tStyles.itemContainer}>
+          <TotalHistoryChart />
+        </View>
+        <View style={tStyles.itemContainer}>
           <RecentTransactions
             isLoading={false}
             title='Recent transactions'
@@ -69,6 +73,7 @@ const styles = (theme: AppTheme) =>
     container: {
       paddingTop: 64,
       backgroundColor: theme.colors.background,
+      gap: 16,
     },
     itemContainer: {
       marginHorizontal: 16,

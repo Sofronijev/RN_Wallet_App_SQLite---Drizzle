@@ -93,7 +93,6 @@ const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       backgroundColor: theme.colors.card,
-      marginVertical: 20,
       paddingVertical: 16,
       borderRadius: 10,
       overflow: "hidden",

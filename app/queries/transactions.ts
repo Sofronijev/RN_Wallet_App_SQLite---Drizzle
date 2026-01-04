@@ -140,6 +140,7 @@ export const addTransactionMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
     },
   });
 
@@ -160,6 +161,7 @@ export const editTransactionMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
     },
   });
   return {
@@ -178,6 +180,7 @@ export const deleteTransactionMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
     },
   });
 

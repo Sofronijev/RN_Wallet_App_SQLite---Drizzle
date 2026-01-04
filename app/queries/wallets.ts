@@ -1,10 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSelectedWalletInfo, setSelectedWallet } from "app/services/userQueries";
 import {
   changeCurrentBalance,
   createNewWallet,
   deleteWallet,
   getAllWalletsWithBalance,
+  getWalletBalanceHistory,
   setColorCurrency,
   setWalletCurrency,
   setWalletName,
@@ -60,6 +61,7 @@ export const setStartingBalanceMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.selectedWallet] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
     },
   });
 
@@ -87,6 +89,7 @@ export const changeCurrentBalanceMutation = () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.selectedWallet] });
       clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
+      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
     },
   });
 
@@ -188,6 +191,20 @@ export const deleteWalletMutation = () => {
   return {
     deleteWallet: mutate,
     isLoading: isPending,
+    isError,
+  };
+};
+
+export const useGetWalletTotalsForChart = (walletId: number | undefined, days: number = 30) => {
+  const { data, isLoading, isFetching, isError } = useQuery({
+    enabled: !!walletId,
+    queryKey: [queryKeys.totalBalanceHistory, walletId, days],
+    queryFn: !!walletId ? () => getWalletBalanceHistory(walletId, days) : skipToken,
+  });
+
+  return {
+    data: data ?? [],
+    isLoading: isLoading || isFetching,
     isError,
   };
 };
