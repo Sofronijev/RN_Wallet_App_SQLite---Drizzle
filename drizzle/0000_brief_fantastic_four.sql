@@ -1,4 +1,4 @@
-CREATE TABLE `Categories` (
+CREATE TABLE IF NOT EXISTS `Categories` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`name` text(255) NOT NULL,
 	`type` text(20) DEFAULT 'custom' NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE `Categories` (
 	`sortOrder` integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `Transactions` (
+CREATE TABLE IF NOT EXISTS `Transactions` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`amount` real NOT NULL,
 	`description` text(300),
@@ -26,7 +26,7 @@ CREATE TABLE `Transactions` (
 	FOREIGN KEY (`transfer_id`) REFERENCES `Transfer`(`id`) ON UPDATE cascade ON DELETE set null
 );
 --> statement-breakpoint
-CREATE TABLE `Transfer` (
+CREATE TABLE IF NOT EXISTS `Transfer` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`date` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`userId` integer DEFAULT 1 NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE `Transfer` (
 	FOREIGN KEY (`toWalletId`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `Types` (
+CREATE TABLE IF NOT EXISTS `Types` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`name` text(255) NOT NULL,
 	`type` text(20) DEFAULT 'custom' NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE `Types` (
 	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `Users` (
+CREATE TABLE IF NOT EXISTS `Users` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`username` text(255) DEFAULT '',
 	`password` text(255),
@@ -67,7 +67,7 @@ CREATE TABLE `Users` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `Users_email_unique` ON `Users` (`email`);--> statement-breakpoint
-CREATE TABLE `Wallet` (
+CREATE TABLE IF NOT EXISTS `Wallet` (
 	`walletId` integer PRIMARY KEY NOT NULL,
 	`user_id` integer DEFAULT 1 NOT NULL,
 	`startingBalance` real DEFAULT 0 NOT NULL,
