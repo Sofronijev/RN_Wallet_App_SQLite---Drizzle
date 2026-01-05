@@ -136,6 +136,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const pickedWallet = wallets.find((wallet) => wallet.walletId === +values.walletId);
   const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
 
+  const isEditingSystemTransaction = !!editTransactionId && values.category?.type === "system";
+
   useEffect(() => {
     if (editedTransaction) {
       navigation.setOptions({
@@ -229,7 +231,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       <View style={styles.inputsContainer}>
         <DatePickerInput date={new Date(values.date ?? undefined)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>
-          <WalletPicker wallets={wallets} selected={+values.walletId} onSelect={onWalletSelect} />
+          <WalletPicker
+            wallets={wallets}
+            selected={+values.walletId}
+            onSelect={onWalletSelect}
+            disabled={isEditingSystemTransaction}
+          />
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
         <AmountInput
@@ -237,12 +244,29 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           style={styles.input}
           amount={values.amount}
           walletCurrency={walletCurrency}
+          disabled={isEditingSystemTransaction}
         />
         <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
-        <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
-          <TouchableOpacity onPress={showCategoriesSheet} style={styles.flexRow}>
+        <ShadowBoxView
+          style={[
+            styles.input,
+            styles.paddingVertical,
+            isEditingSystemTransaction && styles.disable,
+          ]}
+        >
+          <TouchableOpacity
+            onPress={showCategoriesSheet}
+            style={styles.flexRow}
+            disabled={isEditingSystemTransaction}
+          >
             <View style={styles.icon}>{getCategoryInputIcon}</View>
-            <Label style={[styles.label, !values.category?.name && styles.placeHolder]}>
+            <Label
+              style={[
+                styles.label,
+                !values.category?.name && styles.placeHolder,
+                isEditingSystemTransaction && styles.disabledText,
+              ]}
+            >
               {values.category?.name ?? "Select category"}
             </Label>
           </TouchableOpacity>
@@ -252,7 +276,8 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
               types={typeOptions}
               onSelect={onSelectType}
               selected={values.type?.id}
-              showAddNewButton
+              showAddNewButton={!isEditingSystemTransaction}
+              disableSelect={isEditingSystemTransaction}
             />
           )}
         </ShadowBoxView>
@@ -311,4 +336,10 @@ const themeStyles = (theme: AppTheme) =>
     },
     label: { fontSize: 18, flex: 1 },
     placeHolder: { color: theme.colors.placeholder },
+    disable: {
+      backgroundColor: theme.colors.disabled,
+    },
+    disabledText: {
+      color: theme.colors.muted,
+    },
   });

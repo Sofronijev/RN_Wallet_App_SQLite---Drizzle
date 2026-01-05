@@ -15,6 +15,15 @@ type Props = {
   showAddNewButton?: boolean;
 };
 
+type AddButton = {
+  id: 0;
+  name: "+ Add";
+};
+
+const isAddButtonType = (obj: Type | AddButton): obj is AddButton => {
+  return obj?.id === 0 && obj?.name === "+ Add";
+};
+
 const TypeSelector: React.FC<Props> = ({
   types,
   categoryId,
@@ -28,8 +37,14 @@ const TypeSelector: React.FC<Props> = ({
 
   if (!categoryId) return null;
 
-  const typesData: Type[] = showAddNewButton
-    ? [...types, { id: 0, name: "+ Add", type: "system", categoryId }]
+  const typesData: (Type | AddButton)[] = showAddNewButton
+    ? [
+        ...types,
+        {
+          id: 0,
+          name: "+ Add",
+        },
+      ]
     : types;
 
   const onAddNew = () => {
@@ -38,10 +53,16 @@ const TypeSelector: React.FC<Props> = ({
     });
   };
 
-  const renderItem: ListRenderItem<Type> = ({ item }) => {
+  const renderItem: ListRenderItem<Type | AddButton> = ({ item }) => {
     const isSelected = selected === item.id;
-    const isAddButton = showAddNewButton && item.id === 0;
-    const onPress = () => (isAddButton ? onAddNew() : onSelect?.(!isSelected ? item : undefined));
+    const isAddButton = showAddNewButton && isAddButtonType(item);
+    const onPress = () => {
+      if (isAddButton) {
+        onAddNew();
+      } else if ("type" in item) {
+        onSelect?.(!isSelected ? item : undefined);
+      }
+    };
 
     return (
       <TouchableOpacity

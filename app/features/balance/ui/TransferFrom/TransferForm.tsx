@@ -32,7 +32,7 @@ import { formatIsoDate } from "modules/timeAndDate";
 import AmountInput from "../AmountInput";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
-import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 export type TransferFromInputs = {
   date: string;
@@ -59,7 +59,6 @@ const TransferForm: React.FC = () => {
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
-  const { text } = useColors();
 
   useEffect(() => {
     if (editTransferData) {

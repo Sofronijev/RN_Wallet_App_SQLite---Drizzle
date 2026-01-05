@@ -8,9 +8,10 @@ type Props = {
   selected: number;
   onSelect: (walletId: number) => void;
   wallets: WalletType[];
+  disabled?: boolean;
 };
 
-const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect }) => {
+const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect, disabled }) => {
   const styles = useThemedStyles(themeStyles);
   const colors = useColors();
 
@@ -23,14 +24,20 @@ const WalletPicker: React.FC<Props> = ({ wallets, selected, onSelect }) => {
       <TouchableOpacity
         style={[
           styles.walletContainer,
+          disabled && {
+            backgroundColor: colors.disabled,
+          },
           isSelected && {
             backgroundColor: colors.selected,
           },
         ]}
         onPress={onPress}
+        disabled={disabled}
       >
         <Label>
-          <Label style={styles.text}>{`${item.walletName}`}</Label>
+          <Label
+            style={[styles.text, disabled && { color: colors.muted }]}
+          >{`${item.walletName}`}</Label>
           {currency && <Label>{` (${currency})`}</Label>}
         </Label>
       </TouchableOpacity>
