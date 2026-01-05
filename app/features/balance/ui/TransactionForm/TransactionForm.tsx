@@ -270,14 +270,13 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
               {values.category?.name ?? "Select category"}
             </Label>
           </TouchableOpacity>
-          {values.category?.id && (
+          {values.category?.id && !isEditingSystemTransaction && (
             <TypeSelector
               categoryId={values.category?.id}
               types={typeOptions}
               onSelect={onSelectType}
               selected={values.type?.id}
-              showAddNewButton={!isEditingSystemTransaction}
-              disableSelect={isEditingSystemTransaction}
+              showAddNewButton
             />
           )}
         </ShadowBoxView>

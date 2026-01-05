@@ -13,6 +13,7 @@ import { TransactionType } from "db";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { isIncomeTransaction } from "app/features/balance/modules/transaction";
+import { CategoryNumber } from "modules/categories";
 
 type Props = {
   transaction: TransactionType;
@@ -47,6 +48,12 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
     }
   };
 
+  const rowLabel = transaction.transfer_id ? "Transfer" : category.name;
+  const rowType =
+    transaction.categoryId === CategoryNumber.balanceCorrection && category.type === "system"
+      ? ""
+      : `${`(${type?.name})`}`;
+
   return (
     <TouchableOpacity style={styles.container} onPress={openEditTransaction}>
       <View style={styles.icon}>
@@ -58,8 +65,8 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
       </View>
       <View style={styles.descriptionContainer}>
         <Label numberOfLines={hasDescription ? 1 : 2} style={styles.label}>
-          {`${category.name} `}
-          {transaction.type_id && <Label style={styles.typeText}>{`(${type?.name})`}</Label>}
+          {`${rowLabel} `}
+          {transaction.type_id && <Label style={styles.typeText}>{rowType}</Label>}
         </Label>
         {hasDescription && (
           <Label numberOfLines={1} style={styles.descriptionText}>
