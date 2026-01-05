@@ -11,6 +11,7 @@ import TypeSelector from "app/features/balance/ui/TransactionForm/TypeSelector";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
+import { showDeleteCategoryAlert } from "../../modules";
 
 const keyExtractor = (item: number) => `${item}`;
 
@@ -21,14 +22,7 @@ const CategorySettings: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
   const onDeleteCategory = (id: number) => {
-    Alert.alert(
-      "Delete this category?",
-      "All transactions related to this category will be permanently deleted. This action cannot be undone.",
-      [
-        { text: "Cancel" },
-        { onPress: () => deleteCategory(id), text: "Delete", style: "destructive" },
-      ]
-    );
+    showDeleteCategoryAlert(() => deleteCategory(id));
   };
 
   const renderItem = ({ item }: { item: number }) => {

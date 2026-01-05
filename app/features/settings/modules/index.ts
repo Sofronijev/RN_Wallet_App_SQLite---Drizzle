@@ -39,3 +39,12 @@ export const showDeleteUserDataALert = (onDelete: () => void) => {
     }
   );
 };
+
+export const showDeleteCategoryAlert = (onDelete: () => void) => {
+  Alert.alert(
+    "Delete this category?",
+    "All transactions related to this category will be permanently deleted. This action cannot be undone.",
+    [{ text: "Cancel" }, { onPress: onDelete, text: "Delete", style: "destructive" }],
+    { cancelable: true }
+  );
+};

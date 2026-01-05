@@ -36,6 +36,7 @@ import { IconSheetIcons } from "components/ActionSheet/IconSheet/icons";
 import HeaderIcon from "components/Header/HeaderIcon";
 import colors from "constants/colors";
 import AlertPrompt from "components/AlertPrompt";
+import { showDeleteCategoryAlert } from "../../modules";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -126,7 +127,7 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
     if (!editCategoryId) return;
 
     Keyboard.dismiss();
-    deleteCategory(editCategoryId);
+    showDeleteCategoryAlert(() => deleteCategory(editCategoryId));
     navigation.goBack();
   };
 
