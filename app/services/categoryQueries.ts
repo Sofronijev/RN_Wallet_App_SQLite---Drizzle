@@ -16,19 +16,35 @@ export const addCategory = async (data: NewCategory) => {
   const { types: newTypes, ...category } = data;
 
   await db.transaction(async (tx) => {
+    const [lastOrder] = await tx
+      .select({
+        max: sql<number>`max(${categories.sortOrder})`,
+      })
+      .from(categories);
+
+    const nextSortOrder = (lastOrder?.max ?? 0) + 10;
+
     const [insertedCategory] = await tx
       .insert(categories)
-      .values(category)
+      .values({
+        ...category,
+        sortOrder: nextSortOrder,
+      })
       .returning({ id: categories.id });
 
-    const catId = insertedCategory.id;
+    const categoryId = insertedCategory.id;
 
     if (!newTypes?.length) return;
 
-    const formattedTypes = newTypes.map((type) => ({
-      ...type,
-      categoryId: catId,
-    }));
+    let typeOrder = 0;
+    const formattedTypes = newTypes.map((type) => {
+      typeOrder += 10;
+      return {
+        ...type,
+        categoryId,
+        sortOrder: typeOrder,
+      };
+    });
 
     await tx.insert(types).values(formattedTypes);
   });

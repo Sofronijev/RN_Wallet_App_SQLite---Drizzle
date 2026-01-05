@@ -71,7 +71,7 @@ export const useDeleteCategoryMutation = () => {
 
 export const useAddCategoryMutation = () => {
   const clientQuery = useQueryClient();
-  const { mutate, isPending, isError, error } = useMutation({
+  const { mutate, isPending, isError } = useMutation({
     mutationFn: (data: NewCategory) => addCategory(data),
     onSuccess: () => {
       clientQuery.invalidateQueries({ queryKey: [queryKeys.categories] });
