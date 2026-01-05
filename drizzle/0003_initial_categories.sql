@@ -12,4 +12,4 @@ VALUES
 (8, 'Lifestyle', 'custom', 'MaterialCommunityIcons', 'human-greeting', '#A27B5C', 'expense', 80),
 (10, 'Debt & Obligations', 'custom', 'FontAwesome', 'credit-card', '#E6B325', 'expense', 90),
 (11, 'Entertainment', 'custom', 'Ionicons', 'happy-outline', '#D75281', 'expense', 100),
-(12, 'Balance correction', 'system', 'MaterialCommunityIcons', 'swap-horizontal-bold', '#86A789', 'custom', 110);
+(12, 'Balance correction', 'system', 'MaterialCommunityIcons', 'swap-horizontal-bold', '#D3D3D3', 'custom', 110);

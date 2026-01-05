@@ -18,13 +18,13 @@ type Data =
       multiple?: false;
       onSelect: (categoryId: number) => void;
       initialSelected?: number;
-      showNewCategoryButton?: boolean;
+      isTransactionForm?: boolean;
     }
   | {
       multiple: true;
       onSelect: (data: Record<CategoriesWithType["id"], boolean>) => void;
       initialSelected?: Record<CategoriesWithType["id"], boolean>;
-      showNewCategoryButton?: boolean;
+      isTransactionForm?: boolean;
     };
 
 const keyExtractor = <T extends { id: number }>(item: T) => item.id.toString();
@@ -35,7 +35,7 @@ const TransactionBottomSheet: FC<Data> = ({
   onSelect,
   multiple,
   initialSelected,
-  showNewCategoryButton,
+  isTransactionForm,
 }) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const { data: categories } = useGetCategories();
@@ -52,7 +52,9 @@ const TransactionBottomSheet: FC<Data> = ({
     iconColor: colors.border,
   };
 
-  const listData = showNewCategoryButton ? [...categories, addNewButton] : categories;
+  const listData = isTransactionForm
+    ? [...categories.filter((category) => category.type !== "system"), addNewButton]
+    : categories;
 
   const setInitialSelected = () => {
     if (!multiple) return {};
@@ -96,7 +98,7 @@ const TransactionBottomSheet: FC<Data> = ({
 
   const renderItem = ({ item }: { item: CategoriesWithType }) => {
     const isSelected = multiple ? selected[item.id] : initialSelected === item.id;
-    const isNewCategoryButton = showNewCategoryButton && item.id === 0;
+    const isNewCategoryButton = isTransactionForm && item.id === 0;
 
     if (isNewCategoryButton) {
       return (

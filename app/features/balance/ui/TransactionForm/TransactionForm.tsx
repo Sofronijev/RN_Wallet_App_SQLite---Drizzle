@@ -172,7 +172,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       props: {
         onSelect: onSelectCategory,
         initialSelected: values.category?.id,
-        showNewCategoryButton: true,
+        isTransactionForm: true,
       },
     });
   };
