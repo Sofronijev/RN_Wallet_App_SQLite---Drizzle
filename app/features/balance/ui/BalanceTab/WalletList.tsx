@@ -67,8 +67,10 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
     openSheet({
       type: SHEETS.NUMERIC_KEYBOARD,
       props: {
-        onSetAmount: (newAmount: number) =>
-          changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount }),
+        onSetAmount: (newAmount: number) => {
+          if (Number(newAmount).toFixed(2) === Number(balance).toFixed(2)) return;
+          changeCurrentBalance({ id: walletId, currentAmount: balance, newAmount });
+        },
         title: changeBalanceStrings.title,
         subtitle: changeBalanceStrings.subtitle,
         showOperators: true,

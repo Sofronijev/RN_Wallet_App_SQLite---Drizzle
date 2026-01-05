@@ -67,8 +67,10 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
     openSheet({
       type: SHEETS.NUMERIC_KEYBOARD,
       props: {
-        onSetAmount: (newAmount: number) =>
-          changeCurrentBalance({ id: walletId, currentAmount: currentBalance, newAmount }),
+        onSetAmount: (newAmount: number) => {
+          if (Number(newAmount).toFixed(2) === Number(currentBalance).toFixed(2)) return;
+          changeCurrentBalance({ id: walletId, currentAmount: currentBalance, newAmount });
+        },
         title: changeBalanceStrings.title,
         subtitle: changeBalanceStrings.subtitle,
         showOperators: true,
