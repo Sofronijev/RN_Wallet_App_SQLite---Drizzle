@@ -2,11 +2,12 @@ import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import React from "react";
 import { View, StyleSheet, Platform, ViewProps } from "react-native";
 
-const ShadowBoxView: React.FC<ViewProps> = ({ children, style }) => {
+const ShadowBoxView: React.FC<ViewProps> = ({ children, style, ...props }) => {
   const styles = useThemedStyles(themedStyles);
   return (
     <View
       style={[styles.box, Platform.OS === "ios" ? styles.iosShadow : styles.androidShadow, style]}
+      {...props}
     >
       {children}
     </View>
