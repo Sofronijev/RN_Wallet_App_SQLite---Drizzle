@@ -1,35 +1,52 @@
-import { StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
-import React, { useState } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
 import ShadowBoxView from "components/ShadowBoxView";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { useGetSelectedWalletQuery, useGetWalletTotalsForChart } from "app/queries/wallets";
 import { LineChart } from "react-native-gifted-charts";
 import Label from "components/Label";
-import { formatDecimalDigits, formatLabelNumber, roundDecimals } from "modules/numbers";
+import { formatDecimalDigits, formatLabelNumber } from "modules/numbers";
 import { format } from "date-fns";
 import HistoryChartLabel from "./HistoryChartLabel";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { getHistoryChartData } from "../../modules/historyChart";
 
 type Props = {};
 
-const Y_AXIS_LABEL_WIDTH = 60;
+const Y_AXIS_LABEL_WIDTH = 70;
 
 const daysOptions = [7, 30, 90];
+const SECTIONS = 5;
+const INITIAL_SPACING = 10;
+
+const getDayLabel = (numOfDays: number) => {
+  switch (numOfDays) {
+    case 7:
+      return 1;
+    case 90:
+      return 14;
+    default:
+      return 7;
+  }
+};
 
 const TotalHistoryChart: React.FC<Props> = () => {
   const { data: selectedWallet, isLoading: selectedWalletLoading } = useGetSelectedWalletQuery();
   const [numOfDays, setNumOfDays] = useState(30);
+  const [containerWidth, setContainerWidth] = useState(0);
   const { data, isLoading } = useGetWalletTotalsForChart(selectedWallet?.walletId, numOfDays);
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const colors = useColors();
   const styles = useThemedStyles(themedStyles);
+  
   const isWeekView = numOfDays === 7;
 
-  const { width } = useWindowDimensions();
-  const chartWidth = width - Y_AXIS_LABEL_WIDTH - 40;
-  const spacing = data.length ? Math.floor(chartWidth / (numOfDays + 1)) : 0;
-  const dayToLabel = isWeekView ? 1 : 7;
+  const chartWidth = containerWidth - Y_AXIS_LABEL_WIDTH - 16 - INITIAL_SPACING;
+  const spacing = data.length ? Math.floor(chartWidth / numOfDays) : 0;
+
+  const dayToLabel = getDayLabel(numOfDays);
+
   const formattedData = data.length
     ? data.map((item, index) => ({
         originalValue: item.totalBalance,
@@ -39,26 +56,18 @@ const TotalHistoryChart: React.FC<Props> = () => {
       }))
     : [];
 
-  const values = formattedData.length ? formattedData.map((d) => d.originalValue) : [0];
-  const rawMin = Math.min(...values);
-  const max = Math.max(...values);
-  const min = rawMin - Math.abs(rawMin) * 0.05;
-
-  const base = min;
-  const offsetData = formattedData.map((d) => ({
-    ...d,
-    value: d.originalValue - base,
-  }));
-  const sections = 5;
-  const maxValue = max - base;
-  const step = maxValue / sections;
-
-  const yAxisLabelTexts = Array.from({ length: sections + 1 }, (_, i) =>
-    base > 0 ? formatLabelNumber(`${base + step * i}`) : " "
-  );
+  const { maxValue, offsetData, yAxisLabelTexts } = useMemo(() => {
+    return getHistoryChartData(formattedData, SECTIONS, decimal);
+  }, [formattedData]);
 
   return (
-    <ShadowBoxView style={styles.container}>
+    <ShadowBoxView
+      style={styles.container}
+      onLayout={(event) => {
+        const { width } = event.nativeEvent.layout;
+        setContainerWidth(width);
+      }}
+    >
       <View style={styles.titleContainer}>
         <Label style={styles.title}>Total trend</Label>
         <View style={styles.daysContainer}>
@@ -79,12 +88,14 @@ const TotalHistoryChart: React.FC<Props> = () => {
         labelsExtraHeight={35}
         data={offsetData}
         maxValue={maxValue}
-        noOfSections={sections}
+        noOfSections={SECTIONS}
+        initialSpacing={INITIAL_SPACING}
+        endSpacing={0}
         yAxisLabelTexts={yAxisLabelTexts}
         yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
         key={formattedData.length}
         isAnimated
-        scrollToEnd
+        // scrollToEnd
         spacing={spacing}
         areaChart
         rotateLabel
@@ -112,7 +123,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
           radius: 6,
           pointerLabelWidth: 100,
           pointerLabelHeight: 90,
-          // activatePointersOnLongPress: true,
+          activatePointersOnLongPress: true,
           autoAdjustPointerLabelPosition: true,
           pointerLabelComponent: (items: typeof offsetData) => {
             return (

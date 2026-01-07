@@ -49,18 +49,16 @@ const TooltipComponent: FC<{ value: number | undefined; index: number }> = ({ va
   );
 };
 
-const getRoundedUpperBound = (values: number[]) => {
-  const max = Math.max(...values);
-
-  if (max <= 0) return 1;
+const getRoundedUpperBound = (number: number) => {
+  if (number <= 0) return 1;
 
   // za male brojeve < 10 — zaokruži jednostavno
-  if (max < 10) {
-    return Math.ceil(max);
+  if (number < 10) {
+    return Math.ceil(number);
   }
 
   // red veličine (10, 100, 1000, ...)
-  const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
+  const magnitude = Math.pow(10, Math.floor(Math.log10(number)));
 
   // korak za zaokruživanje:
   // 10  → 1
@@ -70,7 +68,7 @@ const getRoundedUpperBound = (values: number[]) => {
   const step = magnitude / 10;
 
   // zaokruži naviše na ovaj korak
-  let rounded = Math.ceil(max / step) * step;
+  let rounded = Math.ceil(number / step) * step;
 
   return rounded;
 };
@@ -86,12 +84,9 @@ const MonthlyChart: FC<Props> = ({ date }) => {
   );
   const { categoriesById } = useGetCategories();
   const styles = useThemedStyles(themedStyles);
-  const { decimal } = useGetNumberSeparatorQuery();
+  const highestAmount = Math.max(...formattedData.map((item) => item.totalAmount));
 
-  const highestRoundedAmount = formattedData.length
-    ? getRoundedUpperBound(formattedData.map((item) => item.totalAmount))
-    : 5;
-
+  const highestRoundedAmount = Math.max(getRoundedUpperBound(highestAmount), 5);
   const barData = formatBarData(formattedData, categoriesById);
 
   return (

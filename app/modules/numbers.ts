@@ -22,7 +22,7 @@ export const hideValues = (value: string) => value.replace(/./g, "*");
 export const roundDecimals = (value: number, fractionDigits = 2) =>
   Number(value.toFixed(fractionDigits));
 
-export const formatLabelNumber = (label: string, decimal: Decimal = ",") => {
+export const formatLabelNumber = (label: string, decimal = ",") => {
   const yNumber = parseFloat(label);
   const million = 1_000_000;
   const thousand = 1000;
@@ -36,7 +36,7 @@ export const formatLabelNumber = (label: string, decimal: Decimal = ",") => {
   } else if (yNumber === 0) {
     formatted = "";
   } else {
-    formatted = `${yNumber}`;
+    formatted = yNumber.toFixed(2);
   }
 
   formatted = formatted

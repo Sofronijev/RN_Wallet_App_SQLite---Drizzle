@@ -81,29 +81,30 @@ export const deleteWallet = async (walletId: number) => {
 };
 
 export const getWalletBalanceHistory = async (walletId: number, days: number = 30) => {
-  const today = startOfDay(new Date());
-  const startDate = startOfDay(subDays(today, days - 1)); // poslednji datum = danas
+  const todayStart = startOfDay(new Date());
+  const tomorrowStart = addDays(todayStart, 1);
+  const startDate = startOfDay(subDays(todayStart, days - 1));
 
-  // 1️⃣ Uzmi starting balance + sum transakcija pre startDate
-  const startingData = await db
+  const startingTx = await db
     .select({
-      startingBalanceWithPrevTx: sql<number>`
-        COALESCE(SUM(${transactions.amount}), 0) + ${wallet.startingBalance}
-      `.mapWith(Number),
+      sum: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`.mapWith(Number),
     })
     .from(transactions)
-    .leftJoin(wallet, eq(wallet.walletId, transactions.wallet_id))
     .where(
-      and(
-        eq(transactions.wallet_id, walletId),
-        lt(transactions.date, startDate.toISOString()) // sve pre startDate
-      )
-    )
+      and(eq(transactions.wallet_id, walletId), lt(transactions.date, startDate.toISOString()))
+    );
+
+  const walletData = await db
+    .select({
+      startingBalance: wallet.startingBalance,
+    })
+    .from(wallet)
+    .where(eq(wallet.walletId, walletId))
     .limit(1);
 
-  const runningBalanceStart = startingData[0]?.startingBalanceWithPrevTx ?? 0;
+  const runningBalanceStart = (walletData[0]?.startingBalance ?? 0) + (startingTx[0]?.sum ?? 0);
 
-  // 2️⃣ Uzmi sve transakcije za period od startDate do danas
+  // Uzmi sve transakcije za period od startDate do danas
   const periodTransactions = await db
     .select({
       amount: transactions.amount,
@@ -114,19 +115,19 @@ export const getWalletBalanceHistory = async (walletId: number, days: number = 3
       and(
         eq(transactions.wallet_id, walletId),
         gte(transactions.date, startDate.toISOString()),
-        lte(transactions.date, today.toISOString())
+        lt(transactions.date, tomorrowStart.toISOString())
       )
     )
-    .orderBy(sql`DATE(${transactions.date})`);
+    .orderBy(transactions.date);
 
-  // 3️⃣ Grupisanje transakcija po danu
+  // Grupisanje transakcija po danu
   const transactionsByDate = new Map<string, number>();
   periodTransactions.forEach((transaction) => {
     const day = format(new Date(transaction.date), "yyyy-MM-dd");
     transactionsByDate.set(day, (transactionsByDate.get(day) ?? 0) + transaction.amount);
   });
 
-  // 4️⃣ Generiši running total za poslednjih 'days' dana
+  //  Generiši running total za poslednjih 'days' dana
   let runningBalance = runningBalanceStart;
   const result = [];
 
@@ -142,6 +143,5 @@ export const getWalletBalanceHistory = async (walletId: number, days: number = 3
       totalBalance: Number(runningBalance.toFixed(2)),
     });
   }
-
   return result;
 };
