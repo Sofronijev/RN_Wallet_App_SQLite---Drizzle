@@ -26,11 +26,14 @@ export default HistoryChartLabel;
 const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
-      height: 90,
-      width: 100,
       justifyContent: "center",
     },
-    date: { color: theme.colors.text, fontSize: 14, marginBottom: 6, textAlign: "center" },
+    date: {
+      color: theme.colors.text,
+      fontSize: 14,
+      marginBottom: 6,
+      textAlign: "center",
+    },
     valueContainer: {
       paddingHorizontal: 14,
       paddingVertical: 6,

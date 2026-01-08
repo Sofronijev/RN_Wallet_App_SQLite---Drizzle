@@ -1,5 +1,5 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import ShadowBoxView from "components/ShadowBoxView";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { useGetSelectedWalletQuery, useGetWalletTotalsForChart } from "app/queries/wallets";
@@ -17,7 +17,6 @@ type Props = {};
 const Y_AXIS_LABEL_WIDTH = 70;
 
 const daysOptions = [7, 30, 90];
-const SECTIONS = 5;
 const INITIAL_SPACING = 10;
 
 const getDayLabel = (numOfDays: number) => {
@@ -39,7 +38,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const colors = useColors();
   const styles = useThemedStyles(themedStyles);
-  
+
   const isWeekView = numOfDays === 7;
 
   const chartWidth = containerWidth - Y_AXIS_LABEL_WIDTH - 16 - INITIAL_SPACING;
@@ -56,9 +55,15 @@ const TotalHistoryChart: React.FC<Props> = () => {
       }))
     : [];
 
-  const { maxValue, offsetData, yAxisLabelTexts } = useMemo(() => {
-    return getHistoryChartData(formattedData, SECTIONS, decimal);
+  const { maxValue, offsetData, yAxisLabelTexts, sections, zeroRuleIndex } = useMemo(() => {
+    return getHistoryChartData(formattedData, decimal);
   }, [formattedData]);
+
+  const rulesConfigArray = Array.from({ length: sections }, (_, i) =>
+    i === zeroRuleIndex
+      ? { rulesThickness: 2, rulesColor: colors.placeholder, rulesType: "solid" }
+      : {}
+  );
 
   return (
     <ShadowBoxView
@@ -88,9 +93,9 @@ const TotalHistoryChart: React.FC<Props> = () => {
         labelsExtraHeight={35}
         data={offsetData}
         maxValue={maxValue}
-        noOfSections={SECTIONS}
+        noOfSections={sections}
         initialSpacing={INITIAL_SPACING}
-        endSpacing={0}
+        endSpacing={8}
         yAxisLabelTexts={yAxisLabelTexts}
         yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
         key={formattedData.length}
@@ -104,14 +109,15 @@ const TotalHistoryChart: React.FC<Props> = () => {
         startOpacity={0.7}
         endOpacity={0.2}
         yAxisThickness={0}
-        rulesType='solid'
+        rulesType='dashed'
         rulesColor={colors.border}
         thickness={3}
         yAxisTextStyle={styles.labels}
         yAxisColor={colors.placeholder}
         rulesThickness={1}
-        xAxisColor={colors.placeholder}
+        xAxisColor={zeroRuleIndex ? colors.border : colors.placeholder}
         color={colors.primary}
+        rulesConfigArray={rulesConfigArray}
         // curved
         height={200}
         showFractionalValues={false}
@@ -123,7 +129,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
           radius: 6,
           pointerLabelWidth: 100,
           pointerLabelHeight: 90,
-          activatePointersOnLongPress: true,
+          // activatePointersOnLongPress: true,
           autoAdjustPointerLabelPosition: true,
           pointerLabelComponent: (items: typeof offsetData) => {
             return (

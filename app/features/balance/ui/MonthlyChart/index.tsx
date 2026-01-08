@@ -2,17 +2,16 @@ import { StyleSheet, View, useWindowDimensions } from "react-native";
 import React, { FC } from "react";
 import { BarChart, barDataItem } from "react-native-gifted-charts";
 import { getCategoryIcon } from "components/CategoryIcon";
-import colors from "constants/colors";
 import Label from "components/Label";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import { useGetMonthlyGraphDataQuery } from "app/queries/transactions";
-import { formatDecimalDigits, formatLabelNumber } from "modules/numbers";
+import { formatDecimalDigits, formatLabelNumber, getRoundedUpperBound } from "modules/numbers";
 import { GetMonthlyAmountsType } from "app/services/transactionQueries";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { useGetCategories } from "app/queries/categories";
 import { CategoriesWithType } from "db";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import LabelInfo from "components/LabelInfo";
 
 const formatBarData = (
@@ -49,30 +48,6 @@ const TooltipComponent: FC<{ value: number | undefined; index: number }> = ({ va
   );
 };
 
-const getRoundedUpperBound = (number: number) => {
-  if (number <= 0) return 1;
-
-  // za male brojeve < 10 — zaokruži jednostavno
-  if (number < 10) {
-    return Math.ceil(number);
-  }
-
-  // red veličine (10, 100, 1000, ...)
-  const magnitude = Math.pow(10, Math.floor(Math.log10(number)));
-
-  // korak za zaokruživanje:
-  // 10  → 1
-  // 100 → 10
-  // 1000 → 100
-  // 10000 → 1000
-  const step = magnitude / 10;
-
-  // zaokruži naviše na ovaj korak
-  let rounded = Math.ceil(number / step) * step;
-
-  return rounded;
-};
-
 type Props = { date: string };
 
 const MonthlyChart: FC<Props> = ({ date }) => {
@@ -82,9 +57,11 @@ const MonthlyChart: FC<Props> = ({ date }) => {
     selectedWallet?.walletId,
     date
   );
+  const hasData = !!formattedData.length;
   const { categoriesById } = useGetCategories();
   const styles = useThemedStyles(themedStyles);
   const highestAmount = Math.max(...formattedData.map((item) => item.totalAmount));
+  const colors = useColors();
 
   const highestRoundedAmount = Math.max(getRoundedUpperBound(highestAmount), 5);
   const barData = formatBarData(formattedData, categoriesById);
@@ -96,7 +73,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         yAxisThickness={0}
         adjustToWidth
         parentWidth={width - 52}
-        xAxisColor={colors.grey}
+        xAxisColor={colors.placeholder}
         yAxisTextStyle={styles.text}
         height={150}
         yAxisExtraHeight={30}
@@ -105,6 +82,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         renderTooltip={(item: barDataItem, index: number) => (
           <TooltipComponent value={item.value} index={index} />
         )}
+        rulesColor={colors.border}
         autoCenterTooltip
         maxValue={highestRoundedAmount}
         noOfSections={5}
@@ -113,8 +91,9 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         isAnimated
         animationDuration={300}
         leftShiftForLastIndexTooltip={16}
+        hideYAxisText={!hasData}
       />
-      {!formattedData.length && (
+      {!hasData && (
         <View style={styles.emptyWrapper}>
           <LabelInfo text='No data for this month' />
         </View>
@@ -133,7 +112,7 @@ const themedStyles = (theme: AppTheme) =>
     tooltip: {
       backgroundColor: theme.colors.background,
       borderWidth: 1,
-      borderColor: colors.grey,
+      borderColor: theme.colors.border,
       borderRadius: 10,
       paddingHorizontal: 5,
     },
