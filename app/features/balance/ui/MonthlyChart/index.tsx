@@ -93,7 +93,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         leftShiftForLastIndexTooltip={16}
         hideYAxisText={!hasData}
       />
-      {!hasData && (
+      {!hasData && !isLoading && (
         <View style={styles.emptyWrapper}>
           <LabelInfo text='No data for this month' />
         </View>

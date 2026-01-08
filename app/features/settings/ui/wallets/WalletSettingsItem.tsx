@@ -184,7 +184,6 @@ const themeStyles = (theme: AppTheme) =>
     container: {
       borderWidth: 1,
       marginHorizontal: 16,
-      marginVertical: 10,
       padding: 10,
       borderRadius: 10,
       borderColor: theme.colors.border,

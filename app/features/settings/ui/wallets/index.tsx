@@ -27,6 +27,7 @@ const WalletSettings: React.FC = () => {
         renderItem={({ item }) => (
           <WalletSettingsItem wallet={item} canDeleteWallet={canDeleteWallet} />
         )}
+        contentContainerStyle={{ gap: 8 }}
       />
       <TouchableOpacity style={styles.addNew} onPress={onAddNewPress}>
         <Label style={styles.addText}>Create new wallet</Label>
@@ -42,6 +43,7 @@ const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      paddingTop: 16,
     },
     addNew: {
       padding: 16,
