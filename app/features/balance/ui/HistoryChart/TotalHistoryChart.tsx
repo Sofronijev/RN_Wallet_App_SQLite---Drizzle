@@ -151,7 +151,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
           pointerStripWidth: 2,
           pointerColor: colors.primary,
           radius: 6,
-          pointerLabelWidth: 100,
+          pointerLabelWidth: 150,
           pointerLabelHeight: 90,
           // activatePointersOnLongPress: true,
           autoAdjustPointerLabelPosition: true,

@@ -35,7 +35,7 @@ const themedStyles = (theme: AppTheme) =>
       textAlign: "center",
     },
     valueContainer: {
-      paddingHorizontal: 14,
+      paddingHorizontal: 8,
       paddingVertical: 6,
       borderRadius: 16,
       backgroundColor: theme.colors.cardInner,
