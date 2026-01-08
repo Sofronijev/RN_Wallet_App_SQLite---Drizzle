@@ -110,3 +110,12 @@ export const getHistoryChartData = (data: HistoryChartData[], decimal: string) =
     zeroRuleIndex: zeroIndex,
   };
 };
+
+export const getTotalChange = (data: HistoryChartData[]) => {
+  const firstValue = data[0]?.originalValue ?? 0;
+  const lastValue = data[data.length - 1]?.originalValue ?? 0;
+
+  const changeAmount = lastValue - firstValue;
+  const changePercent = firstValue !== 0 ? (changeAmount / firstValue) * 100 : null;
+  return { changeAmount, changePercent };
+};

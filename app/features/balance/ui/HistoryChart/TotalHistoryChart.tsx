@@ -1,16 +1,17 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React, { useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import ShadowBoxView from "components/ShadowBoxView";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { useGetSelectedWalletQuery, useGetWalletTotalsForChart } from "app/queries/wallets";
 import { LineChart } from "react-native-gifted-charts";
 import Label from "components/Label";
-import { formatDecimalDigits, formatLabelNumber } from "modules/numbers";
+import { formatDecimalDigits } from "modules/numbers";
 import { format } from "date-fns";
 import HistoryChartLabel from "./HistoryChartLabel";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
-import { getHistoryChartData } from "../../modules/historyChart";
+import { getHistoryChartData, getTotalChange } from "../../modules/historyChart";
 
 type Props = {};
 
@@ -65,6 +66,12 @@ const TotalHistoryChart: React.FC<Props> = () => {
       : {}
   );
 
+  const { changeAmount, changePercent } = getTotalChange(formattedData);
+
+  const formatPercent =
+    changePercent === null || changePercent > 1000
+      ? ` (>999%)`
+      : ` (${formatDecimalDigits(changePercent, delimiter, decimal)}%)`;
   return (
     <ShadowBoxView
       style={styles.container}
@@ -87,6 +94,23 @@ const TotalHistoryChart: React.FC<Props> = () => {
           ))}
         </View>
       </View>
+      {!!changeAmount && (
+        <View style={styles.changeRow}>
+          <Ionicons
+            name={changeAmount > 0 ? "trending-up" : "trending-down"}
+            size={16}
+            color={changeAmount > 0 ? colors.primary : colors.redDark}
+            style={{ marginRight: 4 }}
+          />
+          <Label style={{ color: changeAmount > 0 ? colors.primary : colors.redDark }}>
+            {`Total change: ${formatDecimalDigits(
+              changeAmount,
+              delimiter,
+              decimal
+            )}${formatPercent}`}
+          </Label>
+        </View>
+      )}
       <LineChart
         width={chartWidth}
         xAxisLabelsVerticalShift={!isWeekView ? -14 : undefined}
@@ -157,7 +181,7 @@ const themedStyles = (theme: AppTheme) =>
       color: theme.colors.text,
     },
     titleContainer: {
-      marginBottom: 16,
+      marginBottom: 8,
       marginLeft: 16,
       flexDirection: "row",
       gap: 16,
@@ -170,6 +194,13 @@ const themedStyles = (theme: AppTheme) =>
     daysContainer: {
       flexDirection: "row",
       gap: 8,
+    },
+    changeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingBottom: 8,
+      paddingHorizontal: 16,
     },
     daysButton: {
       borderWidth: 1,
