@@ -131,7 +131,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
         hideDataPoints
         startFillColor={colors.primary}
         startOpacity={0.7}
-        endOpacity={0.2}
+        endOpacity={0}
         yAxisThickness={0}
         rulesType='dashed'
         rulesColor={colors.border}
@@ -142,7 +142,6 @@ const TotalHistoryChart: React.FC<Props> = () => {
         xAxisColor={zeroRuleIndex ? colors.border : colors.placeholder}
         color={colors.primary}
         rulesConfigArray={rulesConfigArray}
-        // curved
         height={200}
         showFractionalValues={false}
         xAxisLabelTextStyle={styles.labels}
