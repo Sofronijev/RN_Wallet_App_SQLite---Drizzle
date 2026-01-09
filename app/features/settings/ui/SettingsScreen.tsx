@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet } from "react-native";
 import React from "react";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import SettingsListItem from "./SettingsListItem";
-import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, Octicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
@@ -51,20 +51,27 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
     },
     {
       id: 4,
+      title: "Dashboard",
+      icon: <MaterialCommunityIcons name='view-dashboard-outline' size={24} color={text} />,
+      onPress: () => navigation.navigate("DashboardSettings"),
+      rightIcon: chevronIcon,
+    },
+    {
+      id: 5,
       title: "Export data",
       icon: <Ionicons name='exit-outline' size={24} color={text} />,
       onPress: exportDB,
       rightIcon: chevronIcon,
     },
     {
-      id: 5,
+      id: 6,
       title: "Import data",
       icon: <Ionicons name='enter-outline' size={24} color={text} />,
       onPress: importDb,
       rightIcon: chevronIcon,
     },
     {
-      id: 6,
+      id: 7,
       title: "Pin code",
       icon: <MaterialIcons name='password' size={24} color={text} />,
       onPress: () => navigation.navigate("PinSettings"),

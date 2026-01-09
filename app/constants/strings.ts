@@ -25,7 +25,7 @@ export const dateAndTimeStrings = {
 export const transactionStrings = {
   available: "Available:",
   income: "Income:",
-  expenses: "Expenses:",
+  expenses: "Spending:",
   noTransaction: "Transaction does not exist",
   deleteTransaction: "Are you sure you want to delete this transaction?",
   errorAdding: "An error occurred while adding transaction",
@@ -38,7 +38,7 @@ export const transactionStrings = {
   },
   noTransactionSearch: {
     title: "No transactions added",
-    subtitle: "Start tracking your expenses and incomes to gain better control of your finances",
+    subtitle: "Start tracking your spending and incomes to gain better control of your finances",
   },
 };
 

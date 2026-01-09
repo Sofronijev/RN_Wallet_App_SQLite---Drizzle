@@ -17,6 +17,7 @@ import { TransactionFiltersProvider } from "app/features/balance/ui/TransactionS
 import CategorySettings from "app/features/settings/ui/categories/CategorySettings";
 import CategoryForm from "app/features/settings/ui/categories/CategoryForm";
 import HeaderTextButton from "components/Header/HeaderTextButton";
+import DashboardSettings from "app/features/settings/ui/dashboard/DashboardSettings";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -76,6 +77,14 @@ const AppNavigator: React.FC = () => {
           options={{
             animation: "default",
             title: "Pin Code",
+          }}
+        />
+        <Stack.Screen
+          name='DashboardSettings'
+          component={DashboardSettings}
+          options={{
+            animation: "default",
+            title: "Dashboard settings",
           }}
         />
         <Stack.Screen

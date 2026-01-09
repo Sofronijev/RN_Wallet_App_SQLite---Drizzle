@@ -8,7 +8,7 @@ export const storeToLocalStorage = async <T>(key: string, data: T) => {
   }
 };
 
-export const getFromLocalStorage = (key: string) => {
+export const getFromLocalStorage = <T>(key: string): T => {
   const data = SecureStore.getItem(key);
   return data && JSON.parse(data);
 };
