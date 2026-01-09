@@ -289,7 +289,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           value={values.description}
           onChangeText={handleChange("description")}
         />
-        <CustomButton title='Submit' onPress={onSubmit} style={styles.button} />
+        {isEditingSystemTransaction && (
+          <Label style={styles.systemText}>
+            Balance correction is a built-in category with limited editing.
+          </Label>
+        )}
+        <CustomButton title='Save' onPress={onSubmit} style={styles.button} />
       </View>
       <AppActivityIndicator hideScreen isLoading={isLoading} />
     </ScrollView>
@@ -340,5 +345,9 @@ const themeStyles = (theme: AppTheme) =>
     },
     disabledText: {
       color: theme.colors.muted,
+    },
+    systemText: {
+      color: theme.colors.muted,
+      paddingTop: 8,
     },
   });

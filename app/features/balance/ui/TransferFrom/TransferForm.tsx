@@ -222,7 +222,7 @@ const TransferForm: React.FC = () => {
           text={errors.walletIdFrom || errors.walletIdTo}
           isVisible={!!errors.walletIdFrom || !!errors.walletIdTo}
         />
-        <CustomButton title='Submit' onPress={onSubmit} style={styles.submitBtn} />
+        <CustomButton title='Save' onPress={onSubmit} style={styles.submitBtn} />
       </ScrollView>
       <AppActivityIndicator isLoading={isFetchingEditData} hideScreen />
     </KeyboardAvoidingView>
