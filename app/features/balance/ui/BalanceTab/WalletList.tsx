@@ -13,16 +13,13 @@ import {
   setSelectedWalletMutation,
   useGetWalletsWithBalance,
 } from "app/queries/wallets";
-import VisibilityToggleIcon from "components/VisibilityToggleIcon";
-import {
-  useGetNumberSeparatorQuery,
-  useGetShowTotalAmount,
-  useSetShowTotalAmount,
-} from "app/queries/user";
+import { useGetNumberSeparatorQuery, useGetShowTotalAmount } from "app/queries/user";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { changeBalanceStrings } from "constants/strings";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import TotalAmountToggle from "./TotalAmountToggle";
+import { useDashboardOptions } from "app/context/DashboardOptions/DashboardOptionsContext";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -43,10 +40,10 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { setSelectedWallet } = setSelectedWalletMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
   const { showTotalAmount } = useGetShowTotalAmount();
-  const { setShowTotalAmount } = useSetShowTotalAmount();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const { openSheet } = useActionSheet();
   const tStyles = useThemedStyles(themedStyles);
+  const { options } = useDashboardOptions();
 
   const canTransfer = wallets.length >= 2;
 
@@ -91,16 +88,12 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
     }
   };
 
-  const onIsVisiblePress = (isVisible: boolean) => {
-    setShowTotalAmount(isVisible);
-  };
-
   const renderWallet: ListRenderItem<Wallet> = ({ item }) => {
     return (
       <View style={[tStyles.walletContainer, { borderColor: item.color }]}>
         <View style={styles.row}>
           <Label style={styles.walletName}>{item.walletName}</Label>
-          <VisibilityToggleIcon isVisible={showTotalAmount} onPress={onIsVisiblePress} />
+          {!options.showTotalBalance && <TotalAmountToggle />}
         </View>
         <Label style={styles.walletValue}>
           {totalBalance(item.currentBalance, item.currencySymbol, item.currencyCode)}

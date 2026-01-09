@@ -6,7 +6,8 @@ import { Wallet } from "db";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { formatDecimalDigits } from "modules/numbers";
-import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { useGetNumberSeparatorQuery, useGetShowTotalAmount } from "app/queries/user";
+import TotalAmountToggle from "./TotalAmountToggle";
 
 export const formatAllWalletTotals = (wallets: Wallet[]) => {
   const grouped = new Map<
@@ -42,6 +43,7 @@ export const formatAllWalletTotals = (wallets: Wallet[]) => {
 const TotalWalletsBalance: FC = () => {
   const { data } = useGetWalletsWithBalance();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const { showTotalAmount } = useGetShowTotalAmount();
 
   const styles = useThemedStyles(themedStyles);
   const walletsTotal = formatAllWalletTotals(data);
@@ -50,22 +52,31 @@ const TotalWalletsBalance: FC = () => {
 
   return (
     <ShadowBoxView style={styles.container}>
-      <Label style={styles.title}>Total balance</Label>
+      <View style={styles.titleContainer}>
+        <Label style={[styles.title, !showTotalAmount && styles.mutedTitle]}>
+          {showTotalAmount ? "Total balance" : "Show total balance"}
+        </Label>
+        <TotalAmountToggle />
+      </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.row}>
-          {walletsTotal.map(({ amount, currencyCode, currencySymbol }) => (
-            <View style={styles.item} key={currencyCode}>
-              <Label style={styles.amount}>{formatDecimalDigits(amount, delimiter, decimal)}</Label>
-              {!!currencySymbol && <Label style={styles.currency}>{currencySymbol}</Label>}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+      {showTotalAmount && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.row}>
+            {walletsTotal.map(({ amount, currencyCode, currencySymbol }) => (
+              <View style={styles.item} key={currencyCode}>
+                <Label style={styles.amount}>
+                  {formatDecimalDigits(amount, delimiter, decimal)}
+                </Label>
+                {!!currencySymbol && <Label style={styles.currency}>{currencySymbol}</Label>}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      )}
     </ShadowBoxView>
   );
 };
@@ -77,18 +88,23 @@ const themedStyles = (theme: AppTheme) =>
     container: {
       marginHorizontal: 16,
       paddingVertical: 12,
-      justifyContent: "center",
-      alignItems: "center",
+    },
+    titleContainer: {
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    mutedTitle: {
+      color: theme.colors.muted,
     },
     title: {
-      marginBottom: 8,
       fontSize: 18,
       fontWeight: "600",
       alignSelf: "baseline",
-      paddingHorizontal: 16,
     },
     scrollContent: {
       paddingHorizontal: 16,
+      marginTop: 8,
     },
     row: {
       flexDirection: "row",
