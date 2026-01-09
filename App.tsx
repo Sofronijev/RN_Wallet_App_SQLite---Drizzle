@@ -14,6 +14,7 @@ import migrations from "drizzle/migrations";
 import RootNavigator from "navigation/RootNavigator";
 import { ThemeProvider, useAppTheme } from "app/theme/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { DashboardOptionsProvider } from "app/context/DashboardOptions/DashboardOptionsContext";
 
 const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
@@ -62,7 +63,9 @@ const AppContent = () => {
 
 const App = () => (
   <ThemeProvider>
-    <AppContent />
+    <DashboardOptionsProvider>
+      <AppContent />
+    </DashboardOptionsProvider>
   </ThemeProvider>
 );
 

@@ -9,7 +9,7 @@ export type DashboardOptions = {
 
 const DASHBOARD_OPTIONS_KEY = "DASHBOARD_OPTIONS";
 
-const defaultOptions: DashboardOptions = {
+export const defaultDashboardOptions: DashboardOptions = {
   showTotalBalance: true,
   showMonthlySummary: true,
   showBalanceTrend: true,
@@ -18,13 +18,13 @@ const defaultOptions: DashboardOptions = {
 
 export const getDashboardOptions = (): DashboardOptions => {
   const stored = getFromLocalStorage<DashboardOptions>(DASHBOARD_OPTIONS_KEY);
-  return { ...defaultOptions, ...(stored || {}) };
+  return { ...defaultDashboardOptions, ...(stored || {}) };
 };
 
 export const setDashboardOptions = async (options: Partial<DashboardOptions>): Promise<boolean> => {
   try {
     const current = getDashboardOptions();
-    const updated = { ...defaultOptions, ...current, ...options };
+    const updated = { ...defaultDashboardOptions, ...current, ...options };
 
     await storeToLocalStorage(DASHBOARD_OPTIONS_KEY, updated);
     return true;
@@ -36,7 +36,7 @@ export const setDashboardOptions = async (options: Partial<DashboardOptions>): P
 
 export const resetDashboardOptions = async (): Promise<boolean> => {
   try {
-    await storeToLocalStorage(DASHBOARD_OPTIONS_KEY, defaultOptions);
+    await storeToLocalStorage(DASHBOARD_OPTIONS_KEY, defaultDashboardOptions);
     return true;
   } catch (err) {
     console.error("Failed to save dashboard options:", err);

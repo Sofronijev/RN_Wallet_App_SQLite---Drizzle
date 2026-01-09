@@ -1,13 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
-import React, { FC, useState } from "react";
-import {
-  DashboardOptions,
-  getDashboardOptions,
-  setDashboardOptions,
-} from "../../modules/dashboardSettingStorage";
+import { StyleSheet, View } from "react-native";
+import React, { FC } from "react";
+import { DashboardOptions } from "app/context/DashboardOptions/dashboardSettingStorage";
 import Label from "components/Label";
 import AppSwitch from "components/AppSwitch";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { useDashboardOptions } from "app/context/DashboardOptions/DashboardOptionsContext";
 
 const dashboardItems: { title: string; key: keyof DashboardOptions }[] = [
   {
@@ -29,13 +25,9 @@ const dashboardItems: { title: string; key: keyof DashboardOptions }[] = [
 ];
 
 const DashboardSettings: FC = () => {
-  const [options, setOptions] = useState<DashboardOptions>(getDashboardOptions());
-  const styles = useThemedStyles(themedStyles);
-
-  const handleToggle = async (key: keyof DashboardOptions, isSelected: boolean) => {
-    const updated = { ...options, [key]: isSelected };
-    setOptions(updated);
-    await setDashboardOptions({ [key]: isSelected });
+  const { options, updateOption } = useDashboardOptions();
+  const handleToggle = (key: keyof DashboardOptions, isSelected: boolean) => {
+    updateOption({ [key]: isSelected });
   };
   return (
     <View style={styles.container}>
@@ -54,15 +46,14 @@ const DashboardSettings: FC = () => {
 
 export default DashboardSettings;
 
-const themedStyles = (theme: AppTheme) =>
-  StyleSheet.create({
-    container: { paddingHorizontal: 16 },
-    itemContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    text: {
-      fontSize: 15,
-    },
-  });
+const styles = StyleSheet.create({
+  container: { paddingHorizontal: 16 },
+  itemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  text: {
+    fontSize: 15,
+  },
+});
