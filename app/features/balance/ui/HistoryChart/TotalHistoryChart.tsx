@@ -81,7 +81,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
       }}
     >
       <View style={styles.titleContainer}>
-        <Label style={styles.title}>Total trend</Label>
+        <Label style={styles.title}>Balance trend</Label>
         <View style={styles.daysContainer}>
           {daysOptions.map((option) => (
             <TouchableOpacity
@@ -103,7 +103,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
             style={{ marginRight: 4 }}
           />
           <Label style={{ color: changeAmount > 0 ? colors.primary : colors.redDark }}>
-            {`Total change: ${formatDecimalDigits(
+            {`Balance change: ${formatDecimalDigits(
               changeAmount,
               delimiter,
               decimal

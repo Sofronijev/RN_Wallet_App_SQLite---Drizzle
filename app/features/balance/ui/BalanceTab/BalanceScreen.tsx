@@ -12,6 +12,7 @@ import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { startingBalanceStrings } from "constants/strings";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import TotalHistoryChart from "../HistoryChart/TotalHistoryChart";
+import TotalWalletsBalance from "./TotalWalletsBalance";
 
 const BalanceScreen: React.FC = () => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
@@ -37,6 +38,7 @@ const BalanceScreen: React.FC = () => {
   return (
     <>
       <ScrollView contentContainerStyle={tStyles.container} showsVerticalScrollIndicator={false}>
+        <TotalWalletsBalance />
         <WalletList selectedWalletId={selectedWallet?.walletId} />
         <View style={tStyles.itemContainer}>
           <MonthlyBalance />

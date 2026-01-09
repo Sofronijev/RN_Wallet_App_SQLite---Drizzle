@@ -101,7 +101,7 @@ const themedStyles = (theme: AppTheme) =>
       marginBottom: 15,
     },
     title: {
-      fontSize: 25,
+      fontSize: 24,
       fontWeight: "bold",
     },
     icons: {

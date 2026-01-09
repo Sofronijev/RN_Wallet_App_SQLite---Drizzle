@@ -2,7 +2,6 @@ import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "re
 import React from "react";
 import Label from "components/Label";
 import { formatDecimalDigits, roundDecimals } from "modules/numbers";
-import colors from "constants/colors";
 import Carousel from "components/Carousel";
 import ButtonText from "components/ButtonText";
 import { useNavigation } from "@react-navigation/native";
@@ -169,9 +168,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   walletName: {
-    fontSize: 23,
+    fontSize: 24,
     fontWeight: "bold",
-    paddingLeft: 10,
+    paddingLeft: 0,
   },
   transactionContainer: {
     marginHorizontal: 16,
@@ -182,6 +181,6 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 3,
-    paddingHorizontal: 5,
+    paddingHorizontal: 0,
   },
 });
