@@ -1,5 +1,5 @@
 import { StyleSheet, View, ScrollView } from "react-native";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 import ShadowBoxView from "components/ShadowBoxView";
 import { useGetWalletsWithBalance } from "app/queries/wallets";
 import { Wallet } from "db";
@@ -8,6 +8,12 @@ import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { formatDecimalDigits } from "modules/numbers";
 import { useGetNumberSeparatorQuery, useGetShowTotalAmount } from "app/queries/user";
 import TotalAmountToggle from "./TotalAmountToggle";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 export const formatAllWalletTotals = (wallets: Wallet[]) => {
   const grouped = new Map<
@@ -40,6 +46,11 @@ export const formatAllWalletTotals = (wallets: Wallet[]) => {
   return Array.from(grouped.values());
 };
 
+const ANIMATION_CONFIG = {
+  duration: 500,
+  easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+};
+
 const TotalWalletsBalance: FC = () => {
   const { data } = useGetWalletsWithBalance();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
@@ -48,18 +59,39 @@ const TotalWalletsBalance: FC = () => {
   const styles = useThemedStyles(themedStyles);
   const walletsTotal = formatAllWalletTotals(data);
 
+  const heightValue = useSharedValue(0);
+  const opacityValue = useSharedValue(0);
+
+  useEffect(() => {
+    if (showTotalAmount) {
+      heightValue.value = withTiming(1, ANIMATION_CONFIG);
+      opacityValue.value = withTiming(1, ANIMATION_CONFIG);
+    } else {
+      heightValue.value = withTiming(0, ANIMATION_CONFIG);
+      opacityValue.value = withTiming(0, ANIMATION_CONFIG);
+    }
+  }, [showTotalAmount]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      maxHeight: heightValue.value * 100,
+      opacity: opacityValue.value,
+      overflow: "hidden",
+    };
+  });
+
   if (!walletsTotal.length) return null;
 
   return (
     <ShadowBoxView style={styles.container}>
       <View style={styles.titleContainer}>
         <Label style={[styles.title, !showTotalAmount && styles.mutedTitle]}>
-          {showTotalAmount ? "Total balance" : "Show total balance"}
+          {"Total balance"}
         </Label>
         <TotalAmountToggle />
       </View>
 
-      {showTotalAmount && (
+      <Animated.View style={animatedStyle}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -76,7 +108,7 @@ const TotalWalletsBalance: FC = () => {
             ))}
           </View>
         </ScrollView>
-      )}
+      </Animated.View>
     </ShadowBoxView>
   );
 };
