@@ -87,7 +87,7 @@ const MonthlyChart: FC<Props> = ({ date }) => {
         maxValue={highestRoundedAmount}
         noOfSections={5}
         formatYLabel={formatLabelNumber}
-        yAxisLabelWidth={50}
+        yAxisLabelWidth={70}
         isAnimated
         animationDuration={300}
         leftShiftForLastIndexTooltip={16}

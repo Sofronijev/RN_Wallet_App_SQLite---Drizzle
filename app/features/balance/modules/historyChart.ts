@@ -23,23 +23,12 @@ export const getMixedGridLines = (min: number, max: number, totalSections = 6) =
   // Uniforman step
   const step = Math.max(absMin / negativeSections, max / positiveSections);
 
-  // Negativne linije
-  const negativeLines = Array.from(
-    { length: negativeSections },
-    (_, i) => -step * (negativeSections - i)
-  );
-
-  // Zero
-  const zeroLine = 0;
-
-  // Pozitivne linije
-  const positiveLines = Array.from({ length: positiveSections }, (_, i) => step * (i + 1));
-  const labels = [...negativeLines, zeroLine, ...positiveLines];
+  const minValue = -step * negativeSections;
+  const maxValue = step * positiveSections;
 
   return {
-    yAxisLabels: labels,
-    minValue: labels[0],
-    maxValue: labels[labels.length - 1],
+    minValue,
+    maxValue,
     step,
   };
 };

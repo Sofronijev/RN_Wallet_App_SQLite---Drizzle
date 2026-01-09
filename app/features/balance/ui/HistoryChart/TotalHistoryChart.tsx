@@ -42,7 +42,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
 
   const isWeekView = numOfDays === 7;
 
-  const chartWidth = containerWidth - Y_AXIS_LABEL_WIDTH - 16 - INITIAL_SPACING;
+  const chartWidth = containerWidth - Y_AXIS_LABEL_WIDTH - INITIAL_SPACING;
   const spacing = data.length ? Math.floor(chartWidth / numOfDays) : 0;
 
   const dayToLabel = getDayLabel(numOfDays);
@@ -89,41 +89,41 @@ const TotalHistoryChart: React.FC<Props> = () => {
               style={[styles.daysButton, option === numOfDays && styles.selectedDay]}
               onPress={() => setNumOfDays(option)}
             >
-              <Label>{`${option} days`}</Label>
+              <Label>{`${option} d`}</Label>
             </TouchableOpacity>
           ))}
         </View>
       </View>
-      {!!changeAmount && (
-        <View style={styles.changeRow}>
+      <View style={styles.changeRow}>
+        {changeAmount !== 0 && (
           <Ionicons
             name={changeAmount > 0 ? "trending-up" : "trending-down"}
             size={16}
             color={changeAmount > 0 ? colors.primary : colors.redDark}
             style={{ marginRight: 4 }}
           />
-          <Label style={{ color: changeAmount > 0 ? colors.primary : colors.redDark }}>
-            {`Balance change: ${formatDecimalDigits(
-              changeAmount,
-              delimiter,
-              decimal
-            )}${formatPercent}`}
-          </Label>
-        </View>
-      )}
+        )}
+        <Label style={{ color: changeAmount >= 0 ? colors.primary : colors.redDark }}>
+          {`Balance change: ${formatDecimalDigits(
+            changeAmount,
+            delimiter,
+            decimal
+          )}${formatPercent}`}
+        </Label>
+      </View>
       <LineChart
         width={chartWidth}
-        xAxisLabelsVerticalShift={!isWeekView ? -14 : undefined}
+        xAxisLabelsVerticalShift={!isWeekView ? 5 : 20}
         labelsExtraHeight={35}
         data={offsetData}
         maxValue={maxValue}
         noOfSections={sections}
         initialSpacing={INITIAL_SPACING}
-        endSpacing={8}
+        // endSpacing={8}
         yAxisLabelTexts={yAxisLabelTexts}
         yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
         key={formattedData.length}
-        isAnimated
+        // isAnimated
         // scrollToEnd
         spacing={spacing}
         areaChart
