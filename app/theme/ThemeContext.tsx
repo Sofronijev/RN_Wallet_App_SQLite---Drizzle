@@ -22,7 +22,7 @@ const lightTheme: AppTheme = {
     primary: colors.greenMint,
     background: "#F5F5F5",
     card: colors.white,
-    text: "#000000",
+    text: "#111111",
     border: "#E5E5E5",
     notification: "#FF3B30",
     header: colors.greenMint,
@@ -36,6 +36,8 @@ const lightTheme: AppTheme = {
     disabled: colors.disabled,
     placeholder: "#9E9E9E",
     cardInner: colors.grey3,
+    info: "#E3F2fD",
+    grey: "#666666",
   },
 };
 
@@ -51,7 +53,7 @@ const darkTheme: AppTheme = {
     notification: "#FF453A",
     header: colors.black,
     //CUSTOM
-    danger: "#FF5566",
+    danger: "#E33F50",
     hyperlink: "#4FC3FF",
     muted: "#A0A0A0",
     redDark: "#D36A58",
@@ -60,6 +62,8 @@ const darkTheme: AppTheme = {
     disabled: "#4A4F55",
     placeholder: "#7A7A7A",
     cardInner: "#2C2C2C",
+    info: "#2a3f5f",
+    grey: "#AAAAAA",
   },
 };
 

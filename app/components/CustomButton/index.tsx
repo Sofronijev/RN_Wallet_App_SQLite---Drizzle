@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 import React from "react";
 import colors from "constants/colors";
 import { buttonColor, ButtonType } from "modules/buttons";
@@ -11,6 +11,9 @@ type CustomButtonType = {
   style?: ViewStyle;
   type?: ButtonType;
   outline?: boolean;
+  isLoading?: boolean;
+  disabled?: boolean;
+  size?: "normal" | "small";
 };
 
 const getButtonStyle = (type: ButtonType, outline: boolean, theme: AppTheme) => {
@@ -26,17 +29,34 @@ const CustomButton: React.FC<CustomButtonType> = ({
   style,
   type = "primary",
   outline = false,
+  isLoading,
+  disabled,
+  size = "normal",
 }) => {
   const { theme } = useAppTheme();
   const buttonStyle = getButtonStyle(type, outline, theme);
+
+  const sizeStyle =
+    size === "small"
+      ? { paddingVertical: 8, paddingHorizontal: 12 }
+      : { paddingVertical: 15, paddingHorizontal: 20 };
+
+  const textStyle = size === "small" ? { fontSize: 13 } : { fontSize: 15 };
+
   const color = buttonColor(theme)[type];
+
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.container, buttonStyle, style]}
+      style={[styles.container, buttonStyle, sizeStyle, style]}
       activeOpacity={0.5}
+      disabled={disabled}
     >
-      <Text style={[styles.text, outline && { color }]}>{title}</Text>
+      {isLoading ? (
+        <ActivityIndicator color={colors.white} />
+      ) : (
+        <Text style={[styles.text, textStyle, outline && { color }]}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -45,14 +65,13 @@ export default CustomButton;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 15,
     borderRadius: 30,
     alignItems: "center",
     borderWidth: 1,
   },
   text: {
     color: colors.white,
-    fontSize: 15,
     textTransform: "uppercase",
+    fontWeight: "bold",
   },
 });

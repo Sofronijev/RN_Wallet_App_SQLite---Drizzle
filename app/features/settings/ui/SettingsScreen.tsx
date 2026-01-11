@@ -6,7 +6,6 @@ import { Ionicons, MaterialIcons, Octicons, MaterialCommunityIcons } from "@expo
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
-import { exportDB, importDb } from "../modules/exportDb";
 import { useThemeSwitcher } from "app/theme/useThemeSwitcher";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
@@ -58,20 +57,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
     },
     {
       id: 5,
-      title: "Export data",
-      icon: <Ionicons name='exit-outline' size={24} color={text} />,
-      onPress: exportDB,
+      title: "Backup and restore",
+      icon: <MaterialCommunityIcons  name='database-export-outline' size={24} color={text} />,
+      onPress: () => navigation.navigate("ExportImport"),
       rightIcon: chevronIcon,
     },
     {
       id: 6,
-      title: "Import data",
-      icon: <Ionicons name='enter-outline' size={24} color={text} />,
-      onPress: importDb,
-      rightIcon: chevronIcon,
-    },
-    {
-      id: 7,
       title: "Pin code",
       icon: <MaterialIcons name='password' size={24} color={text} />,
       onPress: () => navigation.navigate("PinSettings"),

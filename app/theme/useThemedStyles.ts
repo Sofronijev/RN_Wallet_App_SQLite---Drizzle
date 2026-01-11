@@ -14,6 +14,8 @@ export type AppTheme = Theme & {
     disabled: string;
     placeholder: string;
     cardInner: string;
+    info: string;
+    grey: string;
   };
 };
 
