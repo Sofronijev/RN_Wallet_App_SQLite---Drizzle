@@ -14,6 +14,7 @@ export const db = drizzle(expoDb, { logger: false, schema });
 
 export type User = InferSelectModel<typeof schema.users>;
 export type NewUser = InferInsertModel<typeof schema.users>;
+export type WalletType = InferSelectModel<typeof schema.wallet>;
 
 export type Wallet = InferSelectModel<typeof schema.wallet> & { currentBalance: number };
 

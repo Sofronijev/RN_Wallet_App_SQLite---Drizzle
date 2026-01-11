@@ -5,6 +5,7 @@ import { openDatabaseSync } from "expo-sqlite";
 import { File, Paths } from "expo-file-system";
 import * as schema from "db/schema";
 import { eq } from "drizzle-orm";
+import { Category, TransactionType, TransferType, Type, User, Wallet, WalletType } from "db";
 
 type Migration = {
   id: number;
@@ -16,12 +17,12 @@ type ExportData = {
   exportDate: string;
   migrations: Migration[];
   data: {
-    users: any[];
-    categories: any[];
-    types: any[];
-    wallet: any[];
-    transactions: any[];
-    transfer: any[];
+    users: User[];
+    categories: Category[];
+    types: Type[];
+    wallet: WalletType[];
+    transactions: TransactionType[];
+    transfer: TransferType[];
   };
 };
 
