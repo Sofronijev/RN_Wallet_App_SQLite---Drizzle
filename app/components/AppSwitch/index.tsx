@@ -13,7 +13,7 @@ const AppSwitch: FC<Props> = ({ value, onValueChange }) => {
   return (
     <Switch
       trackColor={{ false: themeColors.placeholder, true: themeColors.primary }}
-      thumbColor={value ? colors.money : colors.white}
+      thumbColor={colors.white}
       onValueChange={onValueChange}
       value={value}
     />
