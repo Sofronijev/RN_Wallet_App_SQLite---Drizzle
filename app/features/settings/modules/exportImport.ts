@@ -77,7 +77,7 @@ export async function exportDatabase(): Promise<{
   message: string;
   filePath?: string;
 }> {
-  const fileName = `backup_${new Date().toISOString().split("T")[0]}_${Date.now()}.txt`;
+  const fileName = `backup_wallet_app_${new Date().toISOString().split("T")[0]}_${Date.now()}.json`;
   const file = new File(Paths.document, fileName);
   try {
     const expoDb = openDatabaseSync(DB_NAME);
@@ -108,7 +108,7 @@ export async function exportDatabase(): Promise<{
 
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(file.uri, {
-        mimeType: "text/plain",
+        mimeType: "application/json",
         dialogTitle: "Export",
         UTI: "public.json",
       });
@@ -138,7 +138,7 @@ export async function importDatabase(): Promise<{ success: boolean; message: str
 
   try {
     const result = await DocumentPicker.getDocumentAsync({
-      type: "text/plain",
+      type: "application/json",
       copyToCacheDirectory: true,
     });
 
