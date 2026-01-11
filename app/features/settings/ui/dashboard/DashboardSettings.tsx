@@ -47,7 +47,7 @@ const DashboardSettings: FC = () => {
 export default DashboardSettings;
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 16 },
+  container: { padding: 16 },
   itemContainer: {
     flexDirection: "row",
     alignItems: "center",
