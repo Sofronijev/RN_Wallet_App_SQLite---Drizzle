@@ -33,15 +33,15 @@ const IconSheet: FC<Data> = ({ onSelect, selected, color = colors.black }) => {
       item.iconName === selected?.iconName && item.iconFamily === selected?.iconFamily;
 
     return (
-      <TouchableOpacity style={[styles.colorBox]} onPress={onItemPress(item)}>
+      <TouchableOpacity style={styles.colorBox} onPress={onItemPress(item)}>
         <CategoryIcon
           color={color}
           iconFamily={item.iconFamily}
           name={item.iconName}
-          iconSize={28}
+          iconSize={35}
           plain
         />
-        {isSelected && <CheckMark size={16} position={{ top: 24, right: 10 }} />}
+        {isSelected && <CheckMark size={16} position={{ top: 20, right: 10 }} />}
       </TouchableOpacity>
     );
   };
@@ -64,6 +64,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: PADDING,
     paddingBottom: 16,
+    gap: 6,
   },
   colorBox: {
     flex: 1,
