@@ -37,6 +37,7 @@ import HeaderIcon from "components/Header/HeaderIcon";
 import colors from "constants/colors";
 import AlertPrompt from "components/AlertPrompt";
 import { showDeleteCategoryAlert } from "../../modules";
+import { addColorOpacity } from "modules/colorHelper";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -273,66 +274,126 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={90}
     >
-      <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={styles.container}>
-        <View style={styles.row}>
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={openIconsSheet}>
-              <CategoryIcon
-                color={values.iconColor}
-                iconFamily={values.iconFamily}
-                name={values.iconName}
-                iconSize={50}
-                plain
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.colorContainer} onPress={openColorsSheet}>
-              <View style={[{ backgroundColor: values.iconColor }, styles.colorBox]}></View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.flex}>
-            <StyledLabelInput
-              value={values.name}
-              onChangeText={handleChange("name")}
-              placeholder={categoryStrings.categoryPlaceholder}
-            />
-            <InputErrorLabel text={errors.name} isVisible={!!errors.name} />
-          </View>
-        </View>
-        <TwoOptionSelector
-          selected={values.transactionType}
-          left={transactionType.income}
-          right={transactionType.expense}
-          onChange={onChangeTransactionType}
-        />
-        {isTransactionTypeChanged && (
-          <Label style={styles.infoLabel}>
-            This change applies to future transactions only. Previously recorded transactions will
-            remain unchanged.
-          </Label>
-        )}
-        <View style={styles.typesContainer}>
-          <TouchableOpacity style={styles.row} onPress={() => onAddType()}>
-            <Label style={styles.subCat}>Subcategories</Label>
-            <MaterialIcons name='add' size={25} color={muted} />
-          </TouchableOpacity>
-
-          {!!values.types?.length &&
-            values.types.map((type) => {
-              const id = type.id || type.tempId;
-              return (
-                <View key={id} style={styles.type}>
-                  <TouchableOpacity onPress={() => onEditType(id, type.name)} style={styles.flex}>
-                    <Label>{type.name}</Label>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => onDeleteType(id)}>
-                    <MaterialIcons name='close' size={20} color={muted} />
-                  </TouchableOpacity>
+      <ScrollView
+        keyboardShouldPersistTaps='handled'
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.mainCard}>
+          <View style={styles.row}>
+            <View style={styles.iconWrapper}>
+              <TouchableOpacity
+                onPress={openIconsSheet}
+                style={[styles.iconContainer, { borderColor: values.iconColor + "30" }]}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconBackground, { backgroundColor: values.iconColor + "15" }]}>
+                  <CategoryIcon
+                    color={values.iconColor}
+                    iconFamily={values.iconFamily}
+                    name={values.iconName}
+                    iconSize={36}
+                    plain
+                  />
                 </View>
-              );
-            })}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.colorPickerButton}
+                onPress={openColorsSheet}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.colorBox, { backgroundColor: values.iconColor }]}>
+                  <MaterialIcons name='palette' size={16} color={colors.white} />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <View>
+                <StyledLabelInput
+                  value={values.name}
+                  onChangeText={handleChange("name")}
+                  placeholder={categoryStrings.categoryPlaceholder}
+                />
+                <InputErrorLabel text={errors.name} isVisible={!!errors.name} />
+              </View>
+              <TwoOptionSelector
+                selected={values.transactionType}
+                left={transactionType.income}
+                right={transactionType.expense}
+                onChange={onChangeTransactionType}
+              />
+            </View>
+          </View>
+          {isTransactionTypeChanged && (
+            <View style={styles.infoBox}>
+              <MaterialIcons name='info-outline' size={16} color={muted} />
+              <Label style={styles.infoLabel}>
+                Transaction type change applies to future transactions only. Previously recorded
+                transactions will remain unchanged.
+              </Label>
+            </View>
+          )}
         </View>
-        <CustomButton title='Save' onPress={onSubmit} />
+
+        <View style={styles.section}>
+          <View style={styles.subheaderRow}>
+            <View style={styles.subheaderLeft}>
+              <MaterialIcons name='category' size={20} color={muted} />
+              <Label style={styles.sectionLabel}>Subcategories</Label>
+              {values.types && values.types.length > 0 && (
+                <View style={styles.badge}>
+                  <Label style={styles.badgeText}>{values.types.length}</Label>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => onAddType()}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name='add' size={22} color={colors.white} />
+            </TouchableOpacity>
+          </View>
+
+          {values.types && values.types.length > 0 ? (
+            <View style={styles.typesList}>
+              {values.types &&
+                values.types.map((type) => {
+                  const id = type.id || type.tempId;
+                  return (
+                    <View key={id} style={styles.typeItem}>
+                      <TouchableOpacity
+                        onPress={() => onEditType(id, type.name)}
+                        style={styles.typeContent}
+                        activeOpacity={0.6}
+                      >
+                        <Label style={styles.typeName}>{type.name}</Label>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => onDeleteType(id)}
+                        style={styles.deleteTypeButton}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <MaterialIcons name='close' size={20} color={muted} />
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <MaterialIcons name='inventory-2' size={32} color={muted} opacity={0.3} />
+              <Label style={styles.emptyText}>No subcategories yet</Label>
+              <Label style={styles.emptySubtext}>Tap + to add your first one</Label>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <CustomButton title='Save' onPress={onSubmit} />
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -343,55 +404,174 @@ export default CategoryForm;
 const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
-      paddingVertical: 24,
+      paddingVertical: 20,
       paddingHorizontal: 16,
       flexGrow: 1,
-    },
-    row: {
-      flexDirection: "row",
-      gap: 16,
-      alignItems: "center",
-      paddingBottom: 24,
     },
     flex: {
       flex: 1,
     },
-    iconContainer: {
-      backgroundColor: theme.colors.cardInner,
-      borderRadius: 10,
-      borderWidth: 1,
+    mainCard: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 20,
       borderColor: theme.colors.border,
-      width: 100,
-      alignItems: "center",
-      gap: 8,
+      borderWidth: 1,
     },
-    type: {
+    row: {
+      flexDirection: "row",
+      gap: 16,
+      alignItems: "stretch",
+    },
+    iconWrapper: {
+      alignItems: "center",
+      gap: 10,
+    },
+    iconContainer: {
+      borderRadius: 16,
+      borderWidth: 2,
+      overflow: "hidden",
       backgroundColor: theme.colors.cardInner,
+    },
+    iconBackground: {
+      width: 72,
+      height: 72,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    colorPickerButton: {
       borderRadius: 8,
-      marginVertical: 4,
-      padding: 8,
+      overflow: "hidden",
+    },
+    colorBox: {
+      height: 32,
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+    },
+    inputWrapper: {
+      flex: 1,
+      justifyContent: "space-between",
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: theme.colors.text,
+    },
+    infoBox: {
+      flexDirection: "row",
+      gap: 8,
+      backgroundColor: theme.colors.cardInner,
+      padding: 12,
+      borderRadius: 10,
+      marginTop: 12,
+      alignItems: "flex-start",
+    },
+    infoLabel: {
+      flex: 1,
+      fontSize: 13,
+      lineHeight: 18,
+      color: theme.colors.muted,
+    },
+    subheaderRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
+      marginBottom: 16,
     },
-    typesContainer: {
-      paddingVertical: 24,
+    subheaderLeft: {
+      flexDirection: "row",
+      gap: 8,
+      alignContent: "center",
     },
-    colorBox: {
-      height: 30,
-      width: 100,
+    badge: {
+      backgroundColor: addColorOpacity(theme.colors.primary, 0.2),
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+      minWidth: 24,
+      alignItems: "center",
     },
-    colorContainer: {
-      overflow: "hidden",
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
-    },
-    subCat: {
+    badgeText: {
+      fontSize: 12,
       fontWeight: "600",
-      color: theme.colors.muted,
+      color: theme.colors.primary,
     },
-    infoLabel: {
-      paddingTop: 8,
+    addButton: {
+      backgroundColor: theme.colors.primary,
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    typesList: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    typeItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    typeContent: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    typeName: {
+      fontSize: 15,
+      fontWeight: "500",
+    },
+    deleteTypeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.cardInner,
+    },
+    emptyState: {
+      alignItems: "center",
+      paddingVertical: 32,
+      paddingHorizontal: 24,
+      backgroundColor: theme.colors.cardInner,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderStyle: "dashed",
+    },
+    emptyText: {
+      fontSize: 15,
+      fontWeight: "500",
       color: theme.colors.muted,
+      marginTop: 12,
+    },
+    emptySubtext: {
+      fontSize: 13,
+      color: theme.colors.muted,
+      opacity: 0.7,
+      marginTop: 4,
+    },
+    buttonContainer: {
+      marginTop: 8,
+      paddingBottom: 16,
     },
   });
