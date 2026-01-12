@@ -509,11 +509,6 @@ const themedStyles = (theme: AppTheme) =>
       borderRadius: 10,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: theme.colors.primary,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 3,
     },
     typesList: {
       backgroundColor: theme.colors.card,
