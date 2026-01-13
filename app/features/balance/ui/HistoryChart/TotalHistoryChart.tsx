@@ -33,7 +33,7 @@ const getDayLabel = (numOfDays: number) => {
 
 const TotalHistoryChart: React.FC<Props> = () => {
   const { data: selectedWallet, isLoading: selectedWalletLoading } = useGetSelectedWalletQuery();
-  const [numOfDays, setNumOfDays] = useState(30);
+  const [numOfDays, setNumOfDays] = useState(7);
   const [containerWidth, setContainerWidth] = useState(0);
   const { data, isLoading } = useGetWalletTotalsForChart(selectedWallet?.walletId, numOfDays);
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
