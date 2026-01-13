@@ -1,6 +1,5 @@
 import { StyleSheet, View, ScrollView } from "react-native";
 import React, { FC, useEffect } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
 import ShadowBoxView from "components/ShadowBoxView";
 import { useGetWalletsWithBalance } from "app/queries/wallets";
 import { Wallet } from "db";
@@ -87,12 +86,7 @@ const TotalWalletsBalance: FC = () => {
   return (
     <ShadowBoxView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.iconContainer}>
-            <MaterialIcons name='account-balance' size={18} color={colors.primary} />
-          </View>
-          <Label style={[styles.title, !showTotalAmount && styles.mutedTitle]}>Total Balance</Label>
-        </View>
+        <Label style={[styles.title, !showTotalAmount && styles.mutedTitle]}>Total Balance</Label>
         <TotalAmountToggle />
       </View>
 
@@ -138,19 +132,7 @@ const themedStyles = (theme: AppTheme) =>
       justifyContent: "space-between",
       alignItems: "center",
     },
-    headerLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-    },
-    iconContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 10,
-      backgroundColor: theme.colors.primary + "15",
-      alignItems: "center",
-      justifyContent: "center",
-    },
+
     title: {
       fontSize: 17,
       fontWeight: "700",

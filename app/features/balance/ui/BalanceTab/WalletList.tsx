@@ -91,12 +91,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
       <View style={[tStyles.walletContainer, { borderColor: item.color }]}>
         <View>
           <View style={styles.row}>
-            <View style={styles.walletNameContainer}>
-              <View style={[styles.walletIconContainer, { backgroundColor: item.color + "15" }]}>
-                <MaterialIcons name='account-balance-wallet' size={20} color={item.color} />
-              </View>
-              <Label style={styles.walletName}>{item.walletName}</Label>
-            </View>
+            <Label style={styles.walletName}>{item.walletName}</Label>
             {!options.showTotalBalance && <TotalAmountToggle />}
           </View>
           <Label style={styles.balanceLabel}>Current balance</Label>
@@ -191,13 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: HORIZONTAL_PADDING,
     height: WALLET_HEIGHT,
   },
-  walletIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   balanceLabel: {
     fontSize: 12,
     fontWeight: "500",
@@ -211,7 +200,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.5,
   },
-  walletNameContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   walletName: {
     fontSize: 18,
     fontWeight: "700",
