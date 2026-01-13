@@ -3,7 +3,6 @@ import React from "react";
 import { buttonColor, ButtonType } from "modules/buttons";
 import Label from "components/Label";
 import colors from "constants/colors";
-import { useTheme } from "@react-navigation/native";
 import { useAppTheme } from "app/theme/ThemeContext";
 
 type ButtonTextProps = {

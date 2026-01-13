@@ -50,11 +50,6 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
 
   const canTransfer = wallets.length >= 2;
 
-  const totalBalance = (total: number, symbol: string | null, code: string | null) =>
-    showTotalAmount
-      ? `${`${formatDecimalDigits(total, delimiter, decimal)} ${symbol || code}`}`
-      : "*******";
-
   const startingIndex =
     wallets.length && selectedWalletId ? findWalletIndex(selectedWalletId, wallets) : undefined;
 
@@ -105,9 +100,18 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
             {!options.showTotalBalance && <TotalAmountToggle />}
           </View>
           <Label style={styles.balanceLabel}>Current balance</Label>
-          <Label style={styles.walletValue}>
-            {totalBalance(item.currentBalance, item.currencySymbol, item.currencyCode)}
-          </Label>
+          <View style={styles.balanceRow}>
+            <Label style={styles.walletValue}>
+              {showTotalAmount
+                ? `${formatDecimalDigits(item.currentBalance, delimiter, decimal)}`
+                : "*******"}
+            </Label>
+            {showTotalAmount && (
+              <Label style={[styles.walletValue, tStyles.currencySymbol]}>{`${
+                item.currencySymbol || item.currencyCode
+              }`}</Label>
+            )}
+          </View>
         </View>
         <View style={styles.row}>
           <View style={tStyles.buttonContainer}>
@@ -177,6 +181,9 @@ const themedStyles = (theme: AppTheme) =>
       alignContent: "center",
       justifyContent: "center",
     },
+    currencySymbol: {
+      color: theme.colors.placeholder,
+    },
   });
 
 const styles = StyleSheet.create({
@@ -203,7 +210,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "800",
     letterSpacing: -0.5,
-    textAlign: "center",
   },
   walletNameContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   walletName: {
@@ -218,5 +224,11 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 3,
     paddingHorizontal: 0,
+  },
+  balanceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
   },
 });

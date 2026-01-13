@@ -1,10 +1,11 @@
 import { StyleSheet, View, ScrollView } from "react-native";
 import React, { FC, useEffect } from "react";
+import { MaterialIcons } from "@expo/vector-icons";
 import ShadowBoxView from "components/ShadowBoxView";
 import { useGetWalletsWithBalance } from "app/queries/wallets";
 import { Wallet } from "db";
 import Label from "components/Label";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { formatDecimalDigits } from "modules/numbers";
 import { useGetNumberSeparatorQuery, useGetShowTotalAmount } from "app/queries/user";
 import TotalAmountToggle from "./TotalAmountToggle";
@@ -14,6 +15,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { addColorOpacity } from "modules/colorHelper";
 
 export const formatAllWalletTotals = (wallets: Wallet[]) => {
   const grouped = new Map<
@@ -55,6 +57,7 @@ const TotalWalletsBalance: FC = () => {
   const { data } = useGetWalletsWithBalance();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const { showTotalAmount } = useGetShowTotalAmount();
+  const colors = useColors();
 
   const styles = useThemedStyles(themedStyles);
   const walletsTotal = formatAllWalletTotals(data);
@@ -84,10 +87,13 @@ const TotalWalletsBalance: FC = () => {
 
   return (
     <ShadowBoxView style={styles.container}>
-      <View style={styles.titleContainer}>
-        <Label style={[styles.title, !showTotalAmount && styles.mutedTitle]}>
-          {"Total balance"}
-        </Label>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <View style={styles.iconContainer}>
+            <MaterialIcons name='account-balance' size={18} color={colors.primary} />
+          </View>
+          <Label style={[styles.title, !showTotalAmount && styles.mutedTitle]}>Total Balance</Label>
+        </View>
         <TotalAmountToggle />
       </View>
 
@@ -97,13 +103,18 @@ const TotalWalletsBalance: FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.row}>
-            {walletsTotal.map(({ amount, currencyCode, currencySymbol }) => (
-              <View style={styles.item} key={currencyCode}>
-                <Label style={styles.amount}>
-                  {formatDecimalDigits(amount, delimiter, decimal)}
-                </Label>
-                {!!currencySymbol && <Label style={styles.currency}>{currencySymbol}</Label>}
+          <View style={styles.balancesRow}>
+            {walletsTotal.map(({ amount, currencyCode, currencySymbol }, index) => (
+              <View key={currencyCode} style={styles.balanceCard}>
+                <View style={styles.cardContent}>
+                  <Label style={styles.currencyCode}>{currencyCode}</Label>
+                  <View style={styles.amountRow}>
+                    <Label style={styles.amount}>
+                      {formatDecimalDigits(amount, delimiter, decimal)}
+                    </Label>
+                    {!!currencySymbol && <Label style={styles.currency}>{currencySymbol}</Label>}
+                  </View>
+                </View>
               </View>
             ))}
           </View>
@@ -119,46 +130,78 @@ const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       marginHorizontal: 16,
-      paddingVertical: 12,
+      paddingVertical: 16,
+      borderRadius: 16,
     },
-    titleContainer: {
+    header: {
       paddingHorizontal: 16,
       flexDirection: "row",
       justifyContent: "space-between",
+      alignItems: "center",
+    },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    iconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: theme.colors.primary + "15",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: "700",
+      color: theme.colors.text,
     },
     mutedTitle: {
       color: theme.colors.muted,
     },
-    title: {
-      fontSize: 18,
-      fontWeight: "600",
-      alignSelf: "baseline",
-    },
     scrollContent: {
       paddingHorizontal: 16,
-      marginTop: 8,
+      gap: 12,
+      marginTop: 16,
     },
-    row: {
+    balancesRow: {
       flexDirection: "row",
-      alignItems: "center",
       gap: 12,
     },
-    item: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
+    balanceCard: {
       backgroundColor: theme.colors.cardInner,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 15,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      minWidth: 140,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
     },
-    currency: {
-      fontSize: 14,
+    cardContent: {
+      gap: 6,
+    },
+    currencyCode: {
+      fontSize: 11,
+      fontWeight: "600",
       color: theme.colors.muted,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    amountRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: 4,
     },
     amount: {
-      fontSize: 18,
+      fontSize: 22,
+      fontWeight: "700",
       color: theme.colors.text,
+      letterSpacing: -0.5,
+    },
+    currency: {
+      fontSize: 15,
       fontWeight: "500",
+      color: theme.colors.muted,
     },
   });
