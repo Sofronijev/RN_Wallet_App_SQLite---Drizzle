@@ -192,8 +192,8 @@ const styles = StyleSheet.create({
     height: WALLET_HEIGHT,
   },
   walletIconContainer: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

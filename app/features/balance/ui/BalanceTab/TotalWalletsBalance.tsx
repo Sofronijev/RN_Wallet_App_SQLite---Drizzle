@@ -15,7 +15,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { addColorOpacity } from "modules/colorHelper";
 
 export const formatAllWalletTotals = (wallets: Wallet[]) => {
   const grouped = new Map<
