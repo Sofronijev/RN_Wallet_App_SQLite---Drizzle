@@ -1,5 +1,6 @@
 import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
 import React from "react";
+import { MaterialIcons } from "@expo/vector-icons";
 import Label from "components/Label";
 import { formatDecimalDigits, roundDecimals } from "modules/numbers";
 import Carousel from "components/Carousel";
@@ -17,9 +18,10 @@ import { useGetNumberSeparatorQuery, useGetShowTotalAmount } from "app/queries/u
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { changeBalanceStrings } from "constants/strings";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import TotalAmountToggle from "./TotalAmountToggle";
 import { useDashboardOptions } from "app/context/DashboardOptions/DashboardOptionsContext";
+import { addColorOpacity } from "modules/colorHelper";
 
 const WALLET_SPACING = 8;
 const HORIZONTAL_PADDING = 16;
@@ -44,6 +46,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { openSheet } = useActionSheet();
   const tStyles = useThemedStyles(themedStyles);
   const { options } = useDashboardOptions();
+  const colors = useColors();
 
   const canTransfer = wallets.length >= 2;
 
@@ -91,24 +94,38 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const renderWallet: ListRenderItem<Wallet> = ({ item }) => {
     return (
       <View style={[tStyles.walletContainer, { borderColor: item.color }]}>
-        <View style={styles.row}>
-          <Label style={styles.walletName}>{item.walletName}</Label>
-          {!options.showTotalBalance && <TotalAmountToggle />}
+        <View>
+          <View style={styles.row}>
+            <View style={styles.walletNameContainer}>
+              <View style={[styles.walletIconContainer, { backgroundColor: item.color + "15" }]}>
+                <MaterialIcons name='account-balance-wallet' size={20} color={item.color} />
+              </View>
+              <Label style={styles.walletName}>{item.walletName}</Label>
+            </View>
+            {!options.showTotalBalance && <TotalAmountToggle />}
+          </View>
+          <Label style={styles.balanceLabel}>Current balance</Label>
+          <Label style={styles.walletValue}>
+            {totalBalance(item.currentBalance, item.currencySymbol, item.currencyCode)}
+          </Label>
         </View>
-        <Label style={styles.walletValue}>
-          {totalBalance(item.currentBalance, item.currencySymbol, item.currencyCode)}
-        </Label>
         <View style={styles.row}>
-          <ButtonText
-            title='Transfer funds'
-            onPress={onTransfer(item.walletId)}
-            style={styles.button}
-          />
-          <ButtonText
-            title='Adjust balance'
-            onPress={() => onBalancePress(item.walletId, item.currentBalance)}
-            style={styles.button}
-          />
+          <View style={tStyles.buttonContainer}>
+            <MaterialIcons name='swap-horiz' size={18} color={colors.primary} />
+            <ButtonText
+              title='Transfer'
+              onPress={onTransfer(item.walletId)}
+              style={styles.button}
+            />
+          </View>
+          <View style={tStyles.buttonContainer}>
+            <MaterialIcons name='tune' size={18} color={colors.primary} />
+            <ButtonText
+              title='Adjust'
+              onPress={() => onBalancePress(item.walletId, item.currentBalance)}
+              style={styles.button}
+            />
+          </View>
         </View>
       </View>
     );
@@ -140,13 +157,25 @@ export default WalletList;
 const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
     walletContainer: {
-      padding: 10,
+      padding: 16,
       borderRadius: 20,
       backgroundColor: theme.colors.card,
       height: WALLET_HEIGHT,
       borderLeftWidth: 5,
       borderRightWidth: 5,
       justifyContent: "space-between",
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      borderWidth: 1,
+      paddingVertical: 2,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      borderColor: addColorOpacity(theme.colors.primary, 0.5),
+      alignContent: "center",
+      justifyContent: "center",
     },
   });
 
@@ -155,18 +184,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: HORIZONTAL_PADDING,
     height: WALLET_HEIGHT,
   },
-  walletValue: {
-    fontSize: 30,
-    fontWeight: "bold",
+  walletIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  balanceLabel: {
+    fontSize: 12,
+    fontWeight: "500",
+    opacity: 0.6,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
     textAlign: "center",
   },
-  walletName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    paddingLeft: 0,
+  walletValue: {
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    textAlign: "center",
   },
-  transactionContainer: {
-    marginHorizontal: 16,
+  walletNameContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
+  walletName: {
+    fontSize: 18,
+    fontWeight: "700",
+    paddingLeft: 0,
   },
   row: {
     flexDirection: "row",
