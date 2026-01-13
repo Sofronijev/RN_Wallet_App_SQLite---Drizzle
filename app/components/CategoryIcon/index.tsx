@@ -3,6 +3,7 @@ import React, { memo } from "react";
 import { FontAwesome, FontAwesome5, MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import colors from "constants/colors";
 import { CategoriesWithType } from "db";
+import { addColorOpacity } from "modules/colorHelper";
 
 const ICON_SIZE = 28;
 
@@ -40,12 +41,10 @@ const CategoryIcon: React.FC<Props> = ({
   const finalIconSize = iconSize ?? DEFAULT_CONTAINER_SIZE * ICON_SCALE;
   const containerSize = Math.max(DEFAULT_CONTAINER_SIZE, finalIconSize / ICON_SCALE);
 
-  const iconColor = plain ? color : colors.white;
-
   const IconComponent = getCategoryIcon({
     iconFamily,
     name,
-    color: iconColor,
+    color,
     iconSize: finalIconSize,
   });
 
@@ -60,7 +59,8 @@ const CategoryIcon: React.FC<Props> = ({
       style={[
         styles.container,
         {
-          backgroundColor: color,
+          backgroundColor: addColorOpacity(color, 0.15),
+          borderColor: addColorOpacity(color, 0.3),
           width: containerSize,
           height: containerSize,
           borderRadius: containerSize / 2,
@@ -82,5 +82,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 7,
+    borderWidth: 1,
   },
 });
