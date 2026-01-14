@@ -15,6 +15,7 @@ import TotalHistoryChart from "../HistoryChart/TotalHistoryChart";
 import TotalWalletsBalance from "./TotalWalletsBalance";
 import { useDashboardOptions } from "app/context/DashboardOptions/DashboardOptionsContext";
 import { useIsFocused } from "@react-navigation/native";
+import { DashboardOptions } from "app/context/DashboardOptions/dashboardSettingStorage";
 
 const BalanceScreen: React.FC = () => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
@@ -25,11 +26,19 @@ const BalanceScreen: React.FC = () => {
   const { options: dashboardOptions } = useDashboardOptions();
   const scrollViewRef = useRef<ScrollView>(null);
   const isFocused = useIsFocused();
+  const prevOptionsRef = useRef<DashboardOptions | null>(null);
 
   useEffect(() => {
-    if (isFocused) {
+    if (!isFocused) return;
+
+    if (
+      prevOptionsRef.current &&
+      JSON.stringify(prevOptionsRef.current) !== JSON.stringify(dashboardOptions)
+    ) {
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     }
+
+    prevOptionsRef.current = dashboardOptions;
   }, [dashboardOptions, isFocused]);
 
   const onChangeStartingBalance = () => {
