@@ -35,9 +35,10 @@ const AmountInput: FC<Props> = ({
         </View>
         <Label style={[styles.label, !amount && styles.placeHolder, disabled && styles.disabled]}>
           {amount
-            ? `${formatDecimalDigits(amount, delimiter, decimal)} ${walletCurrency ?? ""}`
+            ? `${formatDecimalDigits(amount, delimiter, decimal)} `
             : placeholder ?? "Enter amount"}
         </Label>
+        <Label style={styles.currency}>{walletCurrency ?? ""}</Label>
       </TouchableOpacity>
     </ShadowBoxView>
   );
@@ -47,12 +48,12 @@ export default AmountInput;
 
 const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    container: { paddingVertical: 10 },
+    container: { paddingVertical: 8 },
     disabledContainer: { backgroundColor: theme.colors.disabled },
     icon: {
       width: 40,
     },
-    label: { fontSize: 18, flex: 1 },
+    label: { fontSize: 18, fontWeight: "500" },
     placeHolder: { color: theme.colors.placeholder },
     flexRow: {
       flexDirection: "row",
@@ -61,6 +62,9 @@ const themedStyles = (theme: AppTheme) =>
       paddingHorizontal: 8,
     },
     disabled: {
+      color: theme.colors.muted,
+    },
+    currency: {
       color: theme.colors.muted,
     },
   });

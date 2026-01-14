@@ -24,7 +24,7 @@ const colors = {
   otherCategory: "#C8C6C6",
   obligations: "#E6B325",
   greyNullScreen: "#DAE0E6",
-  disabled: "#c2c7cc",
+  disabled: "#d6dae0",
   danger: "#DB3545",
   delete: "#FF5366",
   transfer: "#86A789",

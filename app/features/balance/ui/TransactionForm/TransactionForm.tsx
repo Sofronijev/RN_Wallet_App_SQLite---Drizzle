@@ -317,7 +317,6 @@ const themeStyles = (theme: AppTheme) =>
     flexRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
       paddingHorizontal: 8,
     },
     flex: {
@@ -337,8 +336,9 @@ const themeStyles = (theme: AppTheme) =>
     },
     icon: {
       width: 45,
+      marginRight: 8,
     },
-    label: { fontSize: 18, flex: 1 },
+    label: { fontSize: 20, flex: 1, fontWeight: "500" },
     placeHolder: { color: theme.colors.placeholder },
     disable: {
       backgroundColor: theme.colors.disabled,
