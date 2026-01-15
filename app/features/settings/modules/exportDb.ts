@@ -25,7 +25,7 @@ export const exportDB = async () => {
 
       await FileSystem.StorageAccessFramework.createFileAsync(
         permissions.directoryUri,
-        "walletApp.db",
+        "spendyFlyBackup.db",
         "application/octet-stream"
       )
         .then(async (uri) => {

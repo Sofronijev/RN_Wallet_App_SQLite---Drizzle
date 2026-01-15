@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Wallet App",
-    "slug": "RN_Wallet_App",
+    "name": "SpendyFly",
+    "slug": "spendy-fly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./app/assets/icon.png",
@@ -20,7 +20,7 @@
       },
       "icon": "./app/assets/icon.png",
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.sofronijev.RN_Wallet_App"
+      "package": "com.sofronijev.spendyFly"
     },
     "web": {
       "favicon": "./app/assets/favicon.png"

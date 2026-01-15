@@ -99,7 +99,7 @@ const AboutScreen: FC = () => {
 
       <ShadowBoxView style={styles.footer}>
         <Label style={styles.footerText}>Version 1.0.0</Label>
-        <Label style={styles.footerText}>© 2025 Simple Money Tracker</Label>
+        <Label style={styles.footerText}>© 2025 SpendyFly</Label>
       </ShadowBoxView>
     </ScrollView>
   );
