@@ -19,6 +19,7 @@ import CategoryForm from "app/features/settings/ui/categories/CategoryForm";
 import HeaderTextButton from "components/Header/HeaderTextButton";
 import DashboardSettings from "app/features/settings/ui/dashboard/DashboardSettings";
 import { DatabaseBackupScreen } from "app/features/settings/ui/importExport";
+import AboutScreen from "app/features/settings/ui/aboutApp";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -130,6 +131,14 @@ const AppNavigator: React.FC = () => {
           options={{
             animation: "default",
             title: "Backup & Restore",
+          }}
+        />
+        <Stack.Screen
+          name='AboutApp'
+          component={AboutScreen}
+          options={{
+            animation: "default",
+            title: "About",
           }}
         />
       </Stack.Navigator>

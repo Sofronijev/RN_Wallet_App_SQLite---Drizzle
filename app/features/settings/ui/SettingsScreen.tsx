@@ -58,7 +58,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
     {
       id: 5,
       title: "Backup and restore",
-      icon: <MaterialCommunityIcons  name='database-export-outline' size={24} color={text} />,
+      icon: <MaterialCommunityIcons name='database-export-outline' size={24} color={text} />,
       onPress: () => navigation.navigate("ExportImport"),
       rightIcon: chevronIcon,
     },
@@ -67,6 +67,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
       title: "Pin code",
       icon: <MaterialIcons name='password' size={24} color={text} />,
       onPress: () => navigation.navigate("PinSettings"),
+      rightIcon: chevronIcon,
+    },
+    {
+      id: 7,
+      title: "About app",
+      icon: <MaterialIcons name='info-outline' size={24} color={text} />,
+      onPress: () => navigation.navigate("AboutApp"),
       rightIcon: chevronIcon,
     },
   ];

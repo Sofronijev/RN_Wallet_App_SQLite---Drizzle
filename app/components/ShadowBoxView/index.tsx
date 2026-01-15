@@ -22,16 +22,15 @@ const themedStyles = (theme: AppTheme) =>
       overflow: Platform.OS === "ios" ? "visible" : "hidden",
       borderWidth: theme.dark ? 2 : 1,
       borderColor: theme.dark ? "rgba(255, 255, 255, 0.1)" : "transparent",
+      shadowColor: theme.colors.shadow,
     },
     iosShadow: {
-      shadowColor: theme.colors.shadow,
       shadowOpacity: theme.dark ? 0.4 : 0.1,
       shadowRadius: 4,
       shadowOffset: { width: 0, height: 2 },
     },
     androidShadow: {
-      elevation: theme.dark ? 4 : 3,
-      shadowColor: theme.colors.shadow,
+      elevation: theme.dark ? 3 : 2,
     },
   });
 

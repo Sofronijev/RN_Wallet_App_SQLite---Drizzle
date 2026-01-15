@@ -20,6 +20,7 @@ export type AppStackParamList = {
   CategoryForm: { id: number } | undefined;
   DashboardSettings: undefined;
   ExportImport: undefined;
+  AboutApp: undefined;
 };
 
 export type AuthStackParamList = {
