@@ -1,5 +1,7 @@
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import Label from "components/Label";
 import ShadowBoxView from "components/ShadowBoxView";
+import colors from "constants/colors";
 import React, { FC } from "react";
 import {
   ScrollView,
@@ -12,6 +14,7 @@ import {
 } from "react-native";
 
 const AboutScreen: FC = () => {
+  const styles = useThemedStyles(themeStyles);
   const email = "your@email.com";
   const storeName = Platform.OS === "ios" ? "App Store" : "Play Store";
   const appStoreId = "";
@@ -96,7 +99,7 @@ const AboutScreen: FC = () => {
 
       <ShadowBoxView style={styles.footer}>
         <Label style={styles.footerText}>Version 1.0.0</Label>
-        <Label style={styles.footerText}>© 2025 Budget Tracker</Label>
+        <Label style={styles.footerText}>© 2025 Simple Money Tracker</Label>
       </ShadowBoxView>
     </ScrollView>
   );
@@ -104,75 +107,76 @@ const AboutScreen: FC = () => {
 
 export default AboutScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  header: {
-    marginBottom: 24,
-    paddingTop: 8,
-    alignItems: "center",
-  },
-  logo: { width: 50, height: 50, marginBottom: 8, borderRadius: 15 },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-  },
-  card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 12,
-  },
-  text: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  emailButton: {
-    backgroundColor: "#f0f7ff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: "#2f80ed20",
-  },
-  emailText: {
-    fontSize: 15,
-    color: "#2f80ed",
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  reviewButton: {
-    backgroundColor: "#2f80ed",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  reviewButtonText: {
-    fontSize: 15,
-    color: "#fff",
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  footer: {
-    alignItems: "center",
-    marginTop: 24,
-    paddingVertical: 4,
-  },
-  footerText: {
-    fontSize: 13,
-    color: "#999",
-    marginBottom: 4,
-  },
-});
+const themeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      padding: 16,
+      paddingBottom: 40,
+    },
+    header: {
+      marginBottom: 24,
+      paddingTop: 8,
+      alignItems: "center",
+    },
+    logo: { width: 50, height: 50, marginBottom: 8, borderRadius: 15 },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: "700",
+      marginBottom: 4,
+    },
+    headerSubtitle: {
+      fontSize: 15,
+    },
+    card: {
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      marginBottom: 12,
+    },
+    text: {
+      fontSize: 15,
+      lineHeight: 22,
+    },
+    emailButton: {
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: "#2f80ed20",
+    },
+    emailText: {
+      fontSize: 15,
+      color: colors.white,
+      fontWeight: "500",
+      textAlign: "center",
+    },
+    reviewButton: {
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      marginTop: 12,
+    },
+    reviewButtonText: {
+      fontSize: 15,
+      color: colors.white,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+    footer: {
+      alignItems: "center",
+      marginTop: 24,
+      paddingVertical: 4,
+    },
+    footerText: {
+      fontSize: 13,
+      color: theme.colors.placeholder,
+      marginBottom: 4,
+    },
+  });
