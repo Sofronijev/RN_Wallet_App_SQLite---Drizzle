@@ -15,7 +15,7 @@ import {
 
 const AboutScreen: FC = () => {
   const styles = useThemedStyles(themeStyles);
-  const email = "your@email.com";
+  const email = "SpendyFly@gmail.com";
   const storeName = Platform.OS === "ios" ? "App Store" : "Play Store";
   const appStoreId = "";
   const packageName = ""; //"com.milos.budgetapp";
