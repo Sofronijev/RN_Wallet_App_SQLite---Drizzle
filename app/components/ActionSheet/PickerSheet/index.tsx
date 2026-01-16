@@ -4,7 +4,6 @@ import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import SheetHeader from "../components/SheetHeader";
-import colors from "constants/colors";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 type PickerSheetItem<T extends number | null> = {
@@ -33,11 +32,11 @@ const PickerSheet = <T extends number | null>({
 
   const renderItem = useCallback(
     ({ item }: { item: PickerSheetItem<T> }) => (
-      <TouchableOpacity style={styles.item} onPress={onItemPress(item.value)}>
+      <TouchableOpacity style={styles.item} onPress={onItemPress(item.value)} activeOpacity={0.7}>
         <Label style={styles.label}>{item.label}</Label>
       </TouchableOpacity>
     ),
-    []
+    [data.length]
   );
 
   return (
@@ -60,16 +59,21 @@ const themeStyles = (theme: AppTheme) =>
       paddingBottom: 16,
     },
     item: {
-      paddingVertical: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.colors.cardInner,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      marginBottom: 8,
+      borderRadius: 12,
     },
+
     label: {
       fontSize: 16,
-      textAlignVertical: "center",
+      fontWeight: "500",
+      color: theme.colors.text,
       flex: 1,
-      paddingLeft: 16,
-      backgroundColor: theme.colors.cardInner,
-      paddingVertical: 8,
-      borderRadius: 8,
     },
   });
 
