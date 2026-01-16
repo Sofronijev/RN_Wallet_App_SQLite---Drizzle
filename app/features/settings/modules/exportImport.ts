@@ -77,7 +77,7 @@ export async function exportDatabase(): Promise<{
   message: string;
   filePath?: string;
 }> {
-  const fileName = `backup_wallet_app_${new Date().toISOString().split("T")[0]}_${Date.now()}.json`;
+  const fileName = `backup_spendyfly_${new Date().toISOString().split("T")[0]}_${Date.now()}.json`;
   const file = new File(Paths.document, fileName);
   try {
     const expoDb = openDatabaseSync(DB_NAME);

@@ -5,13 +5,18 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./app/assets/ios-light.png",
-
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sofronijev.spendyFly",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +32,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "f7b6fc89-b26b-4461-9157-a03bb59cbfc3"
+        "projectId": "6928b3f1-f181-4c14-a110-d718064f777c"
       }
     },
     "plugins": [
@@ -37,11 +42,9 @@
         {
           "image": "./app/assets/splash-icon.png",
           "backgroundColor": "#EEF5F1",
-
           "dark": {
             "backgroundColor": "#162A26"
           },
-
           "imageWidth": 220
         }
       ]
