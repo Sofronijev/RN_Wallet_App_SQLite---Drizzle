@@ -14,6 +14,8 @@ import CategoryIcon from "components/CategoryIcon";
 import Label from "components/Label";
 import AppCheckbox from "components/AppCheckbox";
 import colors from "constants/colors";
+import ShadowBoxView from "components/ShadowBoxView";
+import Separator from "components/Separator";
 
 type Props = {
   category: CategoriesWithType;
@@ -22,7 +24,7 @@ type Props = {
   onTypeSelect: (categoryId: number, typeId: number) => void;
 };
 
-const TYPE_ITEM_HEIGHT = 30;
+const TYPE_ITEM_HEIGHT = 40;
 
 const CategoryFilterItem: React.FC<Props> = ({
   category,
@@ -57,11 +59,15 @@ const CategoryFilterItem: React.FC<Props> = ({
   });
 
   return (
-    <View>
+    <ShadowBoxView>
       <TouchableWithoutFeedback onPress={toggleOpen}>
         <View style={styles.category}>
           <View style={styles.row}>
-            <TouchableOpacity onPress={() => onDelete(category.id)} hitSlop={8}>
+            <TouchableOpacity
+              onPress={() => onDelete(category.id)}
+              hitSlop={12}
+              style={styles.deleteButton}
+            >
               <MaterialIcons name='close' size={20} color={colors.muted} />
             </TouchableOpacity>
 
@@ -72,7 +78,15 @@ const CategoryFilterItem: React.FC<Props> = ({
               name={category.iconName}
             />
 
-            <Label>{category.name}</Label>
+            <View style={styles.textContent}>
+              <Label style={styles.categoryName}>{category.name}</Label>
+              {category.types.length > 0 && (
+                <Label style={styles.typeCount}>
+                  {category.types.length}{" "}
+                  {category.types.length === 1 ? "subcategory" : "subcategories"}
+                </Label>
+              )}
+            </View>
           </View>
           <View style={styles.row}>
             {!!selectedNum && <Label style={styles.typesNum}>{selectedNum}</Label>}
@@ -98,7 +112,7 @@ const CategoryFilterItem: React.FC<Props> = ({
           </TouchableOpacity>
         ))}
       </Animated.View>
-    </View>
+    </ShadowBoxView>
   );
 };
 
@@ -111,7 +125,7 @@ const themeStyles = (theme: AppTheme) =>
       alignItems: "center",
       justifyContent: "space-between",
       gap: 16,
-      backgroundColor: theme.colors.cardInner,
+      backgroundColor: theme.colors.card,
       borderRadius: 8,
       padding: 8,
     },
@@ -123,12 +137,16 @@ const themeStyles = (theme: AppTheme) =>
     types: {
       paddingHorizontal: 32,
       overflow: "hidden",
+      borderTopWidth: 1,
+      borderColor: theme.colors.border,
     },
     typeRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
       height: TYPE_ITEM_HEIGHT,
+      borderBottomWidth: 1,
+      borderColor: theme.colors.border,
     },
     typesNum: {
       backgroundColor: theme.colors.primary,
@@ -137,5 +155,24 @@ const themeStyles = (theme: AppTheme) =>
       borderRadius: 8,
       color: colors.white,
       fontWeight: "bold",
+    },
+    deleteButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      backgroundColor: theme.colors.cardInner,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textContent: {
+      gap: 2,
+    },
+    categoryName: {
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    typeCount: {
+      fontSize: 13,
+      opacity: 0.5,
     },
   });

@@ -104,10 +104,14 @@ const TransactionFilters: FC = () => {
   return (
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity style={styles.categoryLabel} onPress={pickCategories}>
-          <ListLabel>{"Category"}</ListLabel>
-          <MaterialIcons name='add' size={30} color={colors.text} />
-        </TouchableOpacity>
+        <View style={styles.section}>
+          <ListLabel style={styles.sectionLabel}>Categories</ListLabel>
+
+          <TouchableOpacity style={styles.addButton} onPress={pickCategories} activeOpacity={0.7}>
+            <MaterialIcons name='add-circle-outline' size={24} color={colors.primary} />
+            <ListLabel style={styles.addButtonText}>Add Category</ListLabel>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.categoryContainer}>
           {objectKeys(selectedCategories).map((categoryId) => {
@@ -125,7 +129,9 @@ const TransactionFilters: FC = () => {
         </View>
       </ScrollView>
 
-      <CustomButton title={dialogStrings.apply} onPress={onApply} style={styles.applyButton} />
+      <View style={styles.applyButton}>
+        <CustomButton title={dialogStrings.apply} onPress={onApply} />
+      </View>
     </SafeAreaView>
   );
 };
@@ -143,6 +149,36 @@ const themeStyles = (theme: AppTheme) =>
     categoryLabel: { flexDirection: "row", paddingBottom: 16 },
     applyButton: {
       marginBottom: 8,
+      paddingHorizontal: 16,
+      borderTopWidth: 1,
+      paddingTop: 12,
+      borderColor: theme.colors.border,
+    },
+    section: {
+      marginBottom: 20,
+    },
+    sectionLabel: {
+      fontSize: 13,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      opacity: 0.6,
+      marginBottom: 12,
+    },
+    addButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1.5,
+      borderColor: theme.colors.primary,
+      borderStyle: "dashed",
+    },
+    addButtonText: {
+      color: theme.colors.primary,
+      fontSize: 16,
+      fontWeight: "600",
     },
   });
 
