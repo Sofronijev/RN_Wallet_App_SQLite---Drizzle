@@ -2,16 +2,14 @@ import colors from "constants/colors";
 import React from "react";
 import { TouchableOpacity, StyleSheet, View, Platform } from "react-native";
 import { Entypo } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 interface AddButtonProps {}
 
 const AddButton: React.FC<AddButtonProps> = ({}) => {
   const styles = useThemedStyles(themedStyles);
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.navigate("Transaction")} style={styles.button}>

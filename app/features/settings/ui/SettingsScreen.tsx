@@ -3,16 +3,14 @@ import React from "react";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import SettingsListItem from "./SettingsListItem";
 import { Ionicons, MaterialIcons, Octicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 import { useThemeSwitcher } from "app/theme/useThemeSwitcher";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 type SettingsScreenProps = {};
 
 const SettingsScreen: React.FC<SettingsScreenProps> = () => {
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
   const { getThemeIcon, changeTheme } = useThemeSwitcher();
   const styles = useThemedStyles(themeStyles);
   const { text } = useColors();

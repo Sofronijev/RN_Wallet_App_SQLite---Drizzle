@@ -4,9 +4,7 @@ import colors from "constants/colors";
 import Label from "components/Label";
 import { formatDecimalDigits } from "modules/numbers";
 import { formatDayString } from "modules/timeAndDate";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 import { useGetCategories } from "app/queries/categories";
 import CategoryIcon from "components/CategoryIcon";
 import { TransactionType } from "db";
@@ -20,7 +18,7 @@ type Props = {
 };
 
 const TransactionsRow: React.FC<Props> = ({ transaction }) => {
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
   const { categoriesById } = useGetCategories();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const styles = useThemedStyles(themedStyles);

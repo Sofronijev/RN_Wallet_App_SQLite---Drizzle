@@ -1,3 +1,6 @@
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+
 export type HomeStackParamList = {
   Balance: undefined;
   Monthly: undefined;
@@ -26,3 +29,5 @@ export type AppStackParamList = {
 export type AuthStackParamList = {
   PinCode: undefined;
 };
+
+export const useAppNavigation = useNavigation<StackNavigationProp<AppStackParamList>>;

@@ -12,7 +12,7 @@ import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
-  sheetRef: React.RefObject<BottomSheetModalMethods>;
+  sheetRef: React.RefObject<BottomSheetModalMethods | null>;
   snapPoints?: BottomSheetProps["snapPoints"];
   onDismiss?: () => void;
   maxDynamicContentSize?: number;

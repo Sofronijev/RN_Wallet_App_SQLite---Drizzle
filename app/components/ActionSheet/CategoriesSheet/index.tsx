@@ -11,7 +11,7 @@ import CheckMark from "components/CheckMark";
 import { useColors } from "app/theme/useThemedStyles";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { AppStackParamList, useAppNavigation } from "navigation/routes";
 
 type Data =
   | {
@@ -41,7 +41,7 @@ const TransactionBottomSheet: FC<Data> = ({
   const { data: categories } = useGetCategories();
 
   const colors = useColors();
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
 
   const addNewButton = {
     id: 0,

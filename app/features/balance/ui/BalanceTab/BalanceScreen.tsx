@@ -16,8 +16,12 @@ import TotalWalletsBalance from "./TotalWalletsBalance";
 import { useDashboardOptions } from "app/context/DashboardOptions/DashboardOptionsContext";
 import { useIsFocused } from "@react-navigation/native";
 import { DashboardOptions } from "app/context/DashboardOptions/dashboardSettingStorage";
+import ButtonText from "components/ButtonText";
+import { useAppNavigation } from "navigation/routes";
+import ShadowBoxView from "components/ShadowBoxView";
 
 const BalanceScreen: React.FC = () => {
+  const navigation = useAppNavigation();
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { setStartingBalance } = setStartingBalanceMutation();
   const { openSheet } = useActionSheet();
@@ -91,7 +95,16 @@ const BalanceScreen: React.FC = () => {
               }
             />
           </View>
-        ) : null}
+        ) : (
+          <ShadowBoxView style={tStyles.button}>
+            <ButtonText
+              title='View all transactions'
+              onPress={() => {
+                navigation.navigate("TransactionSearch");
+              }}
+            />
+          </ShadowBoxView>
+        )}
       </ScrollView>
       <AddButton />
     </>
@@ -106,8 +119,13 @@ const styles = (theme: AppTheme) =>
       paddingTop: 64,
       backgroundColor: theme.colors.background,
       gap: 16,
+      paddingBottom: 100,
     },
     itemContainer: {
+      marginHorizontal: 16,
+    },
+    button: {
+      padding: 16,
       marginHorizontal: 16,
     },
   });

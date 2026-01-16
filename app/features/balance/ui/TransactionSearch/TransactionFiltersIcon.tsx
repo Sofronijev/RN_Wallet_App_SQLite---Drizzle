@@ -2,16 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import HeaderIcon from "components/Header/HeaderIcon";
 import colors from "constants/colors";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 import { useTransactionFilters } from "./context/TransactionFiltersContext";
 import { StyleSheet, View } from "react-native";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
 const TransactionFiltersIcon = () => {
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
   const { filtersCounter } = useTransactionFilters();
   const styles = useThemedStyles(themedStyles);
 

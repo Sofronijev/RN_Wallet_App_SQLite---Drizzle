@@ -1,12 +1,10 @@
 import { StyleSheet, View } from "react-native";
-import React from "react";
+import React, { ReactNode } from "react";
 import Label from "components/Label";
 import TransactionsRow from "../../../../components/TransactionRow";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import ButtonText from "components/ButtonText";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 import { useGetTransactionsQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import ShadowBoxView from "components/ShadowBoxView";
@@ -14,7 +12,7 @@ import ShadowBoxView from "components/ShadowBoxView";
 type RecentTransactionsProps = {
   isLoading: boolean;
   title?: string;
-  nullScreen?: JSX.Element;
+  nullScreen?: ReactNode;
 };
 
 const RecentTransactions: React.FC<RecentTransactionsProps> = ({
@@ -22,7 +20,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   title,
   nullScreen,
 }) => {
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data } = useGetTransactionsQuery(selectedWallet?.walletId, 5);
   const { transactions } = data;
@@ -62,7 +60,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 10,
     padding: 10,
-    marginBottom: 100,
   },
   loadingContainer: {
     paddingTop: 50,

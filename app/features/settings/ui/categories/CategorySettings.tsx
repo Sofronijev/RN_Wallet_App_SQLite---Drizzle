@@ -8,9 +8,7 @@ import { useColors } from "app/theme/useThemedStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Label from "components/Label";
 import TypeSelector from "app/features/balance/ui/TransactionForm/TypeSelector";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 import { showDeleteCategoryAlert } from "../../modules";
 import { addColorOpacity } from "modules/colorHelper";
 
@@ -20,7 +18,7 @@ const CategorySettings: React.FC = () => {
   const { categoriesById, categoriesAllId } = useGetCategories();
   const { deleteCategory } = useDeleteCategoryMutation();
   const { text, disabled } = useColors();
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
 
   const onDeleteCategory = (id: number) => {
     showDeleteCategoryAlert(() => deleteCategory(id));

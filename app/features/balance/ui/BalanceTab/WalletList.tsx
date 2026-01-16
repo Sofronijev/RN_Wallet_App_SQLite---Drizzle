@@ -5,9 +5,7 @@ import Label from "components/Label";
 import { formatDecimalDigits, roundDecimals } from "modules/numbers";
 import Carousel from "components/Carousel";
 import ButtonText from "components/ButtonText";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 import { Wallet } from "db";
 import {
   changeCurrentBalanceMutation,
@@ -37,7 +35,7 @@ const findWalletIndex = (walletId: number, wallets: Wallet[]) => {
 };
 const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
   const { width } = useWindowDimensions();
-  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const navigation = useAppNavigation();
   const { data: wallets } = useGetWalletsWithBalance();
   const { setSelectedWallet } = setSelectedWalletMutation();
   const { changeCurrentBalance } = changeCurrentBalanceMutation();
