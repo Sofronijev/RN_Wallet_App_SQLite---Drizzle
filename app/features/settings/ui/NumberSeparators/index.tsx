@@ -14,7 +14,11 @@ const Button: FC<PropsWithChildren<{ onPress: () => void; isSelected: boolean }>
 }) => {
   const styles = useThemedStyles(themeStyles);
   return (
-    <TouchableOpacity style={[styles.button, isSelected && styles.selected]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.button, isSelected && styles.selected]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       {children}
     </TouchableOpacity>
   );
@@ -29,75 +33,128 @@ const NumberSeparators = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.itemContainer}>
-        <Label style={styles.label}>Decimal</Label>
-        <View style={styles.row}>
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Label style={styles.sectionTitle}>Decimal Separator</Label>
+          <Text style={styles.sectionDescription}>Choose your decimal separator</Text>
+        </View>
+        <View style={styles.buttonGroup}>
           <Button isSelected={"," === decimal} onPress={() => setDecimal(",")}>
-            <MaterialCommunityIcons name='comma' size={16} color={text} />
+            <MaterialCommunityIcons name='comma' size={20} color={text} />
           </Button>
           <Button isSelected={"." === decimal} onPress={() => setDecimal(".")}>
-            <Octicons name='dot-fill' size={16} color={text} />
+            <Octicons name='dot-fill' size={20} color={text} />
           </Button>
         </View>
       </View>
-      <View style={styles.itemContainer}>
-        <Label style={styles.label}>Thousand separator</Label>
-        <View style={styles.row}>
+
+      <View style={styles.divider} />
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Label style={styles.sectionTitle}>Thousand Separator</Label>
+          <Text style={styles.sectionDescription}>Choose your thousand separator</Text>
+        </View>
+        <View style={styles.buttonGroup}>
           <Button isSelected={"." === delimiter} onPress={() => setDelimiter(".")}>
-            <Octicons name='dot-fill' size={16} color={text} />
+            <Octicons name='dot-fill' size={20} color={text} />
           </Button>
           <Button isSelected={"," === delimiter} onPress={() => setDelimiter(",")}>
-            <MaterialCommunityIcons name='comma' size={16} color={text} />
+            <MaterialCommunityIcons name='comma' size={20} color={text} />
           </Button>
           <Button isSelected={"" === delimiter} onPress={() => setDelimiter("")}>
-            <FontAwesome5 name='ban' size={16} color={text} />
+            <FontAwesome5 name='ban' size={18} color={text} />
+            <Text style={styles.buttonText}>None</Text>
           </Button>
         </View>
+      </View>
+
+      <View style={styles.previewSection}>
+        <Text style={styles.previewLabel}>Preview:</Text>
+        <Text style={styles.previewText}>
+          1{delimiter}234{delimiter}567{decimal}89
+        </Text>
       </View>
     </View>
   );
 };
+
 export default NumberSeparators;
 
 const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
-      paddingTop: 16,
-      paddingHorizontal: 16,
-      backgroundColor: theme.colors.background,
       flex: 1,
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
-    label: {
-      fontSize: 16,
-      width: "50%",
+    section: {
+      marginBottom: 16,
+    },
+    sectionHeader: {
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      marginBottom: 4,
+      color: theme.colors.text,
+    },
+    sectionDescription: {
+      fontSize: 14,
+      color: theme.colors.muted,
+      opacity: 0.7,
+    },
+    buttonGroup: {
+      flexDirection: "row",
+      gap: 12,
+      flexWrap: "wrap",
     },
     button: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 5,
-      alignContent: "center",
+      flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      minWidth: 60,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.background,
     },
     selected: {
       backgroundColor: theme.colors.selected,
       borderColor: theme.colors.primary,
     },
-    buttonLabel: {
-      fontSize: 24,
-      fontWeight: "bold",
+    buttonText: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: theme.colors.text,
     },
-    row: {
-      flexDirection: "row",
-      gap: 8,
-      width: "50%",
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      marginVertical: 8,
     },
-    itemContainer: {
-      flexDirection: "row",
-      gap: 8,
-      alignContent: "center",
+    previewSection: {
+      marginTop: 32,
+      padding: 20,
+      backgroundColor: theme.colors.border,
+      borderRadius: 12,
       alignItems: "center",
-      paddingVertical: 8,
+    },
+    previewLabel: {
+      fontSize: 14,
+      color: theme.colors.muted,
+      marginBottom: 8,
+      fontWeight: "500",
+    },
+    previewText: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: theme.colors.text,
+      letterSpacing: 1,
     },
   });
