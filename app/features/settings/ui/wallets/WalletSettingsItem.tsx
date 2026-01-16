@@ -14,12 +14,15 @@ import {
 } from "app/queries/wallets";
 import { CurrencyType } from "app/currencies/currencies";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Feather from "@expo/vector-icons/Feather";
 import AlertPrompt from "components/AlertPrompt";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { changeBalanceStrings, startingBalanceStrings } from "constants/strings";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { addColorOpacity } from "modules/colorHelper";
+import ShadowBoxView from "components/ShadowBoxView";
 
 type Props = {
   wallet: WalletType;
@@ -36,7 +39,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
-  const { text, disabled } = useColors();
+  const { text, disabled, muted } = useColors();
 
   if (!wallet) return null;
 
@@ -133,47 +136,95 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.titleContainer}>
-        <ButtonText title={walletName} buttonStyle={styles.name} onPress={onEditName} />
-        <View style={styles.iconsContainer}>
-          <TouchableOpacity onPress={onDeleteWallet} disabled={!canDeleteWallet}>
+    <ShadowBoxView style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.walletNameContainer}>
+          <View style={[styles.colorIndicator, { backgroundColor: color }]} />
+          <Label style={styles.name}>{walletName}</Label>
+        </View>
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity style={styles.actionButton} onPress={onEditName} activeOpacity={0.7}>
+            <Feather name='edit-2' size={20} color={text} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onDeleteWallet}
+            disabled={!canDeleteWallet}
+            activeOpacity={0.7}
+          >
             <MaterialIcons
               name='delete-outline'
-              size={24}
+              size={22}
               color={canDeleteWallet ? text : disabled}
             />
           </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.row}>
-        <Label>Balance:</Label>
-        <ButtonText
-          title={formatDecimalDigits(currentBalance, delimiter, decimal)}
-          type='link'
-          onPress={onBalancePress}
-        />
-      </View>
-      <View style={styles.row}>
-        <Label>Starting balance:</Label>
-        <ButtonText
-          title={formatDecimalDigits(startingBalance, delimiter, decimal)}
-          type='link'
-          onPress={onStartingBalancePress}
-        />
-      </View>
-      <View style={styles.row}>
-        <Label>Currency:</Label>
-        <ButtonText title={currency} type='link' onPress={onCurrencyPress} />
-      </View>
-      <View style={styles.row}>
-        <Label>Color:</Label>
+
+      <View style={styles.divider} />
+
+      <View>
+        <TouchableOpacity style={styles.settingRow} onPress={onBalancePress} activeOpacity={0.7}>
+          <View style={styles.settingLeft}>
+            <View style={styles.iconContainer}>
+              <Feather name='dollar-sign' size={18} color={muted} />
+            </View>
+            <Label style={styles.settingLabel}>Balance</Label>
+          </View>
+          <View style={styles.settingRight}>
+            <Label style={styles.settingValue}>
+              {formatDecimalDigits(currentBalance, delimiter, decimal)}
+            </Label>
+            <Feather name='chevron-right' size={18} color={muted} />
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.colorBox, { backgroundColor: color }]}
-          onPress={onColorPress}
-        ></TouchableOpacity>
+          style={styles.settingRow}
+          onPress={onStartingBalancePress}
+          activeOpacity={0.7}
+        >
+          <View style={styles.settingLeft}>
+            <View style={styles.iconContainer}>
+              <Feather name='trending-up' size={18} color={muted} />
+            </View>
+            <Label style={styles.settingLabel}>Starting Balance</Label>
+          </View>
+          <View style={styles.settingRight}>
+            <Label style={styles.settingValue}>
+              {formatDecimalDigits(startingBalance, delimiter, decimal)}
+            </Label>
+            <Feather name='chevron-right' size={18} color={muted} />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.settingRow} onPress={onCurrencyPress} activeOpacity={0.7}>
+          <View style={styles.settingLeft}>
+            <View style={styles.iconContainer}>
+              <Feather name='globe' size={18} color={muted} />
+            </View>
+            <Label style={styles.settingLabel}>Currency</Label>
+          </View>
+          <View style={styles.settingRight}>
+            <Label style={styles.settingValue}>{currency}</Label>
+            <Feather name='chevron-right' size={18} color={muted} />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.settingRow} onPress={onColorPress} activeOpacity={0.7}>
+          <View style={styles.settingLeft}>
+            <View style={styles.iconContainer}>
+              <Feather name='droplet' size={18} color={muted} />
+            </View>
+            <Label style={styles.settingLabel}>Color</Label>
+          </View>
+          <View style={styles.settingRight}>
+            <View style={[styles.colorBox, { backgroundColor: color }]} />
+            <Feather name='chevron-right' size={18} color={muted} />
+          </View>
+        </TouchableOpacity>
       </View>
-    </View>
+    </ShadowBoxView>
   );
 };
 
@@ -182,32 +233,98 @@ export default WalletSettingsItem;
 const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
-      borderWidth: 1,
       marginHorizontal: 16,
-      padding: 10,
-      borderRadius: 10,
-      borderColor: theme.colors.border,
+      marginBottom: 8,
       backgroundColor: theme.colors.card,
     },
-    titleContainer: {
+    header: {
       flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    iconsContainer: { flexDirection: "row" },
-    name: {
-      fontSize: 20,
-      fontWeight: "bold",
-      paddingBottom: 10,
-    },
-    row: {
-      flexDirection: "row",
-      paddingBottom: 5,
       justifyContent: "space-between",
       alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+    },
+    walletNameContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    colorIndicator: {
+      width: 4,
+      height: 24,
+      borderRadius: 2,
+      marginRight: 12,
+    },
+    name: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: theme.colors.text,
+    },
+    actionsContainer: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    actionButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: addColorOpacity(theme.colors.border, 0.5),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      opacity: 0.3,
+      marginHorizontal: 16,
+    },
+    settingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+    },
+    settingLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    iconContainer: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 12,
+    },
+    settingLabel: {
+      fontSize: 15,
+      color: theme.colors.text,
+      fontWeight: "500",
+    },
+    settingRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    settingValue: {
+      fontSize: 15,
+      color: theme.colors.muted,
+      fontWeight: "500",
     },
     colorBox: {
-      height: 25,
-      width: 25,
-      borderRadius: 15,
+      height: 28,
+      width: 28,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: theme.colors.background,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+      elevation: 2,
     },
   });
