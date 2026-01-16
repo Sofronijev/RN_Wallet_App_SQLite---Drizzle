@@ -118,7 +118,7 @@ const themeStyles = (theme: AppTheme) =>
       paddingTop: 8,
       alignItems: "center",
     },
-    logo: { width: 50, height: 50, marginBottom: 8, borderRadius: 15 },
+    logo: { width: 100, height: 100 },
     headerTitle: {
       fontSize: 28,
       fontWeight: "700",
