@@ -8,6 +8,7 @@ import { useThemeSwitcher } from "app/theme/useThemeSwitcher";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 type SettingsScreenProps = {};
+const ICON_SIZE = 24;
 
 const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   const navigation = useAppNavigation();
@@ -15,62 +16,62 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
   const styles = useThemedStyles(themeStyles);
   const { text } = useColors();
 
-  const chevronIcon = <MaterialIcons name='chevron-right' size={30} color={text} />;
+  const chevronIcon = <MaterialIcons name='chevron-right' size={ICON_SIZE} color={text} />;
 
   const settingsListItems = [
     {
       id: 0,
       title: "Theme",
-      icon: <MaterialIcons name='lightbulb-outline' size={24} color={text} />,
+      icon: <MaterialIcons name='lightbulb-outline' size={ICON_SIZE} color={text} />,
       onPress: changeTheme,
       rightIcon: getThemeIcon(),
     },
     {
       id: 1,
       title: "Wallets",
-      icon: <Ionicons name='wallet-outline' size={24} color={text} />,
+      icon: <Ionicons name='wallet-outline' size={ICON_SIZE} color={text} />,
       onPress: () => navigation.navigate("WalletSettings"),
       rightIcon: chevronIcon,
     },
     {
       id: 2,
       title: "Categories",
-      icon: <MaterialIcons name='category' size={24} color={text} />,
+      icon: <MaterialIcons name='category' size={ICON_SIZE} color={text} />,
       onPress: () => navigation.navigate("CategorySettings"),
       rightIcon: chevronIcon,
     },
     {
       id: 3,
       title: "Number separators",
-      icon: <Octicons name='number' size={24} color={text} />,
+      icon: <Octicons name='number' size={ICON_SIZE} color={text} />,
       onPress: () => navigation.navigate("NumberSeparators"),
       rightIcon: chevronIcon,
     },
     {
       id: 4,
       title: "Dashboard",
-      icon: <MaterialCommunityIcons name='view-dashboard-outline' size={24} color={text} />,
+      icon: <MaterialCommunityIcons name='view-dashboard-outline' size={ICON_SIZE} color={text} />,
       onPress: () => navigation.navigate("DashboardSettings"),
       rightIcon: chevronIcon,
     },
     {
       id: 5,
       title: "Backup and restore",
-      icon: <MaterialCommunityIcons name='database-export-outline' size={24} color={text} />,
+      icon: <MaterialCommunityIcons name='database-export-outline' size={ICON_SIZE} color={text} />,
       onPress: () => navigation.navigate("ExportImport"),
       rightIcon: chevronIcon,
     },
     {
       id: 6,
       title: "Pin code",
-      icon: <MaterialIcons name='password' size={24} color={text} />,
+      icon: <MaterialIcons name='password' size={ICON_SIZE} color={text} />,
       onPress: () => navigation.navigate("PinSettings"),
       rightIcon: chevronIcon,
     },
     {
       id: 7,
       title: "About app",
-      icon: <MaterialIcons name='info-outline' size={24} color={text} />,
+      icon: <MaterialIcons name='info-outline' size={ICON_SIZE} color={text} />,
       onPress: () => navigation.navigate("AboutApp"),
       rightIcon: chevronIcon,
     },

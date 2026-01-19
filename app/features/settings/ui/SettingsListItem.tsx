@@ -35,6 +35,7 @@ const themeStyles = (theme: AppTheme) =>
       borderRadius: 8,
       marginBottom: 8,
       paddingHorizontal: 8,
+      paddingVertical: 2,
     },
     row: {
       flexDirection: "row",
