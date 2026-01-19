@@ -1,8 +1,3 @@
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-import Label from "components/Label";
-import ShadowBoxView from "components/ShadowBoxView";
-import colors from "constants/colors";
-import React, { FC } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -12,6 +7,12 @@ import {
   Platform,
   Image,
 } from "react-native";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import Label from "components/Label";
+import ShadowBoxView from "components/ShadowBoxView";
+import colors from "constants/colors";
+import React, { FC } from "react";
+import { version } from "../../../../../package.json";
 
 const AboutScreen: FC = () => {
   const styles = useThemedStyles(themeStyles);
@@ -47,6 +48,8 @@ const AboutScreen: FC = () => {
           useful for managing their budget and expenses.
           {"\n\n"}
           This is a solo project, designed and developed by Miloš S.
+          {"\n\n"}
+          Special thanks to my wife, a fruit fly scientist, for her help with the app name and logo.
         </Label>
       </ShadowBoxView>
 
@@ -68,12 +71,11 @@ const AboutScreen: FC = () => {
         <Label style={styles.sectionTitle}>Built With</Label>
         <Label style={styles.text}>
           This app is powered by modern, open-source technologies:
-          {"\n\n"}• React Native & Expo - Cross-platform framework
-          {"\n"}• SQLite & Drizzle ORM - Local database
-          {"\n"}• React Navigation - Screen navigation
-          {"\n"}• React Query - Data management
-          {"\n\n"}
-          Special thanks to the open-source community for making these tools available.
+          {"\n\n"}• React Native & Expo
+          {"\n"}• SQLite & Drizzle ORM
+          {"\n"}• React Navigation
+          {"\n"}• React Query
+          {"\n"}• Formik & Yup
         </Label>
       </ShadowBoxView>
 
@@ -98,7 +100,7 @@ const AboutScreen: FC = () => {
       </ShadowBoxView>
 
       <ShadowBoxView style={styles.footer}>
-        <Label style={styles.footerText}>Version 1.0.0</Label>
+        <Label style={styles.footerText}>Version {version}</Label>
         <Label style={styles.footerText}>© 2025 SpendyFly</Label>
       </ShadowBoxView>
     </ScrollView>
@@ -147,8 +149,6 @@ const themeStyles = (theme: AppTheme) =>
       paddingHorizontal: 16,
       borderRadius: 8,
       marginTop: 12,
-      borderWidth: 1,
-      borderColor: "#2f80ed20",
     },
     emailText: {
       fontSize: 15,
