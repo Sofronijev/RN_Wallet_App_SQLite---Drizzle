@@ -95,6 +95,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
             currencySymbol: data?.symbolNative ?? "",
           });
         },
+        selectedCurrencyCode: currencyCode,
       },
     });
   };

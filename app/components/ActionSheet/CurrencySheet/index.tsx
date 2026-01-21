@@ -1,23 +1,26 @@
 import React, { FC, useCallback, useRef } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { Ionicons } from "@expo/vector-icons";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { CurrencyType, currencies } from "app/currencies/currencies";
 import SheetHeader from "../components/SheetHeader";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useThemedStyles, useColors } from "app/theme/useThemedStyles";
 
 type Props = {
   onSelect: (currency: CurrencyType | null) => void;
+  selectedCurrencyCode?: CurrencyType["currencyCode"] | null;
 };
 
 const currencyArray = Object.values(currencies);
 
 const keyExtractor = (item: CurrencyType) => item.currencyCode;
 
-const CurrencySheet: FC<Props> = ({ onSelect }) => {
+const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode }) => {
   const sheetRef = useRef<BottomSheetModal>(null);
   const styles = useThemedStyles(themedStyles);
+  const { primary } = useColors();
 
   const onItemPress = (item: CurrencyType) => () => {
     onSelect(item);
@@ -30,26 +33,34 @@ const CurrencySheet: FC<Props> = ({ onSelect }) => {
   };
 
   const renderItem = useCallback(
-    ({ item }: { item: CurrencyType }) => (
-      <TouchableOpacity
-        onPress={onItemPress(item)}
-        style={styles.itemContainer}
-        activeOpacity={0.7}
-      >
-        <View style={styles.itemContent}>
-          <View style={styles.leftContent}>
-            <View style={styles.symbolContainer}>
-              <Label style={styles.symbol}>{item.symbolNative}</Label>
+    ({ item }: { item: CurrencyType }) => {
+      const isSelected = selectedCurrencyCode === item.currencyCode;
+
+      return (
+        <TouchableOpacity
+          onPress={onItemPress(item)}
+          style={[styles.itemContainer, isSelected && styles.selectedItem]}
+          activeOpacity={0.7}
+        >
+          <View style={styles.itemContent}>
+            <View style={styles.leftContent}>
+              {item.symbolNative && (
+                <View style={styles.symbolContainer}>
+                  <Label style={styles.symbol}>{item.symbolNative}</Label>
+                </View>
+              )}
+              <View style={styles.textContent}>
+                <Label style={styles.code}>{item.currencyCode}</Label>
+                <Label style={styles.name}>{item.name}</Label>
+              </View>
             </View>
-            <View style={styles.textContent}>
-              <Label style={styles.code}>{item.currencyCode}</Label>
-              <Label style={styles.name}>{item.name}</Label>
-            </View>
+
+            {isSelected && <Ionicons name='checkmark' size={24} color={primary} />}
           </View>
-        </View>
-      </TouchableOpacity>
-    ),
-    [styles],
+        </TouchableOpacity>
+      );
+    },
+    [styles, selectedCurrencyCode, primary],
   );
 
   return (
@@ -81,6 +92,11 @@ const themedStyles = (theme: AppTheme) =>
       borderRadius: 8,
       backgroundColor: theme.colors.cardInner,
     },
+    selectedItem: {
+      backgroundColor: theme.colors.primary + "10", // Subtle highlight
+      borderWidth: 1,
+      borderColor: theme.colors.primary + "30",
+    },
     itemContent: {
       flexDirection: "row",
       alignItems: "center",
@@ -92,16 +108,16 @@ const themedStyles = (theme: AppTheme) =>
       flex: 1,
     },
     symbolContainer: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: theme.colors.primary + "20", // 20% opacity
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.colors.primary + "20",
       alignItems: "center",
       justifyContent: "center",
       marginRight: 12,
     },
     symbol: {
-      fontSize: 16,
+      fontSize: 20,
       fontWeight: "600",
       color: theme.colors.primary,
     },
