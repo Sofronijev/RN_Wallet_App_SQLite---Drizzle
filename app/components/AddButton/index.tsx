@@ -12,7 +12,7 @@ const AddButton: React.FC<AddButtonProps> = ({}) => {
   const navigation = useAppNavigation();
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.navigate("Transaction")} style={styles.button}>
+      <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate("Transaction")} style={styles.button}>
         <Entypo name='plus' size={35} color={colors.white} />
       </TouchableOpacity>
     </View>

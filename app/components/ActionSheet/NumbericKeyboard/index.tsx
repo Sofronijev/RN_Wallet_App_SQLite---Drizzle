@@ -236,6 +236,8 @@ const themeStyles = (theme: AppTheme) =>
     input: {
       fontSize: 28,
       textAlign: "right",
+      borderBottomWidth: 1,
+      borderColor: theme.colors.border,
     },
     numbers: {
       backgroundColor: theme.colors.cardInner,

@@ -62,6 +62,8 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
         onSetAmount: (amount: number) => setStartingBalance({ id: walletId, amount }),
         title: startingBalanceStrings.title,
         subtitle: startingBalanceStrings.subtitle,
+        showOperators: true,
+        initialValue: roundDecimals(startingBalance),
       },
     });
   };
@@ -116,7 +118,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
       (walletName) => {
         changeWalletName({ id: walletId, walletName });
       },
-      { defaultValue: walletName }
+      { defaultValue: walletName },
     );
   };
 
@@ -131,7 +133,7 @@ const WalletSettingsItem: React.FC<Props> = ({ wallet, canDeleteWallet }) => {
           style: "destructive",
           onPress: () => deleteWallet({ id: walletId }),
         },
-      ]
+      ],
     );
   };
 

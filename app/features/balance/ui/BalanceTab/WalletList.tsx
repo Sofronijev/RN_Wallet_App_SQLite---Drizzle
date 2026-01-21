@@ -1,4 +1,11 @@
-import { Alert, ListRenderItem, StyleSheet, View, useWindowDimensions } from "react-native";
+import {
+  Alert,
+  ListRenderItem,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import Label from "components/Label";
@@ -79,7 +86,7 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
     } else {
       Alert.alert(
         "Transfer not possible",
-        "To make a transfer, you need at least two wallets. Please add another wallet to continue"
+        "To make a transfer, you need at least two wallets. Please add another wallet to continue",
       );
     }
   };
@@ -107,22 +114,22 @@ const WalletList: React.FC<WalletListProps> = ({ selectedWalletId }) => {
           </View>
         </View>
         <View style={styles.row}>
-          <View style={tStyles.buttonContainer}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onTransfer(item.walletId)}
+            style={tStyles.buttonContainer}
+          >
             <MaterialIcons name='swap-horiz' size={18} color={colors.primary} />
-            <ButtonText
-              title='Transfer'
-              onPress={onTransfer(item.walletId)}
-              style={styles.button}
-            />
-          </View>
-          <View style={tStyles.buttonContainer}>
+            <Label style={tStyles.button}>Transfer</Label>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={tStyles.buttonContainer}
+            onPress={() => onBalancePress(item.walletId, item.currentBalance)}
+          >
             <MaterialIcons name='tune' size={18} color={colors.primary} />
-            <ButtonText
-              title='Adjust'
-              onPress={() => onBalancePress(item.walletId, item.currentBalance)}
-              style={styles.button}
-            />
-          </View>
+            <Label style={tStyles.button}>Adjust</Label>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -177,6 +184,11 @@ const themedStyles = (theme: AppTheme) =>
     currencySymbol: {
       color: theme.colors.placeholder,
     },
+    button: {
+      paddingVertical: 3,
+      paddingHorizontal: 0,
+      color: theme.colors.primary,
+    },
   });
 
 const styles = StyleSheet.create({
@@ -206,10 +218,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-  },
-  button: {
-    paddingVertical: 3,
-    paddingHorizontal: 0,
   },
   balanceRow: {
     flexDirection: "row",

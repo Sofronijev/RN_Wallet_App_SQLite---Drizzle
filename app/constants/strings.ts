@@ -64,7 +64,8 @@ export const numericKeyboardStrings = {
 
 export const changeBalanceStrings = {
   title: "Enter the correct balance",
-  subtitle: "A correction transaction will be created to update your balance.",
+  subtitle:
+    "A correction transaction will be created to update your balance. To change it without a transaction, edit the starting balance.",
 };
 
 export const startingBalanceStrings = {
