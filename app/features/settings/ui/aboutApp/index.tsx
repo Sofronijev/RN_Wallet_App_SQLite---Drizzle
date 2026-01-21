@@ -19,7 +19,7 @@ const AboutScreen: FC = () => {
   const email = "SpendyFly@gmail.com";
   const storeName = Platform.OS === "ios" ? "App Store" : "Play Store";
   const appStoreId = "";
-  const packageName = ""; //"com.milos.budgetapp";
+  const packageName = "com.misurapps.spendyfly";
 
   const openEmail = () => Linking.openURL(`mailto:${email}`);
 
@@ -94,9 +94,9 @@ const AboutScreen: FC = () => {
           appreciated!
         </Label>
 
-        {/* <TouchableOpacity onPress={openStoreReview} style={styles.reviewButton}>
+        <TouchableOpacity onPress={openStoreReview} style={styles.reviewButton}>
           <Label style={styles.reviewButtonText}>Leave a Review</Label>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </ShadowBoxView>
 
       <ShadowBoxView style={styles.footer}>

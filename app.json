@@ -25,7 +25,7 @@
       },
       "icon": "./app/assets/ios-light.png",
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.sofronijev.spendyFly"
+      "package": "com.misurapps.spendyfly"
     },
     "web": {
       "favicon": "./app/assets/adaptive-icon.png"
