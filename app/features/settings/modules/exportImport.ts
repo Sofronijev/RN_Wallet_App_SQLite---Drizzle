@@ -37,7 +37,7 @@ const DB_NAME = "db.db";
 async function getCurrentMigrations(db: any): Promise<Migration[]> {
   try {
     const result = await db.getAllAsync(
-      "SELECT id, hash, created_at FROM __drizzle_migrations ORDER BY id ASC"
+      "SELECT id, hash, created_at FROM __drizzle_migrations ORDER BY id ASC",
     );
     return result || [];
   } catch (error) {
@@ -48,7 +48,7 @@ async function getCurrentMigrations(db: any): Promise<Migration[]> {
 
 function validateImportedDatabase(
   currentMigrations: Migration[],
-  importedMigrations: Migration[]
+  importedMigrations: Migration[],
 ): ValidationResult {
   if (importedMigrations.length > currentMigrations.length) {
     return {
@@ -242,5 +242,49 @@ export async function importDatabase(): Promise<{ success: boolean; message: str
         console.log("Temporary file already deleted");
       }
     }
+  }
+}
+
+export async function deleteAllData(): Promise<{ success: boolean; message: string }> {
+  try {
+    const expoDb = openDatabaseSync(DB_NAME);
+
+    await expoDb.execAsync("BEGIN TRANSACTION");
+
+    try {
+      // Drop all user tables (in reverse order due to foreign keys)
+      await expoDb.execAsync(`
+        DROP TABLE IF EXISTS transfer;
+        DROP TABLE IF EXISTS transactions;
+        DROP TABLE IF EXISTS wallet;
+        DROP TABLE IF EXISTS types;
+        DROP TABLE IF EXISTS categories;
+        DROP TABLE IF EXISTS users;
+      `);
+
+      // Drop migrations table to force re-run of all migrations on app restart
+      await expoDb.execAsync(`
+        DROP TABLE IF EXISTS __drizzle_migrations;
+      `);
+
+      // sqlite_sequence is automatically reset when tables are dropped
+
+      await expoDb.execAsync("COMMIT");
+
+      return {
+        success: true,
+        message:
+          "All data deleted successfully!\nPlease restart the app to reinitialize the database.",
+      };
+    } catch (error) {
+      await expoDb.execAsync("ROLLBACK");
+      throw error;
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    return {
+      success: false,
+      message: `Delete error: ${error instanceof Error ? error.message : "Unknown error"}`,
+    };
   }
 }

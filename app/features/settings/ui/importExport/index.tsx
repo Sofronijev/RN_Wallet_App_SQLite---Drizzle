@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Alert, StyleSheet } from "react-native";
-import { exportDatabase, importDatabase } from "../../modules/exportImport";
+import { exportDatabase, importDatabase, deleteAllData } from "../../modules/exportImport";
 import ShadowBoxView from "components/ShadowBoxView";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
@@ -10,6 +10,7 @@ import CustomButton from "components/CustomButton";
 export const DatabaseBackupScreen = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const styles = useThemedStyles(themedStyles);
 
@@ -47,6 +48,39 @@ export const DatabaseBackupScreen = () => {
     }
   };
 
+  const handleDeleteAllData = () => {
+    Alert.alert(
+      "Delete All Data",
+      "Are you sure you want to delete all your data? This action cannot be undone!\n\nConsider creating a backup first.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const result = await deleteAllData();
+
+              if (result.success) {
+                Alert.alert("Success", result.message, [], { cancelable: false });
+              } else {
+                Alert.alert("Error", result.message, [{ text: "OK" }]);
+              }
+            } catch (error) {
+              Alert.alert("Error", "Unexpected error during deletion", [{ text: "OK" }]);
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ShadowBoxView style={styles.section}>
@@ -78,6 +112,22 @@ export const DatabaseBackupScreen = () => {
         />
       </ShadowBoxView>
 
+      <ShadowBoxView style={styles.section}>
+        <Label style={styles.sectionTitle}>Delete All Data</Label>
+        <Label style={styles.description}>Permanently deletes all your data from the app.</Label>
+        <Label style={styles.warning}>
+          ⚠️ This action cannot be undone! Create a backup first.
+        </Label>
+        <CustomButton
+          onPress={handleDeleteAllData}
+          disabled={isDeleting}
+          title='Delete All Data'
+          isLoading={isDeleting}
+          type='danger'
+          size='small'
+        />
+      </ShadowBoxView>
+
       <View style={styles.info}>
         <Label style={styles.infoTitle}>ℹ️ Notes:</Label>
         <Label style={styles.infoText}>
@@ -87,6 +137,9 @@ export const DatabaseBackupScreen = () => {
           • Older backups will be automatically updated to the latest version
         </Label>
         <Label style={styles.infoText}>• You cannot import backups from a newer app version</Label>
+        <Label style={styles.infoText}>
+          • Always create a backup before deleting or importing data
+        </Label>
       </View>
     </View>
   );
