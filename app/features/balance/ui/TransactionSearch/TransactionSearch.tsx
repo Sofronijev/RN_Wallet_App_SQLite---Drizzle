@@ -77,7 +77,7 @@ export default TransactionSearch;
 
 const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: theme.colors.background },
+    container: { flex: 1, backgroundColor: theme.colors.card },
     flatList: {
       paddingHorizontal: 16,
     },
