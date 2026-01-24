@@ -11,6 +11,7 @@ import TypeSelector from "app/features/balance/ui/TransactionForm/TypeSelector";
 import { useAppNavigation } from "navigation/routes";
 import { showDeleteCategoryAlert } from "../../modules";
 import { addColorOpacity } from "modules/colorHelper";
+import CustomButton from "components/CustomButton";
 
 const keyExtractor = (item: number) => `${item}`;
 
@@ -34,7 +35,7 @@ const CategorySettings: React.FC = () => {
       if (isSystemCategory) {
         Alert.alert(
           "Cannot edit this category",
-          "This category is required to correctly track your balance and can’t be edited or deleted."
+          "This category is required to correctly track your balance and can’t be edited or deleted.",
         );
       } else {
         navigation.navigate("CategoryForm", { id });
@@ -103,6 +104,12 @@ const CategorySettings: React.FC = () => {
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
       />
+      <View style={styles.addButton}>
+        <CustomButton
+          onPress={() => navigation.navigate("CategoryForm")}
+          title='New Category'
+        ></CustomButton>
+      </View>
     </SafeAreaView>
   );
 };
@@ -172,5 +179,8 @@ const styles = StyleSheet.create({
   },
   typesContainer: {
     marginTop: 4,
+  },
+  addButton: {
+    padding: 16,
   },
 });

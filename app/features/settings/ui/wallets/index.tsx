@@ -28,7 +28,7 @@ const WalletSettings: React.FC = () => {
         contentContainerStyle={{ gap: 8 }}
       />
       <View style={styles.addButton}>
-        <CustomButton onPress={onAddNewPress} title='Create new wallet'></CustomButton>
+        <CustomButton onPress={onAddNewPress} title='New wallet'></CustomButton>
       </View>
       <AppActivityIndicator isLoading={isWalletsLoading || isCreatingLoading} />
     </SafeAreaView>

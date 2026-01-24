@@ -108,14 +108,9 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen
           name='CategorySettings'
           component={CategorySettings}
-          options={({ navigation }) => ({
+          options={{
             title: "Category settings",
-            headerRight: () => (
-              <HeaderTextButton onPress={() => navigation.navigate("CategoryForm")}>
-                Add new
-              </HeaderTextButton>
-            ),
-          })}
+          }}
         />
         <Stack.Screen
           name='CategoryForm'
