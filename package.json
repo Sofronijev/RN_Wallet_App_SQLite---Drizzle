@@ -9,6 +9,7 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "apk_eas": "eas build -p android --profile preview",
+    "apk_prod": "eas build --platform android --profile production",
     "apk": "npx expo run:android --variant release",
     "prebuild": "npx expo prebuild",
     "db:generate": "npx drizzle-kit generate",
