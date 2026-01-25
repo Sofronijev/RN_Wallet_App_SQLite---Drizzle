@@ -63,7 +63,7 @@ export const getHistoryChartData = (data: HistoryChartData[], decimal: string) =
     const mixedData = getMixedGridLines(
       getRoundedUpperBound(rawMin),
       getRoundedUpperBound(rawMax),
-      sections
+      sections,
     );
     min = mixedData.minValue;
     max = mixedData.maxValue;
@@ -86,7 +86,7 @@ export const getHistoryChartData = (data: HistoryChartData[], decimal: string) =
   const getYAxisLabelTexts = Array.from({ length: sections + 1 }, (_, i) => base + step * i);
 
   const yAxisLabelTexts = getYAxisLabelTexts.map((value) =>
-    hasValues ? formatLabelNumber(`${value}`, decimal) : " "
+    hasValues ? formatLabelNumber(`${value}`, decimal) : " ",
   );
 
   const zeroIndex = isMixed ? yAxisLabelTexts.indexOf("0") - 1 : zeroRuleIndex;
@@ -105,6 +105,16 @@ export const getTotalChange = (data: HistoryChartData[]) => {
   const lastValue = data[data.length - 1]?.originalValue ?? 0;
 
   const changeAmount = lastValue - firstValue;
-  const changePercent = firstValue !== 0 ? (changeAmount / firstValue) * 100 : null;
+
+  let changePercent: number | null;
+
+  if (firstValue === 0 && lastValue === 0) {
+    changePercent = 0;
+  } else if (firstValue === 0) {
+    changePercent = null;
+  } else {
+    changePercent = (changeAmount / firstValue) * 100;
+  }
+
   return { changeAmount, changePercent };
 };

@@ -63,15 +63,17 @@ const TotalHistoryChart: React.FC<Props> = () => {
   const rulesConfigArray = Array.from({ length: sections }, (_, i) =>
     i === zeroRuleIndex
       ? { rulesThickness: 2, rulesColor: colors.placeholder, rulesType: "solid" }
-      : {}
+      : {},
   );
 
   const { changeAmount, changePercent } = getTotalChange(formattedData);
 
   const formatPercent =
-    changePercent === null || changePercent > 1000
-      ? ` (>999%)`
-      : ` (${formatDecimalDigits(changePercent, delimiter, decimal)}%)`;
+    changePercent === null
+      ? ""
+      : changePercent > 999
+        ? " (>999%)"
+        : ` (${formatDecimalDigits(changePercent, delimiter, decimal)}%)`;
   return (
     <ShadowBoxView
       style={styles.container}
@@ -107,7 +109,7 @@ const TotalHistoryChart: React.FC<Props> = () => {
           {`Balance change: ${formatDecimalDigits(
             changeAmount,
             delimiter,
-            decimal
+            decimal,
           )}${formatPercent}`}
         </Label>
       </View>

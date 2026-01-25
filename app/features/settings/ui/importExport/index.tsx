@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Alert, StyleSheet } from "react-native";
+import { View, Alert, StyleSheet, ScrollView } from "react-native";
 import { exportDatabase, importDatabase, deleteAllData } from "../../modules/exportImport";
 import ShadowBoxView from "components/ShadowBoxView";
 import Label from "components/Label";
@@ -82,7 +82,7 @@ export const DatabaseBackupScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <ShadowBoxView style={styles.section}>
         <Label style={styles.sectionTitle}>Export Database</Label>
         <Label style={styles.description}>
@@ -141,7 +141,7 @@ export const DatabaseBackupScreen = () => {
           • Always create a backup before deleting or importing data
         </Label>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
