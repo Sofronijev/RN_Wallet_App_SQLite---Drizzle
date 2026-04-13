@@ -25,7 +25,7 @@ const RootNavigator: React.FC = () => {
   return (
     <View style={{ flex: 1 }}>
       {__DEV__ && <DrizzleStudio />}
-      <StatusBar animated={true} backgroundColor={colors.greenMint} style={statusBarStyle} />
+      <StatusBar animated={true} style={statusBarStyle} />
       {pinVisible && !isLoading ? <AuthNavigator /> : <AppNavigator />}
     </View>
   );
