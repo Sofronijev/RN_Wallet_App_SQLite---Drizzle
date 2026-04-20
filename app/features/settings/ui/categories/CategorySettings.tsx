@@ -11,6 +11,7 @@ import TypeSelector from "app/features/balance/ui/TransactionForm/TypeSelector";
 import { useAppNavigation } from "navigation/routes";
 import { showDeleteCategoryAlert } from "../../modules";
 import { addColorOpacity } from "modules/colorHelper";
+import { pressableOpacityStyle } from "modules/pressable";
 import CustomButton from "components/CustomButton";
 
 const keyExtractor = (item: number) => `${item}`;
@@ -44,7 +45,7 @@ const CategorySettings: React.FC = () => {
 
     return (
       <ShadowBoxView style={styles.cardContent}>
-        <Pressable onPress={openFormScreen} style={({ pressed }) => pressed && styles.itemPressed}>
+        <Pressable onPress={openFormScreen} style={pressableOpacityStyle()}>
           <View style={styles.headerRow}>
             <View style={styles.leftSection}>
               <View
@@ -121,9 +122,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 8,
-  },
-  itemPressed: {
-    opacity: 0.7,
   },
   cardContent: {
     paddingVertical: 8,

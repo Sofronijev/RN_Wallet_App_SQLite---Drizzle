@@ -19,6 +19,7 @@ import { DashboardOptions } from "app/context/DashboardOptions/dashboardSettingS
 import ButtonText from "components/ButtonText";
 import { useAppNavigation } from "navigation/routes";
 import ShadowBoxView from "components/ShadowBoxView";
+import UpcomingPaymentsSection from "./UpcomingPaymentsSection";
 
 const BalanceScreen: React.FC = () => {
   const navigation = useAppNavigation();
@@ -76,6 +77,11 @@ const BalanceScreen: React.FC = () => {
         {dashboardOptions.showBalanceTrend && (
           <View style={tStyles.itemContainer}>
             <TotalHistoryChart />
+          </View>
+        )}
+        {dashboardOptions.showUpcomingPayments && (
+          <View style={tStyles.itemContainer}>
+            <UpcomingPaymentsSection />
           </View>
         )}
         {dashboardOptions.showRecentTransactions ? (

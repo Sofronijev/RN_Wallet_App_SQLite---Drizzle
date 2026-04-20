@@ -4,6 +4,7 @@ export type DashboardOptions = {
   showTotalBalance: boolean;
   showMonthlySummary: boolean;
   showBalanceTrend: boolean;
+  showUpcomingPayments: boolean;
   showRecentTransactions: boolean;
 };
 
@@ -13,6 +14,7 @@ export const defaultDashboardOptions: DashboardOptions = {
   showTotalBalance: true,
   showMonthlySummary: true,
   showBalanceTrend: true,
+  showUpcomingPayments: true,
   showRecentTransactions: true,
 };
 

@@ -28,6 +28,11 @@ const dashboardItems: {
     key: "showBalanceTrend",
   },
   {
+    title: "Upcoming payments",
+    description: "Shows bills and scheduled payments that are due soon.",
+    key: "showUpcomingPayments",
+  },
+  {
     title: "Recent transactions",
     description: "Displays your latest transactions at a glance.",
     key: "showRecentTransactions",
