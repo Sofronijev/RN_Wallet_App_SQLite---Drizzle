@@ -1,5 +1,12 @@
 import { relations, sql } from "drizzle-orm";
-import { sqliteTable, text, integer, real, AnySQLiteColumn } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  uniqueIndex,
+  AnySQLiteColumn,
+} from "drizzle-orm/sqlite-core";
 
 const DEFAULT_USER_ID = 1;
 
@@ -42,7 +49,7 @@ export const types = sqliteTable("Types", {
     .notNull(),
   sortOrder: integer("sortOrder").default(0).notNull(),
   transactionType: text("transactionType", { length: 20, enum: ["income", "expense"] }).default(
-    sql`NULL`
+    sql`NULL`,
   ),
 });
 
@@ -153,6 +160,87 @@ export const transfer = sqliteTable("Transfer", {
   toTransactionId: integer("toTransactionId").notNull(),
 });
 
+// Upcoming payments Table
+export const upcomingPayments = sqliteTable("UpcomingPayments", {
+  id: integer("id").primaryKey(),
+  name: text("name").notNull(),
+  amount: real("amount"),
+  categoryId: integer("categoryId")
+    .references(() => categories.id, { onUpdate: "cascade", onDelete: "cascade" })
+    .notNull(),
+  typeId: integer("typeId").references(() => types.id, {
+    onUpdate: "cascade",
+    onDelete: "cascade",
+  }),
+  walletId: integer("walletId")
+    .references(() => wallet.walletId, { onUpdate: "cascade", onDelete: "cascade" })
+    .notNull(),
+  userId: integer("userId")
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
+    .default(DEFAULT_USER_ID)
+    .notNull(),
+  firstDueDate: text("firstDueDate").notNull(),
+  endDate: text("endDate"),
+  recurrence: text("recurrence", {
+    length: 10,
+    enum: ["none", "daily", "weekly", "monthly", "yearly", "custom"],
+  })
+    .default("none")
+    .notNull(),
+  customIntervalValue: integer("customIntervalValue"),
+  customIntervalUnit: text("customIntervalUnit", { enum: ["day", "week", "month"] }),
+  notifyDaysBefore: integer("notifyDaysBefore"),
+  notifyOnDueDay: integer("notifyOnDueDay", { mode: "boolean" }).default(true).notNull(),
+  notifyOnMissed: integer("notifyOnMissed", { mode: "boolean" }).default(true).notNull(),
+  isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
+  createdAt: text("createdAt")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+// Upcoming Payment Instances Table
+export const upcomingPaymentInstances = sqliteTable(
+  "UpcomingPaymentInstances",
+  {
+    id: integer("id").primaryKey(),
+    upcomingPaymentId: integer("upcomingPaymentId")
+      .references(() => upcomingPayments.id, { onDelete: "cascade", onUpdate: "cascade" })
+      .notNull(),
+    dueDate: text("dueDate").notNull(),
+    expectedAmount: real("expectedAmount"),
+    status: text("status", {
+      length: 10,
+      enum: ["pending", "paid", "missed", "canceled"],
+    })
+      .default("pending")
+      .notNull(),
+    paidAt: text("paidAt"),
+    canceledAt: text("canceledAt"),
+    notificationIds: text("notificationIds"),
+  },
+  (table) => [
+    uniqueIndex("upcoming_instance_unique_due").on(table.upcomingPaymentId, table.dueDate),
+  ],
+);
+
+// Upcoming Payment Contributions Table
+export const upcomingPaymentContributions = sqliteTable("UpcomingPaymentContributions", {
+  id: integer("id").primaryKey(),
+  instanceId: integer("instanceId")
+    .references(() => upcomingPaymentInstances.id, { onDelete: "cascade", onUpdate: "cascade" })
+    .notNull(),
+  transactionId: integer("transactionId")
+    .references(() => transactions.id, { onDelete: "cascade", onUpdate: "cascade" })
+    .notNull(),
+  amount: real("amount").notNull(),
+  createdAt: text("createdAt")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
 //Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   transactions: many(transactions),
@@ -210,6 +298,51 @@ export const transactionsRelations = relations(transactions, ({ one, many }) => 
     references: [transfer.id],
   }),
 }));
+
+export const upcomingPaymentsRelations = relations(upcomingPayments, ({ many, one }) => ({
+  instances: many(upcomingPaymentInstances),
+  category: one(categories, {
+    fields: [upcomingPayments.categoryId],
+    references: [categories.id],
+  }),
+  type: one(types, {
+    fields: [upcomingPayments.typeId],
+    references: [types.id],
+  }),
+  wallet: one(wallet, {
+    fields: [upcomingPayments.walletId],
+    references: [wallet.walletId],
+  }),
+  user: one(users, {
+    fields: [upcomingPayments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const upcomingPaymentInstancesRelations = relations(
+  upcomingPaymentInstances,
+  ({ many, one }) => ({
+    upcomingPayment: one(upcomingPayments, {
+      fields: [upcomingPaymentInstances.upcomingPaymentId],
+      references: [upcomingPayments.id],
+    }),
+    contributions: many(upcomingPaymentContributions),
+  }),
+);
+
+export const upcomingPaymentContributionsRelations = relations(
+  upcomingPaymentContributions,
+  ({ one }) => ({
+    instance: one(upcomingPaymentInstances, {
+      fields: [upcomingPaymentContributions.instanceId],
+      references: [upcomingPaymentInstances.id],
+    }),
+    transaction: one(transactions, {
+      fields: [upcomingPaymentContributions.transactionId],
+      references: [transactions.id],
+    }),
+  }),
+);
 
 export const transferRelations = relations(transfer, ({ one }) => ({
   user: one(users, {
