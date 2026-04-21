@@ -85,7 +85,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
   const pickedWallet = wallets.find((wallet) => wallet.walletId === +values.walletId);
   const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
 
-  const typeOptions = values.category?.id ? categoriesById[values.category.id]?.types ?? [] : [];
+  const typeOptions = values.category?.id ? (categoriesById[values.category.id]?.types ?? []) : [];
 
   const onSelectCategory = async (categoryId: number) => {
     const category = categoriesById[categoryId];
@@ -157,26 +157,22 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps='always'>
       <View style={styles.inputsContainer}>
-        <StyledLabelInput
-          placeholder='Name (e.g. Rent, Netflix)'
-          maxLength={255}
-          value={values.name}
-          onChangeText={handleChange("name")}
+        <DatePickerInput
+          date={new Date(values.date ?? undefined)}
+          onDateSelect={onDateChange}
+          hideTime
         />
-        <InputErrorLabel text={errors.name} isVisible={!!errors.name} />
         <View style={styles.input}>
-          <DatePickerInput
-            date={new Date(values.date ?? undefined)}
-            onDateSelect={onDateChange}
-            hideTime
+          <StyledLabelInput
+            placeholder='Name (e.g. Rent, Netflix)'
+            maxLength={255}
+            value={values.name}
+            onChangeText={handleChange("name")}
           />
+          <InputErrorLabel text={errors.name} isVisible={!!errors.name} />
         </View>
         <View style={styles.walletPicker}>
-          <WalletPicker
-            wallets={wallets}
-            selected={+values.walletId}
-            onSelect={onWalletSelect}
-          />
+          <WalletPicker wallets={wallets} selected={+values.walletId} onSelect={onWalletSelect} />
           <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
         </View>
         <View style={styles.input}>
@@ -193,15 +189,11 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
             walletCurrency={walletCurrency}
           />
         )}
-        {showAmountField && (
-          <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
-        )}
+        {showAmountField && <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />}
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
           <Pressable onPress={showCategoriesSheet} style={pressableOpacityStyle(styles.flexRow)}>
             <View style={styles.icon}>{getCategoryInputIcon}</View>
-            <Label
-              style={[styles.label, !values.category?.name && styles.placeHolder]}
-            >
+            <Label style={[styles.label, !values.category?.name && styles.placeHolder]}>
               {values.category?.name ?? "Select category"}
             </Label>
           </Pressable>
