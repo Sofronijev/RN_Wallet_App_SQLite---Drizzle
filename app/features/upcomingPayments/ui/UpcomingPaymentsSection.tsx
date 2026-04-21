@@ -7,7 +7,7 @@ import UpcomingPaymentRow from "./UpcomingPaymentRow";
 import {
   DummyUpcomingInstanceRow,
   upcomingPaymentsDummyData,
-} from "./upcomingPaymentsDummyData";
+} from "../modules/upcomingPaymentsDummyData";
 
 const MAX_VISIBLE_ROWS = 3;
 

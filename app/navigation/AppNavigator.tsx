@@ -16,10 +16,10 @@ import TransactionFilters from "app/features/balance/ui/TransactionSearch/Transa
 import { TransactionFiltersProvider } from "app/features/balance/ui/TransactionSearch/context/TransactionFiltersContext";
 import CategorySettings from "app/features/settings/ui/categories/CategorySettings";
 import CategoryForm from "app/features/settings/ui/categories/CategoryForm";
-import HeaderTextButton from "components/Header/HeaderTextButton";
 import DashboardSettings from "app/features/settings/ui/dashboard/DashboardSettings";
 import { DatabaseBackupScreen } from "app/features/settings/ui/importExport";
 import AboutScreen from "app/features/settings/ui/aboutApp";
+import UpcomingPaymentForm from "app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -135,6 +135,14 @@ const AppNavigator: React.FC = () => {
             animation: "default",
             title: "About",
           }}
+        />
+        <Stack.Screen
+          name='UpcomingPayment'
+          component={UpcomingPaymentForm}
+          options={({ route }) => ({
+            animation: "slide_from_bottom",
+            title: route.params?.id ? "Edit upcoming payment" : "New upcoming payment",
+          })}
         />
       </Stack.Navigator>
     </TransactionFiltersProvider>

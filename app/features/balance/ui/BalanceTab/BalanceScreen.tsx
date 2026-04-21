@@ -19,7 +19,7 @@ import { DashboardOptions } from "app/context/DashboardOptions/dashboardSettingS
 import ButtonText from "components/ButtonText";
 import { useAppNavigation } from "navigation/routes";
 import ShadowBoxView from "components/ShadowBoxView";
-import UpcomingPaymentsSection from "./UpcomingPaymentsSection";
+import UpcomingPaymentsSection from "app/features/upcomingPayments/ui/UpcomingPaymentsSection";
 
 const BalanceScreen: React.FC = () => {
   const navigation = useAppNavigation();

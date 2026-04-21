@@ -8,7 +8,7 @@ import { pressableOpacityStyle } from "modules/pressable";
 import { dueDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-import { DummyUpcomingInstanceRow } from "./upcomingPaymentsDummyData";
+import { DummyUpcomingInstanceRow } from "../modules/upcomingPaymentsDummyData";
 
 type Props = {
   row: DummyUpcomingInstanceRow;

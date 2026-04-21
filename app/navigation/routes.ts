@@ -24,6 +24,7 @@ export type AppStackParamList = {
   DashboardSettings: undefined;
   ExportImport: undefined;
   AboutApp: undefined;
+  UpcomingPayment: { id: number } | undefined;
 };
 
 export type AuthStackParamList = {
