@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6c7ac62a-c498-4318-8e66-837473f15633",
+  "id": "9f8ef5ec-4b62-45c9-a0f9-ab6da29bc500",
   "prevId": "3e763139-ff76-4966-b9d3-6da131e37f0a",
   "tables": {
     "Categories": {
@@ -562,6 +562,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text(300)",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "amount": {

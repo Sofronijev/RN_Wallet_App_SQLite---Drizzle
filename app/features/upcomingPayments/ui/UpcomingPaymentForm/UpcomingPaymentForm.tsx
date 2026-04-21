@@ -22,6 +22,7 @@ import NotificationSettings from "./fields/NotificationSettings";
 import VariableAmountToggle from "./fields/VariableAmountToggle";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
+import { addUpcomingPaymentMutation } from "app/queries/upcomingPayments";
 import { CurrencyType } from "app/currencies/currencies";
 import { ScrollView } from "react-native-gesture-handler";
 import Label from "components/Label";
@@ -44,7 +45,8 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data: wallets } = useGetWalletsWithBalance();
   const { categoriesById } = useGetCategories();
-  const isLoading = !selectedWallet;
+  const { addUpcomingPayment, isLoading: isSaving } = addUpcomingPaymentMutation();
+  const isLoading = !selectedWallet || isSaving;
 
   const walletCurrencies = useMemo(() => {
     const map = new Map<string, { currencyCode: string; currencySymbol: string }>();
@@ -67,9 +69,32 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
 
   const onUpcomingSubmit = async (values: UpcomingPaymentFormInputs) => {
     Keyboard.dismiss();
-    // TODO: wire to addUpcomingPaymentMutation once the service/query layer lands.
-    console.log("upcoming payment submit", values);
-    navigation.goBack();
+    if (!values.category?.id) return;
+
+    addUpcomingPayment(
+      {
+        name: values.name.trim(),
+        description: values.description.trim() || null,
+        amount: values.isVariableAmount ? null : values.amount,
+        categoryId: values.category.id,
+        typeId: values.type?.id ?? null,
+        currencyCode: values.currencyCode,
+        currencySymbol: values.currencySymbol,
+        firstDueDate: values.date,
+        endDate: values.endDate,
+        recurrence: values.recurrence,
+        customIntervalValue:
+          values.recurrence === "custom" ? values.customIntervalValue : null,
+        customIntervalUnit:
+          values.recurrence === "custom" ? values.customIntervalUnit : null,
+        notifyDaysBefore: values.notifyDaysBefore,
+        notifyOnDueDay: values.notifyOnDueDay,
+        notifyOnMissed: values.notifyOnMissed,
+      },
+      {
+        onSuccess: () => navigation.goBack(),
+      }
+    );
   };
 
   const { values, setFieldValue, errors, handleSubmit, handleChange } =

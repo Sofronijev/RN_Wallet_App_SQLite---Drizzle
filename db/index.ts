@@ -43,3 +43,6 @@ export type EditCategory = Partial<Omit<NewCategory, "id">> & { id: number; type
 
 export type NewType = InferInsertModel<typeof schema.types>;
 export type EditType = Omit<NewType, "id"> & { id: number };
+
+export type UpcomingPayment = InferSelectModel<typeof schema.upcomingPayments>;
+export type NewUpcomingPayment = InferInsertModel<typeof schema.upcomingPayments>;

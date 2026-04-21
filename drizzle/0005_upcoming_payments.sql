@@ -24,6 +24,7 @@ CREATE UNIQUE INDEX `upcoming_instance_unique_due` ON `UpcomingPaymentInstances`
 CREATE TABLE `UpcomingPayments` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
+	`description` text(300),
 	`amount` real,
 	`categoryId` integer NOT NULL,
 	`typeId` integer,

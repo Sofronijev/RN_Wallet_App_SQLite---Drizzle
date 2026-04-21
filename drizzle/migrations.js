@@ -6,7 +6,7 @@ import m0001 from './0001_initial_user.sql';
 import m0002 from './0002_initial_wallets.sql';
 import m0003 from './0003_initial_categories.sql';
 import m0004 from './0004_initial_types.sql';
-import m0005 from './0005_mean_mantis.sql';
+import m0005 from './0005_upcoming_payments.sql';
 
   export default {
     journal,

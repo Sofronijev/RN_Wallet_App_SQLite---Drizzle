@@ -164,6 +164,7 @@ export const transfer = sqliteTable("Transfer", {
 export const upcomingPayments = sqliteTable("UpcomingPayments", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
+  description: text("description", { length: 300 }),
   amount: real("amount"),
   categoryId: integer("categoryId")
     .references(() => categories.id, { onUpdate: "cascade", onDelete: "cascade" })
