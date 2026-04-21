@@ -58,7 +58,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = () => {
       id: 5,
       title: "Upcoming payments",
       icon: <MaterialCommunityIcons name='calendar-clock' size={ICON_SIZE} color={text} />,
-      onPress: () => {},
+      onPress: () => navigation.navigate("UpcomingPaymentsSettings"),
       rightIcon: chevronIcon,
     },
     {
