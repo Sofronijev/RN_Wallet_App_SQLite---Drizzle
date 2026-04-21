@@ -23,7 +23,6 @@ const EndDatePicker: React.FC<Props> = ({ endDate, onChange, minimumDate }) => {
     if (!hasEnd) {
       const seed = minimumDate ?? new Date();
       const date = new Date(seed);
-      date.setMonth(date.getMonth() + 1);
       date.setHours(0, 0, 0, 0);
       onChange(date.toISOString());
     }

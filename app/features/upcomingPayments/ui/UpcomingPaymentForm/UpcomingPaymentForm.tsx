@@ -210,11 +210,6 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps='always'>
       <View style={styles.inputsContainer}>
-        <DatePickerInput
-          date={new Date(values.date ?? undefined)}
-          onDateSelect={onDateChange}
-          hideTime
-        />
         <View style={styles.input}>
           <StyledLabelInput
             placeholder='Name (e.g. Rent, Netflix)'
@@ -309,6 +304,14 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
             isVisible={!!errors.customIntervalUnit}
           />
         </View>
+        <View style={styles.input}>
+          <Label style={styles.heading}>Start date</Label>
+          <DatePickerInput
+            date={new Date(values.date ?? undefined)}
+            onDateSelect={onDateChange}
+            hideTime
+          />
+        </View>
         {values.recurrence !== "none" && (
           <View style={styles.input}>
             <EndDatePicker
@@ -349,6 +352,12 @@ const themeStyles = (theme: AppTheme) =>
     inputsContainer: {
       marginHorizontal: 16,
       marginBottom: 40,
+    },
+    heading: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: theme.colors.muted,
+      paddingBottom: 8,
     },
     flexRow: {
       flexDirection: "row",
