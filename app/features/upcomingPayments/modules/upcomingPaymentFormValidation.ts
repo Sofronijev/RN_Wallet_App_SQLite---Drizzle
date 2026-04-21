@@ -8,7 +8,8 @@ export type UpcomingPaymentFormInputs = {
   description: string;
   category: Category | null;
   type: Type | null;
-  walletId: string;
+  currencyCode: string;
+  currencySymbol: string;
   name: string;
   recurrence: Recurrence;
   customIntervalValue: number | null;
@@ -43,7 +44,8 @@ export const upcomingPaymentValidationSchema = Yup.object({
       return schema.notRequired();
     })
     .label("Type"),
-  walletId: Yup.number().required().nullable().label("Wallet"),
+  currencyCode: Yup.string().trim().required("Please pick a currency").label("Currency"),
+  currencySymbol: Yup.string(),
   name: Yup.string().trim().required("Please enter a name").max(255),
   recurrence: Yup.string()
     .oneOf(["none", "daily", "weekly", "monthly", "yearly", "custom"])

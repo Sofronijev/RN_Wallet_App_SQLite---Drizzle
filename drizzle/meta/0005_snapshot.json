@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6539822b-62bf-481f-a727-b51e51fbc944",
+  "id": "6c7ac62a-c498-4318-8e66-837473f15633",
   "prevId": "3e763139-ff76-4966-b9d3-6da131e37f0a",
   "tables": {
     "Categories": {
@@ -585,12 +585,20 @@
           "notNull": false,
           "autoincrement": false
         },
-        "walletId": {
-          "name": "walletId",
-          "type": "integer",
+        "currencyCode": {
+          "name": "currencyCode",
+          "type": "text(10)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "currencySymbol": {
+          "name": "currencySymbol",
+          "type": "text(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
         },
         "userId": {
           "name": "userId",
@@ -700,19 +708,6 @@
           ],
           "columnsTo": [
             "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "UpcomingPayments_walletId_Wallet_walletId_fk": {
-          "name": "UpcomingPayments_walletId_Wallet_walletId_fk",
-          "tableFrom": "UpcomingPayments",
-          "tableTo": "Wallet",
-          "columnsFrom": [
-            "walletId"
-          ],
-          "columnsTo": [
-            "walletId"
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"

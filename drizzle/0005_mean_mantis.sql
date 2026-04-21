@@ -27,7 +27,8 @@ CREATE TABLE `UpcomingPayments` (
 	`amount` real,
 	`categoryId` integer NOT NULL,
 	`typeId` integer,
-	`walletId` integer NOT NULL,
+	`currencyCode` text(10) NOT NULL,
+	`currencySymbol` text(10) DEFAULT '' NOT NULL,
 	`userId` integer DEFAULT 1 NOT NULL,
 	`firstDueDate` text NOT NULL,
 	`endDate` text,
@@ -41,6 +42,5 @@ CREATE TABLE `UpcomingPayments` (
 	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`typeId`) REFERENCES `Types`(`id`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`walletId`) REFERENCES `Wallet`(`walletId`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON UPDATE cascade ON DELETE cascade
 );

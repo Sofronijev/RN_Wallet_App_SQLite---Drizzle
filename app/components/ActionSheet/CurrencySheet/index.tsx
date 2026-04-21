@@ -11,16 +11,21 @@ import { AppTheme, useThemedStyles, useColors } from "app/theme/useThemedStyles"
 type Props = {
   onSelect: (currency: CurrencyType | null) => void;
   selectedCurrencyCode?: CurrencyType["currencyCode"] | null;
+  allowedCurrencyCodes?: string[];
 };
 
 const currencyArray = Object.values(currencies);
 
 const keyExtractor = (item: CurrencyType) => item.currencyCode;
 
-const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode }) => {
+const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode, allowedCurrencyCodes }) => {
   const sheetRef = useRef<BottomSheetModal>(null);
   const styles = useThemedStyles(themedStyles);
   const { primary } = useColors();
+
+  const data = allowedCurrencyCodes
+    ? currencyArray.filter((c) => allowedCurrencyCodes.includes(c.currencyCode))
+    : currencyArray;
 
   const onItemPress = (item: CurrencyType) => () => {
     onSelect(item);
@@ -66,7 +71,7 @@ const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode }) => {
   return (
     <SheetModal sheetRef={sheetRef}>
       <BottomSheetFlatList
-        data={currencyArray}
+        data={data}
         renderItem={renderItem}
         contentContainerStyle={styles.container}
         ListHeaderComponent={() => (

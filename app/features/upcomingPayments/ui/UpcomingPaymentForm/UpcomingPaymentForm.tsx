@@ -1,6 +1,6 @@
 import { Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { pressableOpacityStyle } from "modules/pressable";
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
@@ -16,13 +16,13 @@ import {
 } from "../../modules/upcomingPaymentFormValidation";
 import { RouteProp } from "@react-navigation/native";
 import CustomButton from "components/CustomButton";
-import WalletPicker from "app/features/balance/ui/TransactionForm/WalletPicker";
 import RepetitionPicker from "./fields/RepetitionPicker";
 import EndDatePicker from "./fields/EndDatePicker";
 import NotificationSettings from "./fields/NotificationSettings";
 import VariableAmountToggle from "./fields/VariableAmountToggle";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
+import { CurrencyType } from "app/currencies/currencies";
 import { ScrollView } from "react-native-gesture-handler";
 import Label from "components/Label";
 import TypeSelector from "app/features/balance/ui/TransactionForm/TypeSelector";
@@ -44,7 +44,22 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data: wallets } = useGetWalletsWithBalance();
   const { categoriesById } = useGetCategories();
-  const isLoading = !wallets.length;
+  const isLoading = !selectedWallet;
+
+  const walletCurrencies = useMemo(() => {
+    const map = new Map<string, { currencyCode: string; currencySymbol: string }>();
+    for (const w of wallets) {
+      if (!w.currencyCode) continue;
+      if (!map.has(w.currencyCode)) {
+        map.set(w.currencyCode, {
+          currencyCode: w.currencyCode,
+          currencySymbol: w.currencySymbol ?? "",
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [wallets]);
+  const hasMultipleCurrencies = walletCurrencies.length > 1;
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
@@ -65,7 +80,8 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
         description: "",
         category: null,
         type: null,
-        walletId: `${selectedWallet?.walletId}`,
+        currencyCode: selectedWallet?.currencyCode ?? "",
+        currencySymbol: selectedWallet?.currencySymbol ?? "",
         name: "",
         recurrence: "monthly",
         customIntervalValue: null,
@@ -82,8 +98,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
       enableReinitialize: true,
     });
 
-  const pickedWallet = wallets.find((wallet) => wallet.walletId === +values.walletId);
-  const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
+  const walletCurrency = values.currencySymbol || values.currencyCode;
 
   const typeOptions = values.category?.id ? (categoriesById[values.category.id]?.types ?? []) : [];
 
@@ -132,8 +147,21 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
     setFieldValue("date", date);
   };
 
-  const onWalletSelect = (walletId: number) => {
-    setFieldValue("walletId", walletId);
+  const onCurrencySelect = (currency: CurrencyType | null) => {
+    setFieldValue("currencyCode", currency?.currencyCode ?? "");
+    setFieldValue("currencySymbol", currency?.symbol ?? "");
+  };
+
+  const showCurrencySheet = () => {
+    Keyboard.dismiss();
+    openSheet({
+      type: SHEETS.CURRENCY_PICKER,
+      props: {
+        onSelect: onCurrencySelect,
+        selectedCurrencyCode: values.currencyCode || null,
+        allowedCurrencyCodes: walletCurrencies.map((c) => c.currencyCode),
+      },
+    });
   };
 
   const onSubmit = () => {
@@ -171,25 +199,47 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
           />
           <InputErrorLabel text={errors.name} isVisible={!!errors.name} />
         </View>
-        <View style={styles.walletPicker}>
-          <WalletPicker wallets={wallets} selected={+values.walletId} onSelect={onWalletSelect} />
-          <InputErrorLabel text={errors.walletId} isVisible={!!errors.walletId} />
-        </View>
+        {(hasMultipleCurrencies || showAmountField) && (
+          <View style={[styles.input, styles.amountRow]}>
+            {showAmountField && (
+              <AmountInput
+                onPress={showAmountSheet}
+                style={styles.amountInput}
+                amount={values.amount}
+                walletCurrency={walletCurrency}
+              />
+            )}
+            {hasMultipleCurrencies && (
+              <ShadowBoxView style={[styles.currencyBox, styles.paddingVertical]}>
+                <Pressable
+                  onPress={showCurrencySheet}
+                  style={pressableOpacityStyle(styles.currencyPressable)}
+                >
+                  <Label
+                    numberOfLines={1}
+                    style={[styles.currencyLabel, !values.currencyCode && styles.placeHolder]}
+                  >
+                    {values.currencyCode
+                      ? showAmountField
+                        ? values.currencySymbol || values.currencyCode
+                        : `${values.currencySymbol || ""} ${values.currencyCode}`.trim()
+                      : "Currency"}
+                  </Label>
+                </Pressable>
+              </ShadowBoxView>
+            )}
+          </View>
+        )}
+        {hasMultipleCurrencies && (
+          <InputErrorLabel text={errors.currencyCode} isVisible={!!errors.currencyCode} />
+        )}
+        {showAmountField && <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />}
         <View style={styles.input}>
           <VariableAmountToggle
             value={values.isVariableAmount}
             onChange={(v) => setFieldValue("isVariableAmount", v)}
           />
         </View>
-        {showAmountField && (
-          <AmountInput
-            onPress={showAmountSheet}
-            style={styles.input}
-            amount={values.amount}
-            walletCurrency={walletCurrency}
-          />
-        )}
-        {showAmountField && <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />}
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
           <Pressable onPress={showCategoriesSheet} style={pressableOpacityStyle(styles.flexRow)}>
             <View style={styles.icon}>{getCategoryInputIcon}</View>
@@ -269,6 +319,7 @@ const themeStyles = (theme: AppTheme) =>
       flex: 1,
       backgroundColor: theme.colors.background,
       paddingTop: 20,
+      marginBottom: 20,
     },
     inputsContainer: {
       marginHorizontal: 16,
@@ -280,16 +331,38 @@ const themeStyles = (theme: AppTheme) =>
       paddingHorizontal: 8,
     },
     input: {
-      marginTop: 20,
+      marginTop: 12,
+    },
+    variableAmount: {
+      marginTop: 4,
     },
     button: {
       marginTop: 20,
     },
-    walletPicker: {
-      paddingTop: 20,
-    },
     paddingVertical: {
       paddingVertical: 10,
+    },
+    amountRow: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      gap: 8,
+    },
+    currencyBox: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    currencyPressable: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 8,
+    },
+    currencyLabel: {
+      fontSize: 16,
+      fontWeight: "500",
+    },
+    amountInput: {
+      flex: 3,
     },
     icon: {
       width: 45,

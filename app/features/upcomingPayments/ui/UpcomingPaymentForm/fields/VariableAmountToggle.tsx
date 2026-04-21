@@ -15,10 +15,8 @@ const VariableAmountToggle: React.FC<Props> = ({ value, onChange }) => {
   return (
     <View style={styles.row}>
       <View style={styles.textWrapper}>
-        <Label style={styles.label}>Amount varies each period</Label>
-        <Label style={styles.helper}>
-          Leave amount blank — you'll enter it when each payment is due.
-        </Label>
+        <Label style={styles.label}>Variable amount</Label>
+        <Label style={styles.helper}>Enter it when each payment is due</Label>
       </View>
       <AppSwitch value={value} onValueChange={onChange} />
     </View>
@@ -33,7 +31,7 @@ const themeStyles = (theme: AppTheme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
-      paddingVertical: 8,
+      paddingVertical: 2,
     },
     textWrapper: {
       flex: 1,
@@ -43,7 +41,7 @@ const themeStyles = (theme: AppTheme) =>
       fontWeight: "500",
     },
     helper: {
-      fontSize: 13,
+      fontSize: 12,
       color: theme.colors.muted,
       paddingTop: 2,
     },

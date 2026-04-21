@@ -172,9 +172,8 @@ export const upcomingPayments = sqliteTable("UpcomingPayments", {
     onUpdate: "cascade",
     onDelete: "cascade",
   }),
-  walletId: integer("walletId")
-    .references(() => wallet.walletId, { onUpdate: "cascade", onDelete: "cascade" })
-    .notNull(),
+  currencyCode: text("currencyCode", { length: 10 }).notNull(),
+  currencySymbol: text("currencySymbol", { length: 10 }).default("").notNull(),
   userId: integer("userId")
     .references(() => users.id, {
       onDelete: "cascade",
@@ -308,10 +307,6 @@ export const upcomingPaymentsRelations = relations(upcomingPayments, ({ many, on
   type: one(types, {
     fields: [upcomingPayments.typeId],
     references: [types.id],
-  }),
-  wallet: one(wallet, {
-    fields: [upcomingPayments.walletId],
-    references: [wallet.walletId],
   }),
   user: one(users, {
     fields: [upcomingPayments.userId],
