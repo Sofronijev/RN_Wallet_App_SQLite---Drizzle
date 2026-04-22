@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -34,7 +34,7 @@ type Props = {
 const recurrenceLabel = (
   recurrence: string,
   customValue: number | null,
-  customUnit: "day" | "week" | "month" | null
+  customUnit: "day" | "week" | "month" | null,
 ) => {
   switch (recurrence) {
     case "none":
@@ -76,22 +76,20 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   const { data: payment, isLoading: paymentLoading } = useGetUpcomingPaymentById(id);
   const { data: instances, isLoading: instancesLoading } = useGetUpcomingPaymentInstances(id);
   const { deleteUpcomingPayment, isLoading: isDeleting } = useDeleteUpcomingPaymentMutation();
-  const { cancelInstance, isLoading: isCanceling } =
-    useCancelUpcomingPaymentInstanceMutation(id);
-  const { restoreInstance, isLoading: isRestoring } =
-    useRestoreUpcomingPaymentInstanceMutation(id);
+  const { cancelInstance, isLoading: isCanceling } = useCancelUpcomingPaymentInstanceMutation(id);
+  const { restoreInstance, isLoading: isRestoring } = useRestoreUpcomingPaymentInstanceMutation(id);
 
   const nextPending = useMemo(
     () =>
       instances
         .filter((row) => row.status === "pending" && !isInstanceMissed(row))
         .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0],
-    [instances]
+    [instances],
   );
 
   const historyRows = useMemo(
     () => instances.filter((row) => row.status !== "pending" || isInstanceMissed(row)),
-    [instances]
+    [instances],
   );
 
   const onEdit = () => navigation.navigate("UpcomingPayment", { id });
@@ -135,7 +133,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
               onSuccess: () => navigation.goBack(),
             }),
         },
-      ]
+      ],
     );
   };
 
@@ -172,8 +170,8 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
     payment.endDate ? `until ${getFormattedDate(payment.endDate, calendarDateFormat)}` : null,
   ].filter(Boolean);
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+  const header = (
+    <>
       <ShadowBoxView style={styles.headerCard}>
         <View style={styles.headerRow}>
           <View style={styles.icon}>{categoryIcon}</View>
@@ -189,7 +187,9 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
               : `${formatDecimalDigits(payment.amount!, delimiter, decimal)} ${currency}`}
           </Label>
         </View>
-        {payment.description ? <Label style={styles.description}>{payment.description}</Label> : null}
+        {payment.description ? (
+          <Label style={styles.description}>{payment.description}</Label>
+        ) : null}
       </ShadowBoxView>
 
       <Label style={styles.sectionHeader}>Next due</Label>
@@ -247,9 +247,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
           <Label style={styles.meta}>Notifications</Label>
           <Label style={styles.metaValue}>
             {[
-              payment.notifyDaysBefore
-                ? `${payment.notifyDaysBefore}d before`
-                : null,
+              payment.notifyDaysBefore ? `${payment.notifyDaysBefore}d before` : null,
               payment.notifyOnDueDay ? "on due day" : null,
               payment.notifyOnMissed ? "on missed" : null,
             ]
@@ -260,38 +258,49 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
       </ShadowBoxView>
 
       <Label style={styles.sectionHeader}>History</Label>
-      {historyRows.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <MaterialIcons name='history' size={28} color={themeColors.muted} />
-          <Label style={styles.emptyTitle}>No history yet</Label>
-          <Label style={styles.emptySubtitle}>
-            Paid, missed, and canceled instances will appear here.
-          </Label>
-        </View>
-      ) : (
-        <ShadowBoxView style={styles.historyCard}>
-          {historyRows.map((row, index) => (
+    </>
+  );
+
+  const empty = (
+    <View style={styles.emptyCard}>
+      <MaterialIcons name='history' size={28} color={themeColors.muted} />
+      <Label style={styles.emptyTitle}>No history yet</Label>
+      <Label style={styles.emptySubtitle}>
+        Paid, missed, and canceled instances will appear here.
+      </Label>
+    </View>
+  );
+
+  return (
+    <>
+      <FlatList
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        data={historyRows}
+        keyExtractor={(row, index) => (row.id ?? `${row.dueDate}-${index}`).toString()}
+        renderItem={({ item }) => (
+          <ShadowBoxView>
             <HistoryRow
-              key={row.id ?? `${row.dueDate}-${index}`}
-              row={row}
-              isMissed={isInstanceMissed(row)}
+              row={item}
+              isMissed={isInstanceMissed(item)}
               currency={currency}
               decimal={decimal}
               delimiter={delimiter}
-              isLast={index === historyRows.length - 1}
+              isLast
               onPay={onPayInstance}
               onCancel={onCancelInstance}
               onRestore={onRestoreInstance}
             />
-          ))}
-        </ShadowBoxView>
-      )}
-
+          </ShadowBoxView>
+        )}
+        ListHeaderComponent={header}
+        ListEmptyComponent={empty}
+      />
       <AppActivityIndicator
         hideScreen
         isLoading={isDeleting || isCanceling || isRestoring || instancesLoading}
       />
-    </ScrollView>
+    </>
   );
 };
 
@@ -410,9 +419,6 @@ const themeStyles = (theme: AppTheme) =>
       fontWeight: "500",
       flexShrink: 1,
       textAlign: "right",
-    },
-    historyCard: {
-      paddingVertical: 4,
     },
     emptyCard: {
       padding: 20,
