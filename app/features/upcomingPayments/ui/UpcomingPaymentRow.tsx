@@ -9,11 +9,11 @@ import { dueDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-import { DummyUpcomingInstanceRow } from "../modules/upcomingPaymentsDummyData";
+import { UpcomingInstanceSectionRow } from "app/queries/upcomingPayments";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 
 type Props = {
-  row: DummyUpcomingInstanceRow;
+  row: UpcomingInstanceSectionRow;
 };
 
 const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
@@ -21,7 +21,8 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const navigation = useAppNavigation();
 
-  const { instanceId, upcomingPaymentId, name, dueDate, expectedAmount, category } = row;
+  const { id, upcomingPaymentId, name, dueDate, expectedAmount, iconFamily, iconName, iconColor } =
+    row;
   const isVariable = expectedAmount == null;
   const isMissed = isInstanceMissed(row);
 
@@ -30,17 +31,13 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   };
 
   const openPaySheet = () => {
-    console.log("TODO: open PaySheet for instance", instanceId);
+    console.log("TODO: open PaySheet for instance", id);
   };
 
   return (
     <Pressable style={pressableOpacityStyle(styles.container)} onPress={openDetail}>
       <View style={styles.icon}>
-        <CategoryIcon
-          color={category.color}
-          iconFamily={category.iconFamily}
-          name={category.name}
-        />
+        <CategoryIcon color={iconColor} iconFamily={iconFamily} name={iconName} />
       </View>
       <View style={styles.descriptionContainer}>
         <Label numberOfLines={1} style={styles.name}>

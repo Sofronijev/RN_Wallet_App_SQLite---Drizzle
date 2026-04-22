@@ -6,7 +6,7 @@ import {
   upcomingPaymentInstances,
   upcomingPayments,
 } from "db/schema";
-import { desc, eq, getTableColumns, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { addDays, addMonths, addWeeks, addYears, startOfDay } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 
@@ -112,6 +112,34 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
     .orderBy(desc(upcomingPaymentInstances.dueDate));
 
   return rows;
+};
+
+export const getUpcomingInstancesForSection = async () => {
+  return db
+    .select({
+      id: upcomingPaymentInstances.id,
+      upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId,
+      dueDate: upcomingPaymentInstances.dueDate,
+      expectedAmount: upcomingPaymentInstances.expectedAmount,
+      status: upcomingPaymentInstances.status,
+      name: upcomingPayments.name,
+      iconFamily: categories.iconFamily,
+      iconName: categories.iconName,
+      iconColor: categories.iconColor,
+    })
+    .from(upcomingPaymentInstances)
+    .innerJoin(
+      upcomingPayments,
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+    )
+    .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
+    .where(
+      and(
+        eq(upcomingPayments.isActive, true),
+        eq(upcomingPaymentInstances.status, "pending")
+      )
+    )
+    .orderBy(asc(upcomingPaymentInstances.dueDate));
 };
 
 export const getAllUpcomingPayments = async () => {

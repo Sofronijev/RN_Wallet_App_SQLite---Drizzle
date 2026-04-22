@@ -4,6 +4,7 @@ import {
   addUpcomingPayment,
   cancelUpcomingPaymentInstance,
   getAllUpcomingPayments,
+  getUpcomingInstancesForSection,
   getUpcomingPaymentById,
   getUpcomingPaymentInstancesWithContributions,
   restoreUpcomingPaymentInstance,
@@ -48,8 +49,21 @@ export type UpcomingPaymentInstanceRow = ReturnType<
   typeof useGetUpcomingPaymentInstances
 >["data"][number];
 
+export const useGetUpcomingInstancesForSection = () => {
+  const { data, isLoading, isFetching, isError } = useQuery({
+    queryKey: [queryKeys.upcomingInstancesForSection],
+    queryFn: getUpcomingInstancesForSection,
+  });
+
+  return { data: data ?? [], isLoading: isLoading || isFetching, isError };
+};
+export type UpcomingInstanceSectionRow = ReturnType<
+  typeof useGetUpcomingInstancesForSection
+>["data"][number];
+
 const invalidateUpcomingPayments = (clientQuery: ReturnType<typeof useQueryClient>, id?: number) => {
   clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPayments] });
+  clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingInstancesForSection] });
   if (typeof id === "number") {
     clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentById, id] });
     clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentInstances, id] });
