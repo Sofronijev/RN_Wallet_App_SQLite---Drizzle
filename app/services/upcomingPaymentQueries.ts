@@ -8,11 +8,24 @@ import {
 } from "db/schema";
 import { desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { addDays, addMonths, addWeeks, addYears, startOfDay } from "date-fns";
+import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 
 export const addUpcomingPayment = (payment: NewUpcomingPayment) =>
-  db.insert(upcomingPayments).values(payment);
+  db.transaction(async (tx) => {
+    const [inserted] = await tx
+      .insert(upcomingPayments)
+      .values(payment)
+      .returning({ id: upcomingPayments.id });
+
+    await tx.insert(upcomingPaymentInstances).values({
+      upcomingPaymentId: inserted.id,
+      dueDate: payment.firstDueDate,
+      expectedAmount: payment.amount ?? null,
+    });
+  });
 
 export const getUpcomingPaymentById = async (id: number) => {
+  const todayIso = getTodayIsoThreshold();
   const [row] = await db
     .select({
       ...getTableColumns(upcomingPayments),
@@ -25,7 +38,7 @@ export const getUpcomingPaymentById = async (id: number) => {
           Number
         ),
       missedCount:
-        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'missed' THEN 1 END)`.mapWith(
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} < ${todayIso} THEN 1 END)`.mapWith(
           Number
         ),
       canceledCount:
@@ -33,7 +46,7 @@ export const getUpcomingPaymentById = async (id: number) => {
           Number
         ),
       pendingCount:
-        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' THEN 1 END)`.mapWith(
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} THEN 1 END)`.mapWith(
           Number
         ),
     })
@@ -68,6 +81,18 @@ export const updateUpcomingPayment = async (id: number, values: EditUpcomingPaym
 export const softDeleteUpcomingPayment = (id: number) =>
   db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
 
+export const cancelUpcomingPaymentInstance = (instanceId: number) =>
+  db
+    .update(upcomingPaymentInstances)
+    .set({ status: "canceled", canceledAt: new Date().toISOString() })
+    .where(eq(upcomingPaymentInstances.id, instanceId));
+
+export const restoreUpcomingPaymentInstance = (instanceId: number) =>
+  db
+    .update(upcomingPaymentInstances)
+    .set({ status: "pending", canceledAt: null })
+    .where(eq(upcomingPaymentInstances.id, instanceId));
+
 export const getUpcomingPaymentInstancesWithContributions = async (upcomingPaymentId: number) => {
   const rows = await db
     .select({
@@ -90,6 +115,7 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
 };
 
 export const getAllUpcomingPayments = async () => {
+  const todayIso = getTodayIsoThreshold();
   const rows = await db
     .select({
       ...getTableColumns(upcomingPayments),
@@ -99,7 +125,7 @@ export const getAllUpcomingPayments = async () => {
       paidCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'paid' THEN 1 END)`.mapWith(
         Number
       ),
-      missedCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'missed' THEN 1 END)`.mapWith(
+      missedCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} < ${todayIso} THEN 1 END)`.mapWith(
         Number
       ),
     })

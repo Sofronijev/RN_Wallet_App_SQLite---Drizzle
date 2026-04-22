@@ -8,15 +8,16 @@ import {
   DummyUpcomingInstanceRow,
   upcomingPaymentsDummyData,
 } from "../modules/upcomingPaymentsDummyData";
+import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 
 const MAX_VISIBLE_ROWS = 3;
 
 const sortInstances = (rows: DummyUpcomingInstanceRow[]) => {
   const missed = rows
-    .filter((row) => row.status === "missed")
+    .filter((row) => isInstanceMissed(row))
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   const pending = rows
-    .filter((row) => row.status === "pending")
+    .filter((row) => row.status === "pending" && !isInstanceMissed(row))
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   return [...missed, ...pending];
 };

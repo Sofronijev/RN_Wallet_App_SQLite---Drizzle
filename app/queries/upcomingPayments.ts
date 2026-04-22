@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EditUpcomingPayment, NewUpcomingPayment } from "db";
 import {
   addUpcomingPayment,
+  cancelUpcomingPaymentInstance,
   getAllUpcomingPayments,
   getUpcomingPaymentById,
   getUpcomingPaymentInstancesWithContributions,
+  restoreUpcomingPaymentInstance,
   softDeleteUpcomingPayment,
   updateUpcomingPayment,
 } from "app/services/upcomingPaymentQueries";
@@ -78,6 +80,34 @@ export const useUpdateUpcomingPaymentMutation = () => {
 
   return {
     updateUpcomingPayment: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const useCancelUpcomingPaymentInstanceMutation = (upcomingPaymentId: number) => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (instanceId: number) => cancelUpcomingPaymentInstance(instanceId),
+    onSuccess: () => invalidateUpcomingPayments(clientQuery, upcomingPaymentId),
+  });
+
+  return {
+    cancelInstance: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const useRestoreUpcomingPaymentInstanceMutation = (upcomingPaymentId: number) => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (instanceId: number) => restoreUpcomingPaymentInstance(instanceId),
+    onSuccess: () => invalidateUpcomingPayments(clientQuery, upcomingPaymentId),
+  });
+
+  return {
+    restoreInstance: mutate,
     isLoading: isPending,
     isError,
   };

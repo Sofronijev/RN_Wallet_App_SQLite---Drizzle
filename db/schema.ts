@@ -213,7 +213,7 @@ export const upcomingPaymentInstances = sqliteTable(
     expectedAmount: real("expectedAmount"),
     status: text("status", {
       length: 10,
-      enum: ["pending", "paid", "missed", "canceled"],
+      enum: ["pending", "paid", "canceled"],
     })
       .default("pending")
       .notNull(),

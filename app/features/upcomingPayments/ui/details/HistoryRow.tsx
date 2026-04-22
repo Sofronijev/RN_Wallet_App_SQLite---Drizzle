@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import Label from "components/Label";
+import ButtonText from "components/ButtonText";
 import { calendarDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { formatDecimalDigits } from "modules/numbers";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
@@ -8,10 +9,14 @@ import { UpcomingPaymentInstanceRow } from "app/queries/upcomingPayments";
 
 type Props = {
   row: UpcomingPaymentInstanceRow;
+  isMissed: boolean;
   currency: string;
   decimal: string;
   delimiter: string;
   isLast: boolean;
+  onPay: (instanceId: number) => void;
+  onCancel: (instanceId: number) => void;
+  onRestore: (instanceId: number) => void;
 };
 
 const statusMeta: Record<
@@ -24,24 +29,64 @@ const statusMeta: Record<
   pending: { label: "Pending", tone: "muted" },
 };
 
-const HistoryRow: React.FC<Props> = ({ row, currency, decimal, delimiter, isLast }) => {
+const HistoryRow: React.FC<Props> = ({
+  row,
+  isMissed,
+  currency,
+  decimal,
+  delimiter,
+  isLast,
+  onPay,
+  onCancel,
+  onRestore,
+}) => {
   const styles = useThemedStyles(themeStyles);
-  const meta = statusMeta[row.status];
+  const meta = isMissed ? statusMeta.missed : statusMeta[row.status];
   const paidAmount = row.contributionAmount ?? row.transactionAmount ?? row.expectedAmount ?? null;
+  const isVariable = row.expectedAmount == null;
+  const isCanceled = row.status === "canceled";
 
   return (
     <View style={[styles.container, !isLast && styles.divider]}>
-      <View style={styles.left}>
-        <Label style={styles.date}>{getFormattedDate(row.dueDate, calendarDateFormat)}</Label>
-        <View style={[styles.pill, styles[`pill_${meta.tone}` as const]]}>
-          <Label style={[styles.pillText, styles[`pillText_${meta.tone}` as const]]}>
-            {meta.label}
-          </Label>
+      <View style={styles.topRow}>
+        <View style={styles.left}>
+          <Label style={styles.date}>{getFormattedDate(row.dueDate, calendarDateFormat)}</Label>
+          <View style={[styles.pill, styles[`pill_${meta.tone}` as const]]}>
+            <Label style={[styles.pillText, styles[`pillText_${meta.tone}` as const]]}>
+              {meta.label}
+            </Label>
+          </View>
         </View>
+        <Label style={styles.amount}>
+          {paidAmount != null
+            ? `${formatDecimalDigits(paidAmount, delimiter, decimal)} ${currency}`
+            : "—"}
+        </Label>
       </View>
-      <Label style={styles.amount}>
-        {paidAmount != null ? `${formatDecimalDigits(paidAmount, delimiter, decimal)} ${currency}` : "—"}
-      </Label>
+      {isMissed && (
+        <View style={styles.actionRow}>
+          <ButtonText
+            title={isVariable ? "Enter & Pay" : "Pay"}
+            onPress={() => onPay(row.id)}
+            buttonStyle={styles.actionText}
+          />
+          <ButtonText
+            title='Cancel'
+            type='danger'
+            onPress={() => onCancel(row.id)}
+            buttonStyle={styles.actionText}
+          />
+        </View>
+      )}
+      {isCanceled && (
+        <View style={styles.actionRow}>
+          <ButtonText
+            title='Restore'
+            onPress={() => onRestore(row.id)}
+            buttonStyle={styles.actionText}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -51,12 +96,24 @@ export default HistoryRow;
 const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      gap: 8,
+    },
+    topRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: 10,
-      paddingHorizontal: 12,
       gap: 12,
+    },
+    actionRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 20,
+    },
+    actionText: {
+      fontSize: 13,
+      fontWeight: "600",
     },
     divider: {
       borderBottomWidth: StyleSheet.hairlineWidth,

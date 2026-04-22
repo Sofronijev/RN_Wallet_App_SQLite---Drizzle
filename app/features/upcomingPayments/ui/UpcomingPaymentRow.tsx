@@ -10,6 +10,7 @@ import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { DummyUpcomingInstanceRow } from "../modules/upcomingPaymentsDummyData";
+import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 
 type Props = {
   row: DummyUpcomingInstanceRow;
@@ -20,9 +21,9 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const navigation = useAppNavigation();
 
-  const { instanceId, upcomingPaymentId, name, dueDate, expectedAmount, status, category } = row;
+  const { instanceId, upcomingPaymentId, name, dueDate, expectedAmount, category } = row;
   const isVariable = expectedAmount == null;
-  const isMissed = status === "missed";
+  const isMissed = isInstanceMissed(row);
 
   const openDetail = () => {
     navigation.navigate("UpcomingPaymentDetails", { id: upcomingPaymentId });

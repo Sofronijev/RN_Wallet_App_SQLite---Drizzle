@@ -10,16 +10,20 @@ import ShadowBoxView from "components/ShadowBoxView";
 import HeaderIcon from "components/Header/HeaderIcon";
 import { getCategoryIcon } from "components/CategoryIcon";
 import AppActivityIndicator from "components/AppActivityIndicator";
+import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
 import { calendarDateFormat, dueDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { formatDecimalDigits } from "modules/numbers";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import {
+  useCancelUpcomingPaymentInstanceMutation,
   useDeleteUpcomingPaymentMutation,
   useGetUpcomingPaymentById,
   useGetUpcomingPaymentInstances,
+  useRestoreUpcomingPaymentInstanceMutation,
 } from "app/queries/upcomingPayments";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 import HistoryRow from "./details/HistoryRow";
 
 type Props = {
@@ -72,21 +76,49 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   const { data: payment, isLoading: paymentLoading } = useGetUpcomingPaymentById(id);
   const { data: instances, isLoading: instancesLoading } = useGetUpcomingPaymentInstances(id);
   const { deleteUpcomingPayment, isLoading: isDeleting } = useDeleteUpcomingPaymentMutation();
+  const { cancelInstance, isLoading: isCanceling } =
+    useCancelUpcomingPaymentInstanceMutation(id);
+  const { restoreInstance, isLoading: isRestoring } =
+    useRestoreUpcomingPaymentInstanceMutation(id);
 
   const nextPending = useMemo(
     () =>
       instances
-        .filter((row) => row.status === "pending")
+        .filter((row) => row.status === "pending" && !isInstanceMissed(row))
         .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0],
     [instances]
   );
 
   const historyRows = useMemo(
-    () => instances.filter((row) => row.status !== "pending"),
+    () => instances.filter((row) => row.status !== "pending" || isInstanceMissed(row)),
     [instances]
   );
 
   const onEdit = () => navigation.navigate("UpcomingPayment", { id });
+
+  const onPay = () => {
+    if (!nextPending) return;
+    console.log("TODO: open PaySheet for instance", nextPending.id);
+  };
+
+  const onPayInstance = (instanceId: number) => {
+    console.log("TODO: open PaySheet for instance", instanceId);
+  };
+
+  const onCancelInstance = (instanceId: number) => {
+    Alert.alert("Cancel this payment?", "It will move to history as canceled.", [
+      { text: "Keep" },
+      {
+        text: "Cancel payment",
+        style: "destructive",
+        onPress: () => cancelInstance(instanceId),
+      },
+    ]);
+  };
+
+  const onRestoreInstance = (instanceId: number) => {
+    restoreInstance(instanceId);
+  };
 
   const onDelete = () => {
     if (!payment) return;
@@ -163,19 +195,37 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
       <Label style={styles.sectionHeader}>Next due</Label>
       <ShadowBoxView style={styles.section}>
         {nextPending ? (
-          <View style={styles.nextRow}>
-            <View style={styles.nextText}>
-              <Label style={styles.nextDate}>
-                {getFormattedDate(nextPending.dueDate, dueDateFormat)}
+          <>
+            <View style={styles.nextRow}>
+              <View style={styles.nextText}>
+                <Label style={styles.nextDate}>
+                  {getFormattedDate(nextPending.dueDate, dueDateFormat)}
+                </Label>
+                <Label style={styles.nextSub}>{daysUntil(nextPending.dueDate)}</Label>
+              </View>
+              <Label style={styles.nextAmount}>
+                {nextPending.expectedAmount == null
+                  ? "Variable"
+                  : `${formatDecimalDigits(nextPending.expectedAmount, delimiter, decimal)} ${currency}`}
               </Label>
-              <Label style={styles.nextSub}>{daysUntil(nextPending.dueDate)}</Label>
             </View>
-            <Label style={styles.nextAmount}>
-              {nextPending.expectedAmount == null
-                ? "Variable"
-                : `${formatDecimalDigits(nextPending.expectedAmount, delimiter, decimal)} ${currency}`}
-            </Label>
-          </View>
+            <View style={styles.actionRow}>
+              <CustomButton
+                title={nextPending.expectedAmount == null ? "Enter & Pay" : "Pay"}
+                size='small'
+                style={styles.actionButton}
+                onPress={onPay}
+              />
+              <CustomButton
+                title='Cancel'
+                size='small'
+                type='danger'
+                outline
+                style={styles.actionButton}
+                onPress={() => onCancelInstance(nextPending.id)}
+              />
+            </View>
+          </>
         ) : (
           <Label style={styles.mutedText}>No pending payment.</Label>
         )}
@@ -224,16 +274,23 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
             <HistoryRow
               key={row.id ?? `${row.dueDate}-${index}`}
               row={row}
+              isMissed={isInstanceMissed(row)}
               currency={currency}
               decimal={decimal}
               delimiter={delimiter}
               isLast={index === historyRows.length - 1}
+              onPay={onPayInstance}
+              onCancel={onCancelInstance}
+              onRestore={onRestoreInstance}
             />
           ))}
         </ShadowBoxView>
       )}
 
-      <AppActivityIndicator hideScreen isLoading={isDeleting || instancesLoading} />
+      <AppActivityIndicator
+        hideScreen
+        isLoading={isDeleting || isCanceling || isRestoring || instancesLoading}
+      />
     </ScrollView>
   );
 };
@@ -325,6 +382,14 @@ const themeStyles = (theme: AppTheme) =>
     nextAmount: {
       fontSize: 16,
       fontWeight: "bold",
+    },
+    actionRow: {
+      flexDirection: "row",
+      gap: 8,
+      marginTop: 12,
+    },
+    actionButton: {
+      flex: 1,
     },
     mutedText: {
       color: theme.colors.muted,

@@ -1,7 +1,7 @@
 import { CategoriesWithType } from "db";
 import colors from "constants/colors";
 
-export type UpcomingPaymentStatus = "pending" | "missed";
+export type UpcomingPaymentStatus = "pending" | "paid" | "canceled";
 
 export type DummyUpcomingInstanceRow = {
   instanceId: number;
@@ -25,7 +25,7 @@ export const upcomingPaymentsDummyData: DummyUpcomingInstanceRow[] = [
     name: "Rent",
     dueDate: "2026-04-15T00:00:00Z",
     expectedAmount: 850,
-    status: "missed",
+    status: "pending",
     category: {
       iconFamily: "MaterialCommunityIcons",
       name: "home",
