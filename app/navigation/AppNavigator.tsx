@@ -20,6 +20,7 @@ import DashboardSettings from "app/features/settings/ui/dashboard/DashboardSetti
 import { DatabaseBackupScreen } from "app/features/settings/ui/importExport";
 import AboutScreen from "app/features/settings/ui/aboutApp";
 import UpcomingPaymentForm from "app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm";
+import UpcomingPaymentDetails from "app/features/upcomingPayments/ui/UpcomingPaymentDetails";
 import UpcomingPaymentsSettings from "app/features/upcomingPayments/ui/UpcomingPaymentsSettings";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -144,6 +145,14 @@ const AppNavigator: React.FC = () => {
             animation: "slide_from_bottom",
             title: route.params?.id ? "Edit upcoming payment" : "New upcoming payment",
           })}
+        />
+        <Stack.Screen
+          name='UpcomingPaymentDetails'
+          component={UpcomingPaymentDetails}
+          options={{
+            animation: "slide_from_bottom",
+            title: "Upcoming payment",
+          }}
         />
         <Stack.Screen
           name='UpcomingPaymentsSettings'

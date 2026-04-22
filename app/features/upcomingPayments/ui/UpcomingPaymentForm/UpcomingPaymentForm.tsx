@@ -20,9 +20,15 @@ import RepetitionPicker from "./fields/RepetitionPicker";
 import EndDatePicker from "./fields/EndDatePicker";
 import NotificationSettings from "./fields/NotificationSettings";
 import VariableAmountToggle from "./fields/VariableAmountToggle";
+import LockedInfoBox from "./LockedInfoBox";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
-import { addUpcomingPaymentMutation } from "app/queries/upcomingPayments";
+import {
+  addUpcomingPaymentMutation,
+  useGetUpcomingPaymentById,
+  useUpdateUpcomingPaymentMutation,
+} from "app/queries/upcomingPayments";
+import { deriveEditInitialValues } from "../../modules/deriveEditInitialValues";
 import { CurrencyType } from "app/currencies/currencies";
 import { ScrollView } from "react-native-gesture-handler";
 import Label from "components/Label";
@@ -40,13 +46,20 @@ type Props = {
   route: RouteProp<AppStackParamList, "UpcomingPayment">;
 };
 
-const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
+const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
+  const editId = route.params?.id;
+  const isEditMode = !!editId;
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data: wallets } = useGetWalletsWithBalance();
   const { categoriesById } = useGetCategories();
   const { addUpcomingPayment, isLoading: isSaving } = addUpcomingPaymentMutation();
-  const isLoading = !selectedWallet || isSaving;
+  const { updateUpcomingPayment, isLoading: isUpdating } = useUpdateUpcomingPaymentMutation();
+  const { data: editPayment, isLoading: isLoadingEdit } = useGetUpcomingPaymentById(editId);
+  const historyCount = editPayment?.historyCount ?? 0;
+  const isLocked = isEditMode && historyCount > 0;
+  const isLoading =
+    !selectedWallet || isSaving || isUpdating || (isEditMode && (isLoadingEdit || !editPayment));
 
   const walletCurrencies = useMemo(() => {
     const map = new Map<string, { currencyCode: string; currencySymbol: string }>();
@@ -71,52 +84,63 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
     Keyboard.dismiss();
     if (!values.category?.id) return;
 
-    addUpcomingPayment(
-      {
-        name: values.name.trim(),
-        description: values.description.trim() || null,
-        amount: values.isVariableAmount ? null : values.amount,
-        categoryId: values.category.id,
-        typeId: values.type?.id ?? null,
-        currencyCode: values.currencyCode,
-        currencySymbol: values.currencySymbol,
-        firstDueDate: values.date,
-        endDate: values.endDate,
-        recurrence: values.recurrence,
-        customIntervalValue:
-          values.recurrence === "custom" ? values.customIntervalValue : null,
-        customIntervalUnit:
-          values.recurrence === "custom" ? values.customIntervalUnit : null,
-        notifyDaysBefore: values.notifyDaysBefore,
-        notifyOnDueDay: values.notifyOnDueDay,
-        notifyOnMissed: values.notifyOnMissed,
-      },
-      {
-        onSuccess: () => navigation.goBack(),
-      }
-    );
+    const payload = {
+      name: values.name.trim(),
+      description: values.description.trim() || null,
+      amount: values.isVariableAmount ? null : values.amount,
+      categoryId: values.category.id,
+      typeId: values.type?.id ?? null,
+      currencyCode: values.currencyCode,
+      currencySymbol: values.currencySymbol,
+      firstDueDate: values.date,
+      endDate: values.endDate,
+      recurrence: values.recurrence,
+      customIntervalValue:
+        values.recurrence === "custom" ? values.customIntervalValue : null,
+      customIntervalUnit:
+        values.recurrence === "custom" ? values.customIntervalUnit : null,
+      notifyDaysBefore: values.notifyDaysBefore,
+      notifyOnDueDay: values.notifyOnDueDay,
+      notifyOnMissed: values.notifyOnMissed,
+    };
+
+    if (isEditMode) {
+      updateUpcomingPayment(
+        { id: editId as number, values: payload },
+        { onSuccess: () => navigation.goBack() }
+      );
+    } else {
+      addUpcomingPayment(payload, { onSuccess: () => navigation.goBack() });
+    }
   };
+
+  const initialValues = useMemo<UpcomingPaymentFormInputs>(() => {
+    if (isEditMode && editPayment) {
+      return deriveEditInitialValues(editPayment, categoriesById);
+    }
+    return {
+      date: formatIsoDate(dateRef.current),
+      amount: 0,
+      description: "",
+      category: null,
+      type: null,
+      currencyCode: selectedWallet?.currencyCode ?? "",
+      currencySymbol: selectedWallet?.currencySymbol ?? "",
+      name: "",
+      recurrence: "monthly",
+      customIntervalValue: null,
+      customIntervalUnit: null,
+      endDate: null,
+      isVariableAmount: false,
+      notifyDaysBefore: 1,
+      notifyOnDueDay: true,
+      notifyOnMissed: true,
+    };
+  }, [isEditMode, editPayment, categoriesById, selectedWallet]);
 
   const { values, setFieldValue, errors, handleSubmit, handleChange } =
     useFormik<UpcomingPaymentFormInputs>({
-      initialValues: {
-        date: formatIsoDate(dateRef.current),
-        amount: 0,
-        description: "",
-        category: null,
-        type: null,
-        currencyCode: selectedWallet?.currencyCode ?? "",
-        currencySymbol: selectedWallet?.currencySymbol ?? "",
-        name: "",
-        recurrence: "monthly",
-        customIntervalValue: null,
-        customIntervalUnit: null,
-        endDate: null,
-        isVariableAmount: false,
-        notifyDaysBefore: 1,
-        notifyOnDueDay: true,
-        notifyOnMissed: true,
-      },
+      initialValues,
       validationSchema: upcomingPaymentValidationSchema,
       validateOnChange: hasSubmittedForm,
       onSubmit: onUpcomingSubmit,
@@ -230,25 +254,33 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
               />
             )}
             {hasMultipleCurrencies && (
-              <ShadowBoxView style={[styles.currencyBox, styles.paddingVertical]}>
-                <Pressable
-                  onPress={showCurrencySheet}
-                  style={pressableOpacityStyle(styles.currencyPressable)}
-                >
-                  <Label
-                    numberOfLines={1}
-                    style={[styles.currencyLabel, !values.currencyCode && styles.placeHolder]}
+              <View
+                style={[styles.currencyBox, isLocked && styles.lockedWrapper]}
+                pointerEvents={isLocked ? "none" : "auto"}
+              >
+                <ShadowBoxView style={[styles.currencyBox, styles.paddingVertical]}>
+                  <Pressable
+                    onPress={showCurrencySheet}
+                    style={pressableOpacityStyle(styles.currencyPressable)}
                   >
-                    {values.currencyCode
-                      ? showAmountField
-                        ? values.currencySymbol || values.currencyCode
-                        : `${values.currencySymbol || ""} ${values.currencyCode}`.trim()
-                      : "Currency"}
-                  </Label>
-                </Pressable>
-              </ShadowBoxView>
+                    <Label
+                      numberOfLines={1}
+                      style={[styles.currencyLabel, !values.currencyCode && styles.placeHolder]}
+                    >
+                      {values.currencyCode
+                        ? showAmountField
+                          ? values.currencySymbol || values.currencyCode
+                          : `${values.currencySymbol || ""} ${values.currencyCode}`.trim()
+                        : "Currency"}
+                    </Label>
+                  </Pressable>
+                </ShadowBoxView>
+              </View>
             )}
           </View>
+        )}
+        {isLocked && hasMultipleCurrencies && (
+          <LockedInfoBox text='Currency is locked because this payment has recorded history. Changing it would mix currencies across paid transactions.' />
         )}
         {hasMultipleCurrencies && (
           <InputErrorLabel text={errors.currencyCode} isVisible={!!errors.currencyCode} />
@@ -306,12 +338,25 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation }) => {
         </View>
         <View style={styles.input}>
           <Label style={styles.heading}>Start date</Label>
-          <DatePickerInput
-            date={new Date(values.date ?? undefined)}
-            onDateSelect={onDateChange}
-            hideTime
-          />
+          <View style={isLocked && styles.lockedWrapper} pointerEvents={isLocked ? "none" : "auto"}>
+            <DatePickerInput
+              date={new Date(values.date ?? undefined)}
+              onDateSelect={onDateChange}
+              hideTime
+            />
+          </View>
+          {isLocked && (
+            <LockedInfoBox text='Start date is locked because this payment has recorded history. It anchors the recurrence — changing it would invalidate past due dates.' />
+          )}
         </View>
+        {isEditMode && !isLocked && values.recurrence !== "none" && (
+          <View style={styles.input}>
+            <LockedInfoBox
+              text='Changes to repetition or interval apply to future instances only. Past paid instances are unchanged.'
+              tone='info'
+            />
+          </View>
+        )}
         {values.recurrence !== "none" && (
           <View style={styles.input}>
             <EndDatePicker
@@ -404,4 +449,5 @@ const themeStyles = (theme: AppTheme) =>
     },
     label: { fontSize: 20, flex: 1, fontWeight: "500" },
     placeHolder: { color: theme.colors.placeholder },
+    lockedWrapper: { opacity: 0.55 },
   });

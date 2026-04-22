@@ -7,6 +7,7 @@ import { formatDecimalDigits } from "modules/numbers";
 import { pressableOpacityStyle } from "modules/pressable";
 import { dueDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
+import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { DummyUpcomingInstanceRow } from "../modules/upcomingPaymentsDummyData";
 
@@ -17,13 +18,14 @@ type Props = {
 const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   const styles = useThemedStyles(themedStyles);
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
+  const navigation = useAppNavigation();
 
   const { instanceId, upcomingPaymentId, name, dueDate, expectedAmount, status, category } = row;
   const isVariable = expectedAmount == null;
   const isMissed = status === "missed";
 
   const openDetail = () => {
-    console.log("TODO: open detail for upcomingPaymentId", upcomingPaymentId);
+    navigation.navigate("UpcomingPaymentDetails", { id: upcomingPaymentId });
   };
 
   const openPaySheet = () => {

@@ -25,6 +25,7 @@ export type AppStackParamList = {
   ExportImport: undefined;
   AboutApp: undefined;
   UpcomingPayment: { id: number } | undefined;
+  UpcomingPaymentDetails: { id: number };
   UpcomingPaymentsSettings: undefined;
 };
 

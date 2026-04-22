@@ -1,10 +1,93 @@
-import { db, NewUpcomingPayment } from "db";
-import { categories, upcomingPaymentInstances, upcomingPayments } from "db/schema";
-import { eq, getTableColumns, sql } from "drizzle-orm";
+import { db, EditUpcomingPayment, NewUpcomingPayment } from "db";
+import {
+  categories,
+  transactions,
+  upcomingPaymentContributions,
+  upcomingPaymentInstances,
+  upcomingPayments,
+} from "db/schema";
+import { desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { addDays, addMonths, addWeeks, addYears, startOfDay } from "date-fns";
 
 export const addUpcomingPayment = (payment: NewUpcomingPayment) =>
   db.insert(upcomingPayments).values(payment);
+
+export const getUpcomingPaymentById = async (id: number) => {
+  const [row] = await db
+    .select({
+      ...getTableColumns(upcomingPayments),
+      iconFamily: categories.iconFamily,
+      iconName: categories.iconName,
+      iconColor: categories.iconColor,
+      categoryName: categories.name,
+      paidCount:
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'paid' THEN 1 END)`.mapWith(
+          Number
+        ),
+      missedCount:
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'missed' THEN 1 END)`.mapWith(
+          Number
+        ),
+      canceledCount:
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'canceled' THEN 1 END)`.mapWith(
+          Number
+        ),
+      pendingCount:
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' THEN 1 END)`.mapWith(
+          Number
+        ),
+    })
+    .from(upcomingPayments)
+    .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
+    .leftJoin(
+      upcomingPaymentInstances,
+      eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPayments.id)
+    )
+    .where(eq(upcomingPayments.id, id))
+    .groupBy(upcomingPayments.id);
+
+  if (!row) return null;
+  const historyCount = row.paidCount + row.missedCount + row.canceledCount;
+  return { ...row, historyCount, totalCount: computeTotalCount(row) };
+};
+
+export const updateUpcomingPayment = async (id: number, values: EditUpcomingPayment) => {
+  const existing = await getUpcomingPaymentById(id);
+  if (!existing) throw new Error("Upcoming payment not found");
+
+  const safeValues: EditUpcomingPayment = { ...values };
+  if (existing.historyCount > 0) {
+    delete safeValues.currencyCode;
+    delete safeValues.currencySymbol;
+    delete safeValues.firstDueDate;
+  }
+
+  return db.update(upcomingPayments).set(safeValues).where(eq(upcomingPayments.id, id));
+};
+
+export const softDeleteUpcomingPayment = (id: number) =>
+  db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
+
+export const getUpcomingPaymentInstancesWithContributions = async (upcomingPaymentId: number) => {
+  const rows = await db
+    .select({
+      ...getTableColumns(upcomingPaymentInstances),
+      contributionAmount: upcomingPaymentContributions.amount,
+      transactionId: transactions.id,
+      transactionAmount: transactions.amount,
+      transactionDate: transactions.date,
+    })
+    .from(upcomingPaymentInstances)
+    .leftJoin(
+      upcomingPaymentContributions,
+      eq(upcomingPaymentContributions.instanceId, upcomingPaymentInstances.id)
+    )
+    .leftJoin(transactions, eq(transactions.id, upcomingPaymentContributions.transactionId))
+    .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
+    .orderBy(desc(upcomingPaymentInstances.dueDate));
+
+  return rows;
+};
 
 export const getAllUpcomingPayments = async () => {
   const rows = await db
@@ -26,6 +109,7 @@ export const getAllUpcomingPayments = async () => {
       upcomingPaymentInstances,
       eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPayments.id)
     )
+    .where(eq(upcomingPayments.isActive, true))
     .groupBy(upcomingPayments.id);
 
   return rows.map((row) => ({ ...row, totalCount: computeTotalCount(row) }));

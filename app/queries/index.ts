@@ -13,4 +13,6 @@ export const queryKeys = {
   types: "types",
   totalBalanceHistory: "totalBalanceHistory",
   upcomingPayments: "upcomingPayments",
+  upcomingPaymentById: "upcomingPaymentById",
+  upcomingPaymentInstances: "upcomingPaymentInstances",
 } as const;

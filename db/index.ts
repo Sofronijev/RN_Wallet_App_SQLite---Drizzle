@@ -46,3 +46,9 @@ export type EditType = Omit<NewType, "id"> & { id: number };
 
 export type UpcomingPayment = InferSelectModel<typeof schema.upcomingPayments>;
 export type NewUpcomingPayment = InferInsertModel<typeof schema.upcomingPayments>;
+export type EditUpcomingPayment = Partial<Omit<NewUpcomingPayment, "id" | "createdAt" | "userId">>;
+
+export type UpcomingPaymentInstance = InferSelectModel<typeof schema.upcomingPaymentInstances>;
+export type UpcomingPaymentContribution = InferSelectModel<
+  typeof schema.upcomingPaymentContributions
+>;
