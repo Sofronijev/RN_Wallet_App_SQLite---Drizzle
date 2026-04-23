@@ -1,13 +1,13 @@
 import { StyleSheet, View } from "react-native";
-import React, { useMemo } from "react";
+import React from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { endOfMonth, format, startOfMonth } from "date-fns";
 import Label from "components/Label";
 import ButtonText from "components/ButtonText";
 import ShadowBoxView from "components/ShadowBoxView";
 import { useGetUpcomingInstancesForSection } from "app/queries/upcomingPayments";
 import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 import UpcomingPaymentRow from "./UpcomingPaymentRow";
 
 const MAX_VISIBLE_ROWS = 3;
@@ -17,19 +17,9 @@ const UpcomingPaymentsSection: React.FC = () => {
   const themeColors = useColors();
   const navigation = useAppNavigation();
   const { data: instances } = useGetUpcomingInstancesForSection();
-
-  const { monthLabel, visibleRows } = useMemo(() => {
-    const now = new Date();
-    const startIso = format(startOfMonth(now), "yyyy-MM-dd");
-    const endIso = format(endOfMonth(now), "yyyy-MM-dd");
-    const thisMonth = instances.filter(
-      (row) => row.dueDate >= startIso && row.dueDate <= endIso
-    );
-    return {
-      monthLabel: format(now, "MMMM"),
-      visibleRows: thisMonth.slice(0, MAX_VISIBLE_ROWS),
-    };
-  }, [instances]);
+  const visibleRows = instances.slice(0, MAX_VISIBLE_ROWS);
+  const missedCount = instances.filter(isInstanceMissed).length;
+  const dueCount = instances.length - missedCount;
 
   const onShowAll = () => {
     navigation.navigate("UpcomingPaymentsMonth");
@@ -37,12 +27,7 @@ const UpcomingPaymentsSection: React.FC = () => {
 
   return (
     <ShadowBoxView style={styles.container}>
-      <View style={styles.header}>
-        <Label style={styles.title}>Upcoming payments</Label>
-        <View style={styles.monthBadge}>
-          <Label style={styles.monthText}>{monthLabel}</Label>
-        </View>
-      </View>
+      <Label style={styles.title}>Upcoming payments for this month</Label>
       {visibleRows.length === 0 ? (
         <View style={styles.emptyCard}>
           <MaterialCommunityIcons
@@ -51,14 +36,21 @@ const UpcomingPaymentsSection: React.FC = () => {
             color={themeColors.primary}
           />
           <Label style={styles.emptyTitle}>You're all caught up!</Label>
-          <Label style={styles.emptySubtitle}>No payments due in {monthLabel}.</Label>
+          <Label style={styles.emptySubtitle}>No upcoming payments for this month.</Label>
         </View>
       ) : (
         <>
           {visibleRows.map((row) => (
             <UpcomingPaymentRow key={row.id} row={row} />
           ))}
-          <View style={styles.button}>
+          <View style={styles.footer}>
+            <View style={styles.summary}>
+              {missedCount > 0 && (
+                <Label style={styles.missed}>{missedCount} missed</Label>
+              )}
+              {missedCount > 0 && dueCount > 0 && <Label style={styles.dot}>·</Label>}
+              {dueCount > 0 && <Label style={styles.due}>{dueCount} due</Label>}
+            </View>
             <ButtonText title='Show all' onPress={onShowAll} />
           </View>
         </>
@@ -75,29 +67,35 @@ const themedStyles = (theme: AppTheme) =>
       borderRadius: 10,
       padding: 10,
     },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingBottom: 20,
-    },
     title: {
       fontSize: 18,
       fontWeight: "500",
+      paddingBottom: 20,
     },
-    monthBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 999,
-      backgroundColor: theme.colors.cardInner,
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingTop: 15,
     },
-    monthText: {
+    summary: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    missed: {
       fontSize: 13,
       fontWeight: "600",
-      color: theme.colors.primary,
+      color: theme.colors.redDark,
     },
-    button: {
-      paddingTop: 15,
+    due: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: theme.colors.muted,
+    },
+    dot: {
+      fontSize: 13,
+      color: theme.colors.muted,
     },
     emptyCard: {
       padding: 20,

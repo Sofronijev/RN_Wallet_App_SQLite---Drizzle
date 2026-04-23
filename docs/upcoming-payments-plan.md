@@ -1,12 +1,38 @@
 # Upcoming Payments / Bill Reminders
 
+## Status (2026-04-23)
+
+**Architectural deviation from the original plan**: we went with a **separate `UpcomingPaymentForm`** under [app/features/upcomingPayments/](app/features/upcomingPayments/) instead of adding a `ModeToggle` to the existing `TransactionForm`. Everything below that assumes the single-form approach should be read as historical context — the separate-form path is the current design.
+
+### Done
+- DB schema (`upcomingPayments`, `upcomingPaymentInstances`, `upcomingPaymentContributions`) + migrations + inferred types.
+- Service layer CRUD: [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) — add / update / soft-delete / cancel-instance / restore-instance / list / by-id / instances-with-contributions / section query.
+- React Query hooks: [app/queries/upcomingPayments.ts](app/queries/upcomingPayments.ts).
+- Separate `UpcomingPaymentForm` with RepetitionPicker, EndDatePicker, NotificationSettings, VariableAmountToggle, LockedInfoBox, validation, `deriveEditInitialValues`.
+- Dashboard: `UpcomingPaymentsSection` + `UpcomingPaymentRow` + `UpcomingPaymentCard`.
+- Detail screen: `UpcomingPaymentDetails` + `HistoryRow`.
+- Settings management list: `UpcomingPaymentsSettings`.
+- `showUpcomingPayments` dashboard toggle wired through `dashboardSettingStorage`.
+- Navigation routes: `UpcomingPayment`, `UpcomingPaymentDetails`, `UpcomingPaymentsSettings`.
+
+### Remaining
+1. **Pay flow (Phase 5)** — blocker for shipping. No `PaySheet`, no `addContribution` / `markInstanceStatus` service fns, no transaction creation on pay. `openPaySheet` handlers are TODO stubs in [UpcomingPaymentRow.tsx:34](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx#L34) and [UpcomingPaymentDetails.tsx:99](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L99).
+2. **Sparse materialization** — `addUpcomingPayment` only inserts the first instance ([upcomingPaymentQueries.ts:20](app/services/upcomingPaymentQueries.ts#L20)); no `materializeInstance`, no top-up on pay, no ~3-period runway.
+3. **Recurrence helper** — no `getNextDueDate(rule, afterDate)` exists. Needed by pay-flow top-up, overdue sweep, and the detail screen's "Next due" header. Recurrence math is currently inlined in `computeTotalCount` inside the service.
+4. **Overdue materialization sweep** — no launch-time pass that materializes past virtual periods as `pending` rows so they can be paid and notified on. Missed status itself is **not** persisted — `isInstanceMissed` derives it at read time from `status === "pending" && dueDate < today`.
+5. **`UpcomingPaymentsAllScreen`** — the dashboard "Show all" target (uncapped version of the section query) is not built.
+6. **Notifications (Phase 6)** — entirely missing: `expo-notifications` not in [package.json](package.json) / [app.json](app.json), no `app/modules/notifications/` wrapper, no scheduling, no cancel-on-pay, no permission prompt. The `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns are captured in the form but nothing reads them.
+7. **`ProgressBar`** — not built; needed for partial-payment progress on the detail screen.
+8. **`App.tsx` bootstrap** — no notification channel setup, no overdue-materialization sweep on mount.
+
+---
+
 ## Context
 
 SpendyFly currently tracks past transactions but has no concept of "money I owe in the future." The user wants to be reminded of upcoming bills, see their recurring payments on the dashboard at a glance, mark partial payments against them, and get local notifications before/on the due date (and when a payment is missed). The feature must stay local-first (no server) and reuse the existing `TransactionForm` so the add flow stays one button.
 
 Intended outcome:
-- Dashboard shows up to **3 individual Instance rows** — missed ones first (oldest → newest), then the earliest unpaid upcoming instance per UpcomingPayment. No future-period clutter.
-- A **"Show all" button on the dashboard** opens a full list of the same set (all missed + next-per-payment instances), no 3-row cap. Still no future scrolling — only actionable instances.
+- Dashboard shows individual Instance rows for **this month only**, plus any **missed** instances from prior months (oldest → newest first, then this month's pending chronologically). No future-month clutter.
 - A separate **"All scheduled payments" row in Settings** opens a list of the UpcomingPayments themselves (the recurring templates) for management — edit / pause / archive / delete.
 - A single "+" button opens the existing form with a "Regular / Upcoming" toggle at the top.
 - Paying (full or partial) creates a real `Transaction` linked back to the upcoming payment — so normal balance math is unaffected and history is preserved.
@@ -21,7 +47,7 @@ Intended outcome:
 
 Key idea: **future periods are virtual by default**, computed on-the-fly from the parent UpcomingPayment. An Instance row only exists when there's something to remember about that specific period:
 - It was paid (fully or partially)
-- It was missed (overdue sweep created the row)
+- It is past-due and needs to be payable / notifiable (overdue sweep materializes it as `pending`; the UI flags it as missed via `isInstanceMissed`)
 - It has notification IDs scheduled against it
 - It had a per-period override (edited amount for that one period)
 
@@ -36,9 +62,9 @@ This keeps the DB tiny, makes year-view trivial (just compute virtually), and pr
 | Add-button UX | One "+" button → one form with a "Regular / Upcoming" mode toggle at the top. Extra fields appear when Upcoming is selected. |
 | Repetition options | None, Daily, Weekly, Monthly, Yearly, **Custom (every N days/weeks/months)** |
 | End-date handling | Single `endDate` column (nullable). NULL = forever. Form offers two radio choices: "No end date" or "Ends on [date]". No separate count/mode columns — compute end date at creation if user thinks in counts. |
-| Dashboard model | Individual Instance rows. Shows **all missed** (oldest → newest) + **earliest unpaid upcoming per payment**, sorted chronologically, capped at 3. "Show all" button on the dashboard opens the full same set of Instances without the cap. |
+| Dashboard model | Individual Instance rows. Shows **all missed from prior months** (oldest → newest) + **every pending instance with a due date in the current month**, sorted chronologically. No future-month rows. |
 | Settings entry | A separate "All scheduled payments" row in Settings opens a list of **UpcomingPayments** (recurring templates) for management — distinct from the dashboard's instance-focused "Show all". |
-| Detail screen | Tap any Instance row (dashboard or Show-all) or any row in the Settings list → Upcoming Payment detail screen (rule header + next due + history list + edit/pause/archive/delete actions). |
+| Detail screen | Tap any Instance row (dashboard) or any row in the Settings list → Upcoming Payment detail screen (rule header + next due + history list + edit/pause/archive/delete actions). |
 | Variable-amount bills | Signaled by `amount IS NULL`. Shows "Variable" label + "Enter & Pay" button; user enters amount at payment time. No partials for variable bills in v1. |
 | v1 scope | Partial payments + progress bar (fixed-amount only), local notifications (day-of + N days early), missed-payment notification, dashboard toggle |
 
@@ -61,19 +87,17 @@ TransactionForm  (mode: 'transaction' | 'upcoming')
 Dashboard
   │
   ▼
-UpcomingPaymentsSection  (≤3 Instance rows: all missed + earliest pending per UpcomingPayment, chronological)
+UpcomingPaymentsSection  (Instance rows: all prior-month missed + every current-month pending, chronological)
   │
   ├─ row shows: upcomingPayment.name, instance.dueDate, amount (or "Variable"), late/missed badge
   ├─ tap row (anywhere except Pay button) → detail screen
-  ├─ action: [Pay] / [Enter & Pay]
-  │           │
-  │           ▼
-  │     Creates Transaction (normal balance flow)
-  │     + Contribution row linking Transaction → Instance
-  │     + If instance reaches 100%, mark paid & cancel its notifications
-  │     + Materialize next period so the pipeline stays full
-  │
-  └─ [Show all] button → UpcomingPaymentsAllScreen (same Instance query, no limit)
+  └─ action: [Pay] / [Enter & Pay]
+              │
+              ▼
+        Creates Transaction (normal balance flow)
+        + Contribution row linking Transaction → Instance
+        + If instance reaches 100%, mark paid & cancel its notifications
+        + Materialize next period so the pipeline stays full
 
 Settings → "All scheduled payments" → UpcomingPaymentsListScreen
   │
@@ -127,7 +151,7 @@ Add to [db/schema.ts](db/schema.ts). Generate migration with `yarn db:generate`.
 | `upcomingPaymentId` | integer FK → UpcomingPayments ON DELETE CASCADE | |
 | `dueDate` | text (ISO) NOT NULL | unique per upcomingPaymentId (composite unique index) |
 | `expectedAmount` | real nullable | snapshotted from UpcomingPayment.amount at materialization time; NULL when the parent is a variable-amount bill |
-| `status` | text enum | `pending` \| `paid` \| `missed` \| `canceled` |
+| `status` | text enum | `pending` \| `paid` \| `canceled`. **No `missed` status** — missed is derived at read time by `isInstanceMissed` (`status === "pending" && dueDate < today`). |
 | `paidAt` | text (ISO) nullable | set when `status` flips to `paid` |
 | `canceledAt` | text (ISO) nullable | mirrors paidAt for the canceled case |
 | `notificationIds` | text nullable | JSON array of expo-notifications IDs |
@@ -154,35 +178,24 @@ Instance rows are **not** pre-generated for every future period. They are create
 
 1. **On upcoming payment creation** — materialize the first ~3 periods so notifications have somewhere to store their IDs. These rows start as `status=pending`.
 2. **On pay (full or partial)** — if no Instance row exists for the due date being paid, create one. Attach the Contribution. When the instance flips to `paid`, materialize the *next* period after it (so there's always a pending pipeline).
-3. **On overdue sweep (app launch)** — for each active upcoming payment, compute virtual due dates that are in the past. Any that don't have a matching Instance row get materialized as `status=missed`, and the missed notification fires.
+3. **On overdue sweep (app launch)** — for each active upcoming payment, compute virtual due dates that are in the past. Any that don't have a matching Instance row get materialized as `status=pending` (the UI then derives "missed" from the past `dueDate`), and the missed notification fires.
 
 Everything else remains virtual. A period that is 2 years out and has never been paid, missed, or had notifications scheduled against it will have no row.
 
 ### Dashboard query
 
+Missed is a frontend concept (`status === "pending" && dueDate < today`), so one SQL predicate covers both cases: every active pending row whose `dueDate` is before the start of next month. Prior-period pending rows render as missed; current-month ones render as upcoming.
+
 ```sql
--- All missed instances, across all active upcoming payments
-SELECT * FROM UpcomingPaymentInstances i
-JOIN UpcomingPayments p ON p.id = i.upcomingPaymentId
-WHERE p.isActive = 1 AND i.status = 'missed'
-
-UNION ALL
-
--- Earliest pending instance per active upcoming payment
 SELECT * FROM UpcomingPaymentInstances i
 JOIN UpcomingPayments p ON p.id = i.upcomingPaymentId
 WHERE p.isActive = 1
   AND i.status = 'pending'
-  AND i.id = (
-    SELECT MIN(id) FROM UpcomingPaymentInstances
-    WHERE upcomingPaymentId = p.id AND status = 'pending'
-  )
-
+  AND i.dueDate < :startOfNextMonth
 ORDER BY dueDate ASC
-LIMIT 3   -- omit LIMIT for the "Show all" screen
 ```
 
-**Why this shape**: missed instances are each actionable on their own (user must pay each late bill). But pending instances beyond "the next one" are just notification placeholders — no reason to clutter the dashboard with Feb, Mar, Apr rent when Feb is what the user needs to look at.
+**Why this shape**: missed instances are each actionable on their own (user must pay each late bill). Showing the entire current month gives the user a clear picture of what's due before the month ends, while keeping future months out of view. Chronological order naturally places prior-period (missed) rows at the top.
 
 ---
 
@@ -202,46 +215,53 @@ No `expo-task-manager` or `expo-background-fetch` needed for v1.
 
 ---
 
-## Files to add
+## Files — current state
+
+### Done (actual paths)
+
+| Path | Notes |
+|---|---|
+| [db/schema.ts](db/schema.ts) | 3 tables + relations + composite unique index |
+| [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) | CRUD + cancel/restore-instance + section query |
+| [app/queries/upcomingPayments.ts](app/queries/upcomingPayments.ts) | React Query hooks + invalidation helper |
+| [app/features/upcomingPayments/ui/UpcomingPaymentsSection.tsx](app/features/upcomingPayments/ui/UpcomingPaymentsSection.tsx) | Dashboard section (note: under `features/upcomingPayments/`, not `features/balance/`) |
+| [app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx) | Row (Pay handler is a TODO stub) |
+| [app/features/upcomingPayments/ui/UpcomingPaymentCard.tsx](app/features/upcomingPayments/ui/UpcomingPaymentCard.tsx) | Card variant |
+| [app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx) | Detail screen (Pay handlers are TODO stubs) |
+| [app/features/upcomingPayments/ui/details/HistoryRow.tsx](app/features/upcomingPayments/ui/details/HistoryRow.tsx) | History row |
+| [app/features/upcomingPayments/ui/UpcomingPaymentsSettings.tsx](app/features/upcomingPayments/ui/UpcomingPaymentsSettings.tsx) | Settings management list (replaces the planned `UpcomingPaymentsListScreen`) |
+| [app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm.tsx](app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm.tsx) | **Separate form**, not a ModeToggle on TransactionForm |
+| [app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/RepetitionPicker.tsx](app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/RepetitionPicker.tsx) | |
+| [app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/EndDatePicker.tsx](app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/EndDatePicker.tsx) | |
+| [app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/NotificationSettings.tsx](app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/NotificationSettings.tsx) | Form captures columns — nothing reads them yet |
+| [app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/VariableAmountToggle.tsx](app/features/upcomingPayments/ui/UpcomingPaymentForm/fields/VariableAmountToggle.tsx) | |
+| [app/features/upcomingPayments/ui/UpcomingPaymentForm/LockedInfoBox.tsx](app/features/upcomingPayments/ui/UpcomingPaymentForm/LockedInfoBox.tsx) | |
+| [app/features/upcomingPayments/modules/upcomingPaymentFormValidation.ts](app/features/upcomingPayments/modules/upcomingPaymentFormValidation.ts) | |
+| [app/features/upcomingPayments/modules/upcomingPaymentStatus.ts](app/features/upcomingPayments/modules/upcomingPaymentStatus.ts) | Derives missed at read time |
+| [app/features/upcomingPayments/modules/deriveEditInitialValues.ts](app/features/upcomingPayments/modules/deriveEditInitialValues.ts) | |
+| [app/features/upcomingPayments/modules/types.ts](app/features/upcomingPayments/modules/types.ts) | |
+| [app/context/DashboardOptions/dashboardSettingStorage.ts](app/context/DashboardOptions/dashboardSettingStorage.ts) | `showUpcomingPayments` added |
+| [app/navigation/routes.ts](app/navigation/routes.ts) | Routes: `UpcomingPayment`, `UpcomingPaymentDetails`, `UpcomingPaymentsSettings` |
+
+### Still to add
 
 | Path | Purpose |
 |---|---|
-| [db/schema.ts](db/schema.ts) | Add 3 new tables + relations (modification) |
-| `drizzle/NNNN_upcoming_payments.sql` | Auto-generated via `yarn db:generate` |
-| `app/services/upcomingPaymentQueries.ts` | DB service functions (mirrors [app/services/transactionQueries.ts](app/services/transactionQueries.ts)) |
-| `app/queries/upcomingPayments.ts` | React Query hooks (mirrors [app/queries/transactions.ts](app/queries/transactions.ts)) |
-| `app/modules/notifications/` | Thin wrapper around expo-notifications: `requestPermission`, `scheduleForInstance`, `cancelForInstance`, `setupChannel` |
-| `app/modules/upcomingPayments/instanceGenerator.ts` | Pure fn: given an UpcomingPayment + date range, return virtual dueDate ISO strings. Uses date-fns. |
-| `app/modules/upcomingPayments/upcomingPaymentMath.ts` | Helpers: `getNextDueDate`, `mergeVirtualAndReal` (for detail/history view). Pure, unit-testable. |
-| `app/features/balance/ui/BalanceTab/UpcomingPaymentsSection.tsx` | Dashboard section — up to 3 Instance rows + "Show all" button |
-| `app/features/balance/ui/BalanceTab/UpcomingPaymentRow.tsx` | Row: icon, upcoming payment name, instance dueDate, amount (or "Variable"), late/missed badge, Pay button. Tapping row (outside the button) navigates to the detail screen. |
-| `app/features/balance/ui/UpcomingPayments/UpcomingPaymentsAllScreen.tsx` | Full list of **Instances** — same query as dashboard (all missed + next-per-payment) with no limit. Entry: "Show all" button on dashboard. |
-| `app/features/balance/ui/UpcomingPayments/UpcomingPaymentsListScreen.tsx` | Flat list of all **UpcomingPayments** (active + archived) for management. Entry: Settings row "All scheduled payments". |
-| `app/components/ProgressBar/index.tsx` | Simple themed bar (for the detail screen, when a fixed-amount instance has partial payments) |
-| `app/features/balance/ui/TransactionForm/fields/RepetitionPicker.tsx` | Sheet picker: None / Daily / Weekly / Monthly / Yearly / Custom |
-| `app/features/balance/ui/TransactionForm/fields/EndDatePicker.tsx` | Radio: "No end date" / "Ends on [date]". Shown when mode=upcoming and recurrence≠none. |
-| `app/features/balance/ui/TransactionForm/fields/NotificationSettings.tsx` | Inline sub-form: daysBefore / notifyOnDue / notifyOnMissed |
-| `app/features/balance/ui/TransactionForm/fields/ModeToggle.tsx` | Top-of-form "Regular / Upcoming" segmented control |
-| `app/features/balance/ui/TransactionForm/fields/VariableAmountToggle.tsx` | Checkbox: "Amount varies each period" + helper text. Hides amount input when on. |
-| `app/features/balance/ui/UpcomingPayments/UpcomingPaymentDetailScreen.tsx` | Tap an upcoming payment → header (rule + next due) + history list (past instances) + actions (edit, pause, archive, delete) |
-| `app/features/balance/ui/UpcomingPayments/PaySheet.tsx` | Bottom sheet for Pay / Pay partial / Enter & Pay. Handles the 3 flavors in one place. Includes a wallet picker (defaults to currently selected wallet) and a currency-mismatch warning banner when the picked wallet's currency differs from the bill's `currencyCode`. |
+| `app/modules/upcomingPayments/upcomingPaymentRecurrence.ts` | Pure `getNextDueDate(rule, afterDate)` — switches on `recurrence` and returns the next ISO due date via date-fns. ~15 lines. |
+| `app/modules/notifications/` | `expo-notifications` wrapper: `requestPermission`, `scheduleForInstance`, `cancelForInstance`, `setupChannel` |
+| `app/features/upcomingPayments/ui/PaySheet.tsx` | Bottom sheet: Pay / Pay partial / Enter & Pay + wallet picker + currency-mismatch banner |
+| `app/components/ProgressBar/index.tsx` | Themed progress bar for fixed-amount partial payments |
 
-## Files to modify
+### Still to modify
 
 | Path | Change |
 |---|---|
-| [package.json](package.json) | Add `expo-notifications` (use `yarn`, not npm) |
+| [package.json](package.json) | Add `expo-notifications` via `yarn` |
 | [app.json](app.json) | Add `expo-notifications` plugin entry |
-| [app/features/balance/ui/TransactionForm/TransactionForm.tsx](app/features/balance/ui/TransactionForm/TransactionForm.tsx) | Add ModeToggle at top; when mode=upcoming, show name/recurrence/endDate/variable-toggle/notification fields; submit handler branches between `addTransactionMutation` and a new `addUpcomingPaymentMutation` |
-| [app/features/balance/modules/transactionFormValidation.ts](app/features/balance/modules/transactionFormValidation.ts) | Extend `TransactionFromInputs` with upcoming-only fields; use Yup `.when('mode', ...)` for conditional validation (amount required unless `isVariableAmount=1`, custom interval fields required when recurrence=custom, endDate > firstDueDate) |
-| [app/features/balance/ui/BalanceTab/BalanceScreen.tsx](app/features/balance/ui/BalanceTab/BalanceScreen.tsx) | Conditionally render `<UpcomingPaymentsSection />` gated by `dashboardOptions.showUpcomingPayments` |
-| [app/context/DashboardOptions/dashboardSettingStorage.ts](app/context/DashboardOptions/dashboardSettingStorage.ts) | Add `showUpcomingPayments: boolean` (default `true`) to type + defaults |
-| [app/features/settings/.../DashboardSettings.tsx](app/features/settings) | Add toggle row for the new option |
-| [app/navigation/routes.ts](app/navigation/routes.ts) | Add `UpcomingPaymentDetail: { upcomingPaymentId: number }`, `UpcomingPaymentsAll: undefined`, `UpcomingPaymentsList: undefined` routes |
-| [app/navigation/AppNavigator.tsx](app/navigation/AppNavigator.tsx) | Register all three new screens |
-| [app/features/settings/.../SettingsScreen.tsx](app/features/settings) | Add a row: "All scheduled payments" → navigates to `UpcomingPaymentsListScreen` |
-| [app/queries/index.ts](app/queries/index.ts) | Add query keys: `upcomingPayments`, `upcomingInstances`, `upcomingContributions` |
-| [App.tsx](App.tsx) | On mount: setup notification channel + run "mark overdue instances" sweep |
+| [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) | Add `materializeInstance`, `addContribution`, `markInstanceStatus`, `runOverdueMaterialization`. `getUpcomingInstancesForSection` already returns active pending rows with `dueDate < startOfNextMonth`, ordered chronologically. |
+| [app/services/upcomingPaymentQueries.ts:20](app/services/upcomingPaymentQueries.ts#L20) | On create, materialize ~3 periods of runway instead of only `firstDueDate` |
+| [app/queries/upcomingPayments.ts](app/queries/upcomingPayments.ts) | Add pay-flow mutations; invalidate `transactions` + `wallets` keys |
+| [App.tsx](App.tsx) | Setup notification channel + overdue sweep on mount |
 
 ## Components to reuse (avoid rewriting)
 
@@ -259,55 +279,41 @@ No `expo-task-manager` or `expo-background-fetch` needed for v1.
 
 Each phase is independently useful and testable. Stop, try it, move on.
 
-### Phase 1 — DB + types (no UI yet)
-1. Add the 3 tables to [db/schema.ts](db/schema.ts), including composite unique index on `(upcomingPaymentId, dueDate)`.
-2. Add Drizzle relations.
-3. `yarn db:generate` → verify generated SQL in `drizzle/`.
-4. Export inferred types (`NewUpcomingPayment`, `Instance`, etc.) from [db/index.ts](db/index.ts).
-5. Launch app → confirm migration runs cleanly ([App.tsx:23](App.tsx#L23)).
+### Phase 1 — DB + types ✅ DONE
 
-### Phase 2 — Pure logic + service layer
-1. Write `instanceGenerator(upcomingPayment, from, to)` — pure, returns ISO date strings. Unit-testable.
-2. Write `upcomingPaymentMath`: `getNextDueDate`, `getMissedCount`, `mergeVirtualAndReal`. Pure.
-3. Write service functions in `app/services/upcomingPaymentQueries.ts`: `addUpcomingPayment`, `materializeInstance(upcomingPaymentId, dueDate)`, `getActiveUpcomingPayments`, `getUpcomingPaymentHistory`, `addContribution`, `markInstanceStatus`, `markOverdueSweep`.
-4. Write query hooks in `app/queries/upcomingPayments.ts` following the [transactions.ts](app/queries/transactions.ts) pattern (invalidate the new keys + `transactions` + `wallets` on anything that creates a real Transaction).
+### Phase 2 — Pure logic + service layer ⚠️ PARTIAL
+**Done**: service functions (add / update / soft-delete / cancel-instance / restore-instance / list / by-id / instances-with-contributions / section); React Query hooks with invalidation.
+**Remaining**:
+- `app/modules/upcomingPayments/upcomingPaymentRecurrence.ts` — pure `getNextDueDate(rule, afterDate)`. Used by pay-flow top-up, overdue sweep, and detail-screen "Next due" header.
+- Services: `materializeInstance(upcomingPaymentId, dueDate)`, `addContribution`, `markInstanceStatus`, `runOverdueMaterialization`. The overdue sweep walks `getNextDueDate` from the last materialized instance until it passes today, inserting each past period as `status=pending` (UI handles the missed presentation).
+- ~~Fix `getUpcomingInstancesForSection`~~ **Done** — query returns active pending rows with `dueDate < startOfNextMonth`, ordered by `dueDate ASC`.
+- Ensure pay-related mutations invalidate `transactions` + `wallets` keys when added.
 
-### Phase 3 — Read-only dashboard section
-1. Build `UpcomingPaymentRow` (no actions yet — just display). Row is per-Instance; it joins to its parent UpcomingPayment for name/icon/amount-or-Variable.
-2. Build `UpcomingPaymentsSection` — runs the dashboard query (all missed + earliest pending per upcoming payment, chronological, LIMIT 3). Empty state if none.
-3. Wire into [BalanceScreen](app/features/balance/ui/BalanceTab/BalanceScreen.tsx) behind a feature flag.
-4. Build `UpcomingPaymentsAllScreen` — same Instance query, no limit. Wire it to the "Show all" button on the dashboard.
-5. Manually seed an upcoming payment + instances via Drizzle Studio to verify rendering (one missed, one pending — confirm order).
+### Phase 3 — Read-only dashboard section ✅ DONE
+Built: `UpcomingPaymentRow`, `UpcomingPaymentsSection`, dashboard flag wiring, corrected section query (pending with `dueDate < startOfNextMonth`, chronological — missed derived on the frontend via `isInstanceMissed`).
 
-### Phase 4 — Form extension (add flow)
-1. `ModeToggle` at the top of [TransactionForm](app/features/balance/ui/TransactionForm/TransactionForm.tsx).
-2. `RepetitionPicker`.
-3. `EndDatePicker` (hidden when recurrence=none).
-4. `NotificationSettings` (inline, not a separate screen).
-5. `VariableAmountToggle` — when checked, hide amount input and submit with `amount=NULL`.
-6. Extend validation schema conditionally.
-7. Submit handler branch: mode=upcoming → `addUpcomingPayment` + materialize first ~3 instances (with NULL `expectedAmount` when the parent's `amount` is NULL).
+### Phase 4 — Form (add flow) ✅ DONE (via separate form)
+Delivered as a standalone [UpcomingPaymentForm](app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm.tsx) with its own validation, not as a `ModeToggle` on `TransactionForm`. Fields built: RepetitionPicker, EndDatePicker, NotificationSettings, VariableAmountToggle, LockedInfoBox.
+**Gap**: first-insert only materializes one Instance; should materialize ~3 once `materializeInstance` exists.
 
-### Phase 5 — Pay now / Pay partial / Enter & Pay
-1. Build `PaySheet` that handles all three flavors (pay-full, pay-partial, enter-amount). The sheet always targets a specific Instance.
-2. Pay button on an Instance row opens the sheet. The sheet:
-   - Creates a Transaction + Contribution against that Instance.
-   - If the Instance reaches 100% (fixed amount) or any Contribution exists (variable), flips status to `paid`, cancels its notifications, and materializes the next period (so the pipeline stays full).
-3. Tapping the row outside the button → navigates to detail screen (not the sheet).
-4. Verify: wallet balance updates, transaction appears in history, dashboard row either stays (partial) or is replaced by the next instance (fully paid).
+### Phase 5 — Pay now / Pay partial / Enter & Pay ❌ NOT STARTED (ship blocker)
+1. Build `PaySheet` (handles pay-full, pay-partial, enter-amount in one place) + wallet picker + currency-mismatch banner.
+2. Service: `addContribution` creates Transaction + Contribution atomically; if Instance reaches 100% (or any contribution for variable), flip to `paid`, cancel notifications, materialize next period.
+3. Wire the Pay button on `UpcomingPaymentRow` ([line 34](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx#L34)) and the detail screen actions ([UpcomingPaymentDetails.tsx:99](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L99), [:103](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L103)).
+4. Build `ProgressBar` for the detail screen partial-payment display.
+5. Verify: wallet balance updates, transaction appears in history, dashboard row stays (partial) or is replaced (fully paid).
 
-### Phase 6 — Notifications
-1. Add `expo-notifications` → [package.json](package.json), [app.json](app.json), `yarn` + prebuild.
-2. Write `app/modules/notifications/` wrapper.
-3. Ask permission on first upcoming payment creation.
+### Phase 6 — Notifications ❌ NOT STARTED
+1. Add `expo-notifications` to [package.json](package.json) via `yarn` + plugin entry in [app.json](app.json) + prebuild.
+2. Write `app/modules/notifications/` wrapper: `requestPermission`, `scheduleForInstance`, `cancelForInstance`, `setupChannel`.
+3. Ask permission on first upcoming-payment creation (not at app launch).
 4. Schedule on Instance materialization; cancel on pay-complete / edit / delete.
-5. Launch-time "mark overdue" sweep (materializes past-due virtual periods as `missed`).
+5. Launch-time overdue sweep in [App.tsx](App.tsx) — materializes past-due virtual periods as `pending` (the UI derives missed via `isInstanceMissed`). No status flip on already-materialized rows — they stay `pending` until paid or canceled.
+6. Read the existing `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns (they're already captured by the form).
 
-### Phase 7 — Detail + List + settings
-1. `UpcomingPaymentDetailScreen` — header (name, rule, next due) + history list (paid + missed instances with their Contributions/Transactions) + actions (edit, pause/resume, archive, delete).
-2. `UpcomingPaymentsListScreen` — flat list of all UpcomingPayments (active + archived sections). Wire the Settings "All scheduled payments" row to it.
-3. Add `showUpcomingPayments` to [dashboardSettingStorage](app/context/DashboardOptions/dashboardSettingStorage.ts) + toggle in DashboardSettings.
-4. Global notification-enable toggle in settings (respected by the schedule helper).
+### Phase 7 — Detail + List + settings ✅ DONE
+`UpcomingPaymentDetails` (rule header + history + edit/delete), `UpcomingPaymentsSettings` (management list), `showUpcomingPayments` toggle — all shipped.
+**Nice-to-have remaining**: global notification-enable toggle in settings (belongs with Phase 6).
 
 ---
 
@@ -341,7 +347,7 @@ Each phase is independently useful and testable. Stop, try it, move on.
 - iCal / Google Calendar sync.
 - Push notifications (app stays local-first).
 - Loan-style "X payments remaining" semantics (can add `endCount` later if users ask).
-- Year-wide calendar view (year overview gets virtual generation — add a screen for it in v2).
+- Month-only / year-wide calendar views — dashboard is scoped to current month + prior-month missed.
 
 ---
 
@@ -357,7 +363,7 @@ End-to-end check list (manual — no test runner configured):
 6. Tap Pay again → $600 → Instance flips to `paid`, its notifications are canceled, dashboard row now shows next month's due date.
 7. Create a variable-amount "Electricity" upcoming payment — dashboard shows "Variable" + "Enter & Pay". Tap → sheet requires amount input → submit $180 → Instance flips to `paid` in one step.
 8. Create a monthly upcoming payment with an end date 3 months out. After 4 periods elapse, it has no next-due and disappears from the dashboard (or shows as archived per Phase 7).
-9. Create an upcoming payment dated yesterday → app-launch sweep materializes it as `missed`, row shows the warning badge.
+9. Create an upcoming payment dated yesterday → app-launch sweep materializes it as `pending`, `isInstanceMissed` flags it, row shows the warning badge.
 10. Force-quit the app, wait past a scheduled notification time → notification fires.
 11. Toggle `showUpcomingPayments` off in DashboardSettings → section disappears.
 12. Tap a row → detail screen shows the rule + history of past Instances with their Transactions. Delete the upcoming payment → Instances + Contributions gone, but the real Transactions from steps 5/6 still exist in history and wallet balance is unchanged.

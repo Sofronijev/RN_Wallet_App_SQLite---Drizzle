@@ -6,8 +6,8 @@ import {
   upcomingPaymentInstances,
   upcomingPayments,
 } from "db/schema";
-import { and, asc, desc, eq, getTableColumns, sql } from "drizzle-orm";
-import { addDays, addMonths, addWeeks, addYears, startOfDay } from "date-fns";
+import { and, asc, desc, eq, getTableColumns, lt, sql } from "drizzle-orm";
+import { addDays, addMonths, addWeeks, addYears, format, startOfDay, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 
 export const addUpcomingPayment = (payment: NewUpcomingPayment) =>
@@ -115,6 +115,8 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
 };
 
 export const getUpcomingInstancesForSection = async () => {
+  const nextMonthIso = format(addMonths(startOfMonth(new Date()), 1), "yyyy-MM-dd");
+
   return db
     .select({
       id: upcomingPaymentInstances.id,
@@ -136,7 +138,8 @@ export const getUpcomingInstancesForSection = async () => {
     .where(
       and(
         eq(upcomingPayments.isActive, true),
-        eq(upcomingPaymentInstances.status, "pending")
+        eq(upcomingPaymentInstances.status, "pending"),
+        lt(upcomingPaymentInstances.dueDate, nextMonthIso)
       )
     )
     .orderBy(asc(upcomingPaymentInstances.dueDate));
