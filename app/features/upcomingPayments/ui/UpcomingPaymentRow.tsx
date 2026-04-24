@@ -3,7 +3,6 @@ import React from "react";
 import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import ButtonText from "components/ButtonText";
-import { formatDecimalDigits } from "modules/numbers";
 import { pressableOpacityStyle } from "modules/pressable";
 import { dueDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
@@ -11,6 +10,7 @@ import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingInstanceSectionRow } from "app/queries/upcomingPayments";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
+import { formatPaymentAmount } from "../modules/formatPaymentAmount";
 
 type Props = {
   row: UpcomingInstanceSectionRow;
@@ -71,7 +71,7 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
       </View>
       <View style={styles.rightColumn}>
         <Label style={[styles.amount, isVariable && styles.amountVariable]}>
-          {isVariable ? "Variable" : formatDecimalDigits(expectedAmount!, delimiter, decimal)}
+          {formatPaymentAmount(expectedAmount, { delimiter, decimal, nullLabel: "Variable" })}
         </Label>
         <ButtonText
           title={isVariable ? "Enter & Pay" : "Pay"}

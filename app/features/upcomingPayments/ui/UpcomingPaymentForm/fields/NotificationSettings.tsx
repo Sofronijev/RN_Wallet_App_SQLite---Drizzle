@@ -1,10 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Label from "components/Label";
 import AppSwitch from "components/AppSwitch";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-import colors from "constants/colors";
-import { pressableOpacityStyle } from "modules/pressable";
+import SelectableChip from "components/SelectableChip";
 
 const DAYS_BEFORE_OPTIONS: { value: number | null; label: string }[] = [
   { value: null, label: "Off" },
@@ -39,18 +38,15 @@ const NotificationSettings: React.FC<Props> = ({
 
       <Label style={styles.subLabel}>Remind me before due</Label>
       <View style={styles.chipRow}>
-        {DAYS_BEFORE_OPTIONS.map((option) => {
-          const isSelected = notifyDaysBefore === option.value;
-          return (
-            <Pressable
-              key={`${option.value ?? "off"}`}
-              style={pressableOpacityStyle([styles.chip, isSelected && styles.chipSelected])}
-              onPress={() => onNotifyDaysBeforeChange(option.value)}
-            >
-              <Label style={styles.chipText}>{option.label}</Label>
-            </Pressable>
-          );
-        })}
+        {DAYS_BEFORE_OPTIONS.map((option) => (
+          <SelectableChip
+            key={`${option.value ?? "off"}`}
+            label={option.label}
+            selected={notifyDaysBefore === option.value}
+            onPress={() => onNotifyDaysBeforeChange(option.value)}
+            compact
+          />
+        ))}
       </View>
 
       <View style={styles.switchRow}>
@@ -85,27 +81,6 @@ const themeStyles = (theme: AppTheme) =>
       flexWrap: "wrap",
       gap: 8,
       paddingBottom: 4,
-    },
-    chip: {
-      borderColor: theme.colors.border,
-      borderWidth: 1.5,
-      borderRadius: 12,
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      backgroundColor: theme.colors.cardInner,
-      shadowColor: colors.black,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    chipSelected: {
-      backgroundColor: theme.colors.selected,
-      borderColor: theme.colors.primary,
-    },
-    chipText: {
-      fontSize: 14,
-      fontWeight: "500",
     },
     switchRow: {
       flexDirection: "row",

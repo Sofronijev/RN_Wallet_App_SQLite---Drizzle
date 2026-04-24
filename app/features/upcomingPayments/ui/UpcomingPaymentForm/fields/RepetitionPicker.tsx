@@ -1,33 +1,14 @@
 import React from "react";
-import {
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { FlatList, ListRenderItem, StyleSheet, TextInput, View } from "react-native";
 import Label from "components/Label";
 import ShadowBoxView from "components/ShadowBoxView";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-import colors from "constants/colors";
-import { pressableOpacityStyle } from "modules/pressable";
 import { CustomIntervalUnit, Recurrence } from "app/features/upcomingPayments/modules/types";
-
-const RECURRENCE_OPTIONS: { value: Recurrence; label: string }[] = [
-  { value: "none", label: "One-time" },
-  { value: "daily", label: "Daily" },
-  { value: "weekly", label: "Weekly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "yearly", label: "Yearly" },
-  { value: "custom", label: "Custom" },
-];
-
-const UNIT_OPTIONS: { value: CustomIntervalUnit; label: string }[] = [
-  { value: "day", label: "Days" },
-  { value: "week", label: "Weeks" },
-  { value: "month", label: "Months" },
-];
+import {
+  RECURRENCE_OPTIONS,
+  UNIT_OPTIONS,
+} from "app/features/upcomingPayments/modules/recurrenceLabel";
+import SelectableChip from "components/SelectableChip";
 
 type Props = {
   recurrence: Recurrence;
@@ -48,17 +29,13 @@ const RepetitionPicker: React.FC<Props> = ({
 }) => {
   const styles = useThemedStyles(themeStyles);
 
-  const renderOption: ListRenderItem<{ value: Recurrence; label: string }> = ({ item }) => {
-    const isSelected = recurrence === item.value;
-    return (
-      <Pressable
-        style={pressableOpacityStyle([styles.chip, isSelected && styles.chipSelected])}
-        onPress={() => onRecurrenceChange(item.value)}
-      >
-        <Label style={styles.chipText}>{item.label}</Label>
-      </Pressable>
-    );
-  };
+  const renderOption: ListRenderItem<{ value: Recurrence; label: string }> = ({ item }) => (
+    <SelectableChip
+      label={item.label}
+      selected={recurrence === item.value}
+      onPress={() => onRecurrenceChange(item.value)}
+    />
+  );
 
   const onIntervalChange = (text: string) => {
     const parsed = parseInt(text, 10);
@@ -89,18 +66,15 @@ const RepetitionPicker: React.FC<Props> = ({
             placeholderTextColor={styles.placeholderColor.color}
           />
           <View style={styles.unitWrapper}>
-            {UNIT_OPTIONS.map((unit) => {
-              const isSelected = customIntervalUnit === unit.value;
-              return (
-                <Pressable
-                  key={unit.value}
-                  style={pressableOpacityStyle([styles.unitChip, isSelected && styles.chipSelected])}
-                  onPress={() => onCustomIntervalUnitChange(unit.value)}
-                >
-                  <Label style={styles.chipText}>{unit.label}</Label>
-                </Pressable>
-              );
-            })}
+            {UNIT_OPTIONS.map((unit) => (
+              <SelectableChip
+                key={unit.value}
+                label={unit.label}
+                selected={customIntervalUnit === unit.value}
+                onPress={() => onCustomIntervalUnitChange(unit.value)}
+                compact
+              />
+            ))}
           </View>
         </ShadowBoxView>
       )}
@@ -121,27 +95,6 @@ const themeStyles = (theme: AppTheme) =>
     listContent: {
       paddingVertical: 4,
       gap: 8,
-    },
-    chip: {
-      borderColor: theme.colors.border,
-      borderWidth: 1.5,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      backgroundColor: theme.colors.cardInner,
-      shadowColor: colors.black,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    chipSelected: {
-      backgroundColor: theme.colors.selected,
-      borderColor: theme.colors.primary,
-    },
-    chipText: {
-      fontSize: 14,
-      fontWeight: "500",
     },
     customRow: {
       marginTop: 12,
@@ -174,13 +127,5 @@ const themeStyles = (theme: AppTheme) =>
       gap: 6,
       flex: 1,
       flexWrap: "wrap",
-    },
-    unitChip: {
-      borderColor: theme.colors.border,
-      borderWidth: 1.5,
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      backgroundColor: theme.colors.cardInner,
     },
   });

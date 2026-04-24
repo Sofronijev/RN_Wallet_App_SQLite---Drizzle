@@ -13,7 +13,6 @@ import AppActivityIndicator from "components/AppActivityIndicator";
 import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
 import { calendarDateFormat, dueDateFormat, getFormattedDate } from "modules/timeAndDate";
-import { formatDecimalDigits } from "modules/numbers";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import {
   useCancelUpcomingPaymentInstanceMutation,
@@ -26,35 +25,14 @@ import {
 } from "app/queries/upcomingPayments";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
+import { getRecurrenceLabel } from "../modules/recurrenceLabel";
+import { formatPaymentAmount } from "../modules/formatPaymentAmount";
+import StatusBadge from "components/StatusBadge";
 import HistoryRow from "./details/HistoryRow";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
   route: RouteProp<AppStackParamList, "UpcomingPaymentDetails">;
-};
-
-const recurrenceLabel = (
-  recurrence: string,
-  customValue: number | null,
-  customUnit: "day" | "week" | "month" | null,
-) => {
-  switch (recurrence) {
-    case "none":
-      return "One-time";
-    case "daily":
-      return "Daily";
-    case "weekly":
-      return "Weekly";
-    case "monthly":
-      return "Monthly";
-    case "yearly":
-      return "Yearly";
-    case "custom":
-      if (!customValue || !customUnit) return "Custom";
-      return `Every ${customValue} ${customUnit}${customValue === 1 ? "" : "s"}`;
-    default:
-      return recurrence;
-  }
 };
 
 const daysUntil = (iso: string) => {
@@ -187,7 +165,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   });
 
   const scheduleParts = [
-    recurrenceLabel(payment.recurrence, payment.customIntervalValue, payment.customIntervalUnit),
+    getRecurrenceLabel(payment.recurrence, payment.customIntervalValue, payment.customIntervalUnit),
     payment.endDate ? `until ${getFormattedDate(payment.endDate, calendarDateFormat)}` : null,
   ].filter(Boolean);
 
@@ -202,17 +180,20 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
                 {payment.name}
               </Label>
               {isArchived ? (
-                <Label style={styles.archivedChip}>Archived</Label>
+                <StatusBadge label='Archived' tone='muted' />
               ) : payment.staleSince ? (
-                <Label style={styles.staleChip}>Stale</Label>
+                <StatusBadge label='Stale' tone='danger' />
               ) : null}
             </View>
             <Label style={styles.category}>{payment.categoryName}</Label>
           </View>
           <Label style={[styles.amount, isVariable && styles.amountVariable]}>
-            {isVariable
-              ? "Variable"
-              : `${formatDecimalDigits(payment.amount!, delimiter, decimal)} ${currency}`}
+            {formatPaymentAmount(payment.amount, {
+              delimiter,
+              decimal,
+              currency,
+              nullLabel: "Variable",
+            })}
           </Label>
         </View>
         {payment.description ? (
@@ -267,9 +248,12 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
                     <Label style={styles.nextSub}>{daysUntil(nextPending.dueDate)}</Label>
                   </View>
                   <Label style={styles.nextAmount}>
-                    {nextPending.expectedAmount == null
-                      ? "Variable"
-                      : `${formatDecimalDigits(nextPending.expectedAmount, delimiter, decimal)} ${currency}`}
+                    {formatPaymentAmount(nextPending.expectedAmount, {
+                      delimiter,
+                      decimal,
+                      currency,
+                      nullLabel: "Variable",
+                    })}
                   </Label>
                 </View>
                 <View style={styles.actionRow}>
@@ -417,30 +401,6 @@ const themeStyles = (theme: AppTheme) =>
       fontSize: 18,
       fontWeight: "bold",
       flexShrink: 1,
-    },
-    staleChip: {
-      fontSize: 11,
-      fontWeight: "700",
-      color: theme.colors.redDark,
-      borderColor: theme.colors.redDark,
-      borderWidth: 1,
-      borderRadius: 4,
-      paddingHorizontal: 6,
-      paddingVertical: 1,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    archivedChip: {
-      fontSize: 11,
-      fontWeight: "700",
-      color: theme.colors.muted,
-      borderColor: theme.colors.muted,
-      borderWidth: 1,
-      borderRadius: 4,
-      paddingHorizontal: 6,
-      paddingVertical: 1,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
     },
     staleCard: {
       marginTop: 12,

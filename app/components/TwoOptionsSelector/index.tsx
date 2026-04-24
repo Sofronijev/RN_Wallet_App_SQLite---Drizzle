@@ -1,7 +1,6 @@
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-import colors from "constants/colors";
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Option<T> = { value: T; label: string };
 
@@ -20,29 +19,25 @@ function TwoOptionSelector<T>({
 }: TwoOptionSelectorProps<T>) {
   const styles = useThemedStyles(themedStyles);
 
-  const handleSelect = (option: T) => {
-    onChange?.(option);
-  };
-
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Pressable
         style={[styles.option, selected === left.value && styles.selected]}
-        onPress={() => handleSelect(left.value)}
+        onPress={() => onChange?.(left.value)}
       >
         <Text style={[styles.label, selected === left.value && styles.labelSelected]}>
           {left.label}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
-      <TouchableOpacity
+      <Pressable
         style={[styles.option, selected === right.value && styles.selected]}
-        onPress={() => handleSelect(right.value)}
+        onPress={() => onChange?.(right.value)}
       >
         <Text style={[styles.label, selected === right.value && styles.labelSelected]}>
           {right.label}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
@@ -53,26 +48,27 @@ const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",
-      borderWidth: 1,
       borderRadius: 8,
-      overflow: "hidden",
-      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.cardInner,
+      padding: 4,
+      gap: 4,
     },
     option: {
       flex: 1,
       paddingVertical: 8,
       alignItems: "center",
-      backgroundColor: theme.colors.cardInner,
+      borderRadius: 6,
     },
     selected: {
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.card,
     },
     label: {
-      color: theme.colors.text,
+      fontSize: 13,
       fontWeight: "500",
-      paddingHorizontal: 8,
+      color: theme.colors.muted,
     },
     labelSelected: {
-      color: colors.white,
+      color: theme.colors.text,
+      fontWeight: "600",
     },
   });

@@ -3,9 +3,9 @@ import { StyleSheet, View } from "react-native";
 import Label from "components/Label";
 import ButtonText from "components/ButtonText";
 import { calendarDateFormat, getFormattedDate } from "modules/timeAndDate";
-import { formatDecimalDigits } from "modules/numbers";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingPaymentInstanceRow } from "app/queries/upcomingPayments";
+import { formatPaymentAmount } from "../../modules/formatPaymentAmount";
 
 type Props = {
   row: UpcomingPaymentInstanceRow;
@@ -58,9 +58,7 @@ const HistoryRow: React.FC<Props> = ({
           </View>
         </View>
         <Label style={styles.amount}>
-          {paidAmount != null
-            ? `${formatDecimalDigits(paidAmount, delimiter, decimal)} ${currency}`
-            : "—"}
+          {formatPaymentAmount(paidAmount, { delimiter, decimal, currency })}
         </Label>
       </View>
       {isMissed && (
