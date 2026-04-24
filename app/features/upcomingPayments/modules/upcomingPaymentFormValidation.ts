@@ -44,7 +44,7 @@ export const upcomingPaymentValidationSchema = Yup.object({
       return schema.notRequired();
     })
     .label("Type"),
-  currencyCode: Yup.string().trim().required("Please pick a currency").label("Currency"),
+  currencyCode: Yup.string().trim().label("Currency"),
   currencySymbol: Yup.string(),
   name: Yup.string().trim().required("Please enter a name").max(255),
   recurrence: Yup.string()

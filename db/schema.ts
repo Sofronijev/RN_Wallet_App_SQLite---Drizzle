@@ -173,8 +173,8 @@ export const upcomingPayments = sqliteTable("UpcomingPayments", {
     onUpdate: "cascade",
     onDelete: "cascade",
   }),
-  currencyCode: text("currencyCode", { length: 10 }).notNull(),
-  currencySymbol: text("currencySymbol", { length: 10 }).default("").notNull(),
+  currencyCode: text("currencyCode", { length: 10 }).default(""),
+  currencySymbol: text("currencySymbol", { length: 10 }).default(""),
   userId: integer("userId")
     .references(() => users.id, {
       onDelete: "cascade",

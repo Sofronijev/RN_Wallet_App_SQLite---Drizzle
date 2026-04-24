@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "817a53ab-94a8-4a14-b535-c5dfc1375cca",
+  "id": "4a52cd7b-6014-4bdf-b43f-279359a51ea5",
   "prevId": "3e763139-ff76-4966-b9d3-6da131e37f0a",
   "tables": {
     "Categories": {
@@ -596,14 +596,15 @@
           "name": "currencyCode",
           "type": "text(10)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": false,
+          "autoincrement": false,
+          "default": "''"
         },
         "currencySymbol": {
           "name": "currencySymbol",
           "type": "text(10)",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false,
           "default": "''"
         },

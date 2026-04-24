@@ -22,6 +22,7 @@ import {
   useGetUpcomingPaymentById,
   useGetUpcomingPaymentInstances,
   useRestoreUpcomingPaymentInstanceMutation,
+  useRestoreUpcomingPaymentMutation,
 } from "app/queries/upcomingPayments";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
@@ -77,6 +78,8 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   const { data: payment, isLoading: paymentLoading } = useGetUpcomingPaymentById(id);
   const { data: instances, isLoading: instancesLoading } = useGetUpcomingPaymentInstances(id);
   const { deleteUpcomingPayment, isLoading: isDeleting } = useDeleteUpcomingPaymentMutation();
+  const { restoreUpcomingPayment, isLoading: isRestoringPayment } =
+    useRestoreUpcomingPaymentMutation();
   const { cancelInstance, isLoading: isCanceling } = useCancelUpcomingPaymentInstanceMutation(id);
   const { restoreInstance, isLoading: isRestoring } = useRestoreUpcomingPaymentInstanceMutation(id);
   const { clearStaleFlag, isLoading: isClearingStale } = useClearStaleFlagMutation();
@@ -123,12 +126,12 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   const onDelete = () => {
     if (!payment) return;
     Alert.alert(
-      "Delete this upcoming payment?",
-      "The schedule will stop. Already-paid transactions will stay in your history.",
+      "Archive this upcoming payment?",
+      "The schedule will stop. Already-paid transactions will stay in your history. You can restore it later from the Archived tab.",
       [
         { text: "Cancel" },
         {
-          text: "Delete",
+          text: "Archive",
           style: "destructive",
           onPress: () =>
             deleteUpcomingPayment(id, {
@@ -139,27 +142,43 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
     );
   };
 
+  const onRestore = () => {
+    restoreUpcomingPayment(id, {
+      onSuccess: () => navigation.goBack(),
+    });
+  };
+
+  const isArchived = payment ? !payment.isActive : false;
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerActions}>
-          <HeaderIcon onPress={onEdit}>
-            <MaterialIcons name='edit' size={22} color={colors.white} />
-          </HeaderIcon>
-          <HeaderIcon onPress={onDelete}>
-            <Ionicons name='trash-sharp' size={22} color={colors.white} />
-          </HeaderIcon>
+          {isArchived ? (
+            <HeaderIcon onPress={onRestore}>
+              <MaterialCommunityIcons name='restore' size={22} color={colors.white} />
+            </HeaderIcon>
+          ) : (
+            <>
+              <HeaderIcon onPress={onEdit}>
+                <MaterialIcons name='edit' size={22} color={colors.white} />
+              </HeaderIcon>
+              <HeaderIcon onPress={onDelete}>
+                <Ionicons name='archive' size={22} color={colors.white} />
+              </HeaderIcon>
+            </>
+          )}
         </View>
       ),
     });
-  }, [navigation, payment?.id]);
+  }, [navigation, payment?.id, isArchived]);
 
   if (!payment) {
     return <AppActivityIndicator hideScreen isLoading={paymentLoading} />;
   }
 
   const isVariable = payment.amount == null;
-  const currency = payment.currencySymbol || payment.currencyCode;
+  const currency = payment.currencySymbol || payment.currencyCode || "";
   const categoryIcon = getCategoryIcon({
     iconFamily: payment.iconFamily,
     name: payment.iconName,
@@ -182,7 +201,11 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
               <Label numberOfLines={1} style={styles.name}>
                 {payment.name}
               </Label>
-              {payment.staleSince ? <Label style={styles.staleChip}>Stale</Label> : null}
+              {isArchived ? (
+                <Label style={styles.archivedChip}>Archived</Label>
+              ) : payment.staleSince ? (
+                <Label style={styles.staleChip}>Stale</Label>
+              ) : null}
             </View>
             <Label style={styles.category}>{payment.categoryName}</Label>
           </View>
@@ -197,7 +220,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
         ) : null}
       </ShadowBoxView>
 
-      {payment.staleSince ? (
+      {payment.staleSince && !isArchived ? (
         <ShadowBoxView style={styles.staleCard}>
           <View style={styles.staleTitleRow}>
             <MaterialCommunityIcons
@@ -230,44 +253,48 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
         </ShadowBoxView>
       ) : null}
 
-      <Label style={styles.sectionHeader}>Next due</Label>
-      <ShadowBoxView style={styles.section}>
-        {nextPending ? (
-          <>
-            <View style={styles.nextRow}>
-              <View style={styles.nextText}>
-                <Label style={styles.nextDate}>
-                  {getFormattedDate(nextPending.dueDate, dueDateFormat)}
-                </Label>
-                <Label style={styles.nextSub}>{daysUntil(nextPending.dueDate)}</Label>
-              </View>
-              <Label style={styles.nextAmount}>
-                {nextPending.expectedAmount == null
-                  ? "Variable"
-                  : `${formatDecimalDigits(nextPending.expectedAmount, delimiter, decimal)} ${currency}`}
-              </Label>
-            </View>
-            <View style={styles.actionRow}>
-              <CustomButton
-                title={nextPending.expectedAmount == null ? "Enter & Pay" : "Pay"}
-                size='small'
-                style={styles.actionButton}
-                onPress={onPay}
-              />
-              <CustomButton
-                title='Cancel'
-                size='small'
-                type='danger'
-                outline
-                style={styles.actionButton}
-                onPress={() => onCancelInstance(nextPending.id)}
-              />
-            </View>
-          </>
-        ) : (
-          <Label style={styles.mutedText}>No pending payment.</Label>
-        )}
-      </ShadowBoxView>
+      {isArchived ? null : (
+        <>
+          <Label style={styles.sectionHeader}>Next due</Label>
+          <ShadowBoxView style={styles.section}>
+            {nextPending ? (
+              <>
+                <View style={styles.nextRow}>
+                  <View style={styles.nextText}>
+                    <Label style={styles.nextDate}>
+                      {getFormattedDate(nextPending.dueDate, dueDateFormat)}
+                    </Label>
+                    <Label style={styles.nextSub}>{daysUntil(nextPending.dueDate)}</Label>
+                  </View>
+                  <Label style={styles.nextAmount}>
+                    {nextPending.expectedAmount == null
+                      ? "Variable"
+                      : `${formatDecimalDigits(nextPending.expectedAmount, delimiter, decimal)} ${currency}`}
+                  </Label>
+                </View>
+                <View style={styles.actionRow}>
+                  <CustomButton
+                    title={nextPending.expectedAmount == null ? "Enter & Pay" : "Pay"}
+                    size='small'
+                    style={styles.actionButton}
+                    onPress={onPay}
+                  />
+                  <CustomButton
+                    title='Cancel'
+                    size='small'
+                    type='danger'
+                    outline
+                    style={styles.actionButton}
+                    onPress={() => onCancelInstance(nextPending.id)}
+                  />
+                </View>
+              </>
+            ) : (
+              <Label style={styles.mutedText}>No pending payment.</Label>
+            )}
+          </ShadowBoxView>
+        </>
+      )}
 
       <Label style={styles.sectionHeader}>Schedule</Label>
       <ShadowBoxView style={styles.section}>
@@ -336,7 +363,14 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
       />
       <AppActivityIndicator
         hideScreen
-        isLoading={isDeleting || isCanceling || isRestoring || isClearingStale || instancesLoading}
+        isLoading={
+          isDeleting ||
+          isRestoringPayment ||
+          isCanceling ||
+          isRestoring ||
+          isClearingStale ||
+          instancesLoading
+        }
       />
     </>
   );
@@ -389,6 +423,18 @@ const themeStyles = (theme: AppTheme) =>
       fontWeight: "700",
       color: theme.colors.redDark,
       borderColor: theme.colors.redDark,
+      borderWidth: 1,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    archivedChip: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: theme.colors.muted,
+      borderColor: theme.colors.muted,
       borderWidth: 1,
       borderRadius: 4,
       paddingHorizontal: 6,

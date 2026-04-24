@@ -8,6 +8,7 @@ import {
   getUpcomingInstancesForSection,
   getUpcomingPaymentById,
   getUpcomingPaymentInstancesWithContributions,
+  restoreUpcomingPayment,
   restoreUpcomingPaymentInstance,
   softDeleteUpcomingPayment,
   updateUpcomingPayment,
@@ -151,6 +152,20 @@ export const useDeleteUpcomingPaymentMutation = () => {
 
   return {
     deleteUpcomingPayment: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const useRestoreUpcomingPaymentMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (id: number) => restoreUpcomingPayment(id),
+    onSuccess: (_data, id) => invalidateUpcomingPayments(clientQuery, id),
+  });
+
+  return {
+    restoreUpcomingPayment: mutate,
     isLoading: isPending,
     isError,
   };

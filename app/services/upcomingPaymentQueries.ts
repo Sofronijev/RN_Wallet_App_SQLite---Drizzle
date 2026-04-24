@@ -82,6 +82,9 @@ export const updateUpcomingPayment = async (id: number, values: EditUpcomingPaym
 export const softDeleteUpcomingPayment = (id: number) =>
   db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
 
+export const restoreUpcomingPayment = (id: number) =>
+  db.update(upcomingPayments).set({ isActive: true }).where(eq(upcomingPayments.id, id));
+
 export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
   const [instance] = await db
     .select({ upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId })
@@ -265,6 +268,9 @@ export const getAllUpcomingPayments = async () => {
       missedCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} < ${todayIso} THEN 1 END)`.mapWith(
         Number
       ),
+      pendingCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' THEN 1 END)`.mapWith(
+        Number
+      ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
@@ -272,11 +278,19 @@ export const getAllUpcomingPayments = async () => {
       upcomingPaymentInstances,
       eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPayments.id)
     )
-    .where(eq(upcomingPayments.isActive, true))
     .groupBy(upcomingPayments.id);
 
-  return rows.map((row) => ({ ...row, totalCount: computeTotalCount(row) }));
+  return rows.map((row) => ({
+    ...row,
+    totalCount: computeTotalCount(row),
+    completed: isCompleted(row, todayIso),
+  }));
 };
+
+const isCompleted = (
+  row: { endDate: string | null; pendingCount: number },
+  todayIso: string,
+): boolean => row.endDate != null && row.endDate <= todayIso && row.pendingCount === 0;
 
 type TotalCountInput = {
   firstDueDate: string;

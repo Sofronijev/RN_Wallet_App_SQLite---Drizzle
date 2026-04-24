@@ -24,6 +24,8 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
     paidCount,
     missedCount,
     staleSince,
+    completed,
+    isActive,
   } = row;
 
   return (
@@ -33,7 +35,8 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
         <Label numberOfLines={1} style={styles.name}>
           {name}
         </Label>
-        {staleSince ? <Label style={styles.staleBadge}>Stale</Label> : null}
+        {isActive && completed ? <Label style={styles.completedBadge}>Completed</Label> : null}
+        {isActive && staleSince ? <Label style={styles.staleBadge}>Stale</Label> : null}
       </View>
       <View style={styles.row}>
         <Label style={styles.meta}>Starts</Label>
@@ -86,6 +89,18 @@ const themedStyles = (theme: AppTheme) =>
       fontWeight: "700",
       color: theme.colors.redDark,
       borderColor: theme.colors.redDark,
+      borderWidth: 1,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    completedBadge: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: theme.colors.muted,
+      borderColor: theme.colors.muted,
       borderWidth: 1,
       borderRadius: 4,
       paddingHorizontal: 6,

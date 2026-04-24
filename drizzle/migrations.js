@@ -8,6 +8,7 @@ import m0003 from './0003_initial_categories.sql';
 import m0004 from './0004_initial_types.sql';
 import m0005 from './0005_upcoming_payments.sql';
 
+console.log(m0005)
   export default {
     journal,
     migrations: {

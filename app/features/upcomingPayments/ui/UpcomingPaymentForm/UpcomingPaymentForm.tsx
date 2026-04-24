@@ -1,4 +1,4 @@
-import { Keyboard, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { pressableOpacityStyle } from "modules/pressable";
 import React, { useMemo, useRef, useState } from "react";
 import { useFormik } from "formik";
@@ -104,13 +104,22 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
       notifyOnMissed: values.notifyOnMissed,
     };
 
+    const onError = (err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("Upcoming payment save failed:", err);
+      Alert.alert("Could not save", message);
+    };
+
     if (isEditMode) {
       updateUpcomingPayment(
         { id: editId as number, values: payload },
-        { onSuccess: () => navigation.goBack() }
+        { onSuccess: () => navigation.goBack(), onError }
       );
     } else {
-      addUpcomingPayment(payload, { onSuccess: () => navigation.goBack() });
+      addUpcomingPayment(payload, {
+        onSuccess: () => navigation.goBack(),
+        onError,
+      });
     }
   };
 
