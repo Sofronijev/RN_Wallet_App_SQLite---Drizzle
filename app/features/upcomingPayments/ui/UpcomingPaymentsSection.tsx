@@ -1,12 +1,12 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Label from "components/Label";
 import ButtonText from "components/ButtonText";
 import ShadowBoxView from "components/ShadowBoxView";
+import NullScreen from "components/NullScreen";
 import { useGetUpcomingInstancesForSection } from "app/queries/upcomingPayments";
 import { useAppNavigation } from "navigation/routes";
-import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 import UpcomingPaymentRow from "./UpcomingPaymentRow";
 
@@ -14,7 +14,6 @@ const MAX_VISIBLE_ROWS = 3;
 
 const UpcomingPaymentsSection: React.FC = () => {
   const styles = useThemedStyles(themedStyles);
-  const themeColors = useColors();
   const navigation = useAppNavigation();
   const { data: instances } = useGetUpcomingInstancesForSection();
   const visibleRows = instances.slice(0, MAX_VISIBLE_ROWS);
@@ -29,15 +28,11 @@ const UpcomingPaymentsSection: React.FC = () => {
     <ShadowBoxView style={styles.container}>
       <Label style={styles.title}>Upcoming payments for this month</Label>
       {visibleRows.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <MaterialCommunityIcons
-            name='party-popper'
-            size={32}
-            color={themeColors.primary}
-          />
-          <Label style={styles.emptyTitle}>You're all caught up!</Label>
-          <Label style={styles.emptySubtitle}>No upcoming payments for this month.</Label>
-        </View>
+        <NullScreen
+          icon='celebrate'
+          title="You're all caught up!"
+          subtitle='No upcoming payments for this month.'
+        />
       ) : (
         <>
           {visibleRows.map((row) => (
@@ -96,19 +91,5 @@ const themedStyles = (theme: AppTheme) =>
     dot: {
       fontSize: 13,
       color: theme.colors.muted,
-    },
-    emptyCard: {
-      padding: 20,
-      alignItems: "center",
-      gap: 6,
-    },
-    emptyTitle: {
-      fontSize: 15,
-      fontWeight: "600",
-    },
-    emptySubtitle: {
-      fontSize: 13,
-      color: theme.colors.muted,
-      textAlign: "center",
     },
   });

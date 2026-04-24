@@ -40,6 +40,7 @@ CREATE TABLE `UpcomingPayments` (
 	`notifyOnDueDay` integer DEFAULT true NOT NULL,
 	`notifyOnMissed` integer DEFAULT true NOT NULL,
 	`isActive` integer DEFAULT true NOT NULL,
+	`staleSince` text,
 	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`categoryId`) REFERENCES `Categories`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`typeId`) REFERENCES `Types`(`id`) ON UPDATE cascade ON DELETE cascade,

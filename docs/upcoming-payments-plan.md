@@ -14,16 +14,15 @@
 - Settings management list: `UpcomingPaymentsSettings`.
 - `showUpcomingPayments` dashboard toggle wired through `dashboardSettingStorage`.
 - Navigation routes: `UpcomingPayment`, `UpcomingPaymentDetails`, `UpcomingPaymentsSettings`.
+- Recurrence helper [getNextDueDate](app/modules/upcomingPayments/upcomingPaymentRecurrence.ts) + services `ensureNextInstance` / `catchUpUpcomingPaymentInstances` in [upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts). Cancel mutation auto-tops up the next instance. App-launch sweep wired in [App.tsx](App.tsx).
+- Stale-payment handling (Phase 5.5): schema column `staleSince`, `BACKFILL_LIMIT = 3` cap in the sweep, `clearStaleFlag` service + `useClearStaleFlagMutation`, [StalePaymentBanner](app/features/upcomingPayments/ui/StalePaymentBanner.tsx) on dashboard, stale chip + "Still using this?" card on [UpcomingPaymentDetails](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx), stale badge on [UpcomingPaymentCard](app/features/upcomingPayments/ui/UpcomingPaymentCard.tsx) (used by settings list).
 
 ### Remaining
-1. **Pay flow (Phase 5)** — blocker for shipping. No `PaySheet`, no `addContribution` / `markInstanceStatus` service fns, no transaction creation on pay. `openPaySheet` handlers are TODO stubs in [UpcomingPaymentRow.tsx:34](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx#L34) and [UpcomingPaymentDetails.tsx:99](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L99).
-2. **Sparse materialization** — `addUpcomingPayment` only inserts the first instance ([upcomingPaymentQueries.ts:20](app/services/upcomingPaymentQueries.ts#L20)); no `materializeInstance`, no top-up on pay, no ~3-period runway.
-3. **Recurrence helper** — no `getNextDueDate(rule, afterDate)` exists. Needed by pay-flow top-up, overdue sweep, and the detail screen's "Next due" header. Recurrence math is currently inlined in `computeTotalCount` inside the service.
-4. **Overdue materialization sweep** — no launch-time pass that materializes past virtual periods as `pending` rows so they can be paid and notified on. Missed status itself is **not** persisted — `isInstanceMissed` derives it at read time from `status === "pending" && dueDate < today`.
-5. **`UpcomingPaymentsAllScreen`** — the dashboard "Show all" target (uncapped version of the section query) is not built.
-6. **Notifications (Phase 6)** — entirely missing: `expo-notifications` not in [package.json](package.json) / [app.json](app.json), no `app/modules/notifications/` wrapper, no scheduling, no cancel-on-pay, no permission prompt. The `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns are captured in the form but nothing reads them.
-7. **`ProgressBar`** — not built; needed for partial-payment progress on the detail screen.
-8. **`App.tsx` bootstrap** — no notification channel setup, no overdue-materialization sweep on mount.
+1. **Pay flow (Phase 5)** — blocker for shipping. No `PaySheet`, no `addContribution` / `markInstanceStatus` service fns, no transaction creation on pay. `openPaySheet` handlers are TODO stubs in [UpcomingPaymentRow.tsx:34](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx#L34) and [UpcomingPaymentDetails.tsx:99](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L99). Pay-complete must also call `ensureNextInstance` + `clearStaleFlag` if the parent is stale.
+2. **`UpcomingPaymentsAllScreen`** — the dashboard "Show all" target (uncapped version of the section query) is not built.
+3. **Notifications (Phase 6)** — entirely missing: `expo-notifications` not in [package.json](package.json) / [app.json](app.json), no `app/modules/notifications/` wrapper, no scheduling, no cancel-on-pay, no permission prompt. The `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns are captured in the form but nothing reads them.
+4. **`ProgressBar`** — not built; needed for partial-payment progress on the detail screen.
+5. **`App.tsx` bootstrap** — overdue sweep is wired ([App.tsx:37](App.tsx#L37)); notification channel setup still missing.
 
 ---
 
@@ -141,6 +140,7 @@ Add to [db/schema.ts](db/schema.ts). Generate migration with `yarn db:generate`.
 | `notifyOnDueDay` | integer (bool) default 1 | Day-of reminder. Independent of `notifyDaysBefore` — either, both, or neither can fire. |
 | `notifyOnMissed` | integer (bool) default 1 | |
 | `isActive` | integer (bool) default 1 | soft-archive when user ends an upcoming payment |
+| `staleSince` | text (ISO) nullable | set by the sweep when a payment falls more than `BACKFILL_LIMIT` periods behind. NULL = not stale. Cleared on user confirmation or on pay. See [Stale-payment handling](#stale-payment-handling). |
 | `createdAt` | text default CURRENT_TIMESTAMP | |
 
 ### `UpcomingPaymentInstances` (sparse — only when a period has state)
@@ -176,9 +176,11 @@ Add to [db/schema.ts](db/schema.ts). Generate migration with `yarn db:generate`.
 
 Instance rows are **not** pre-generated for every future period. They are created only on these triggers:
 
-1. **On upcoming payment creation** — materialize the first ~3 periods so notifications have somewhere to store their IDs. These rows start as `status=pending`.
-2. **On pay (full or partial)** — if no Instance row exists for the due date being paid, create one. Attach the Contribution. When the instance flips to `paid`, materialize the *next* period after it (so there's always a pending pipeline).
-3. **On overdue sweep (app launch)** — for each active upcoming payment, compute virtual due dates that are in the past. Any that don't have a matching Instance row get materialized as `status=pending` (the UI then derives "missed" from the past `dueDate`), and the missed notification fires.
+1. **On upcoming payment creation** — materialize only the first period (`firstDueDate`) as `status=pending`. No runway, no pre-seeding. Notifications for that single instance are scheduled at creation time.
+2. **On pay (full) / cancel** — when the current Instance flips to `paid` or `canceled`, materialize the *next* period so there's always exactly one pending future instance. Partial pays don't trigger this (instance stays `pending`).
+3. **On overdue sweep (app launch)** — for each active upcoming payment, walk forward from the latest materialized instance using `getNextDueDate` until the next date is in the future. Any past periods get materialized as `status=pending` (UI derives "missed" from the past `dueDate`). The sweep always ends with exactly one future pending instance.
+
+**One-instance-ahead rule**: we deliberately keep only a single pending instance in flight per upcoming payment. If the user doesn't open the app for months, the overdue sweep collapses the backlog into a handful of missed rows on next launch — we don't want a stale pipeline of pre-scheduled notifications firing while the app hasn't been opened.
 
 Everything else remains virtual. A period that is 2 years out and has never been paid, missed, or had notifications scheduled against it will have no row.
 
@@ -199,15 +201,49 @@ ORDER BY dueDate ASC
 
 ---
 
+## Stale-payment handling
+
+### Why
+Without a cap, `catchUpUpcomingPaymentInstances` would materialize every missed period since the user last opened the app. A user who's been away 8 months on a monthly bill would see 8 missed rows for one bill — dashboard clutter, notification spam, and in practice most of those bills have been silently canceled (the user stopped using Netflix, closed the gym membership, etc.). We want to cap the sweep and ask the user instead of dumping rows.
+
+### Behavior
+- Backfill is capped per payment at `BACKFILL_LIMIT = 3` missed periods (flat across cadences in v1; revisit per-recurrence if it feels off for daily/weekly).
+- If the sweep would need to materialize more than `BACKFILL_LIMIT` missed rows to catch up, it materializes only the first `BACKFILL_LIMIT` and sets `staleSince = now` on the parent payment.
+- Dashboard row surfaces stale payments via a red **"Needs review"** badge on each missed instance (replaces the "Missed" badge when `staleSince` is set). Tapping the row opens the detail screen.
+- The detail screen shows the stale chip in the header + a red-accented **"Still using this?"** card with two actions:
+  - **"Still using it"** → fills every missing period from the latest existing instance through the next future boundary, then clears `staleSince`. The user sees every missed row on the dashboard and decides per-row (pay or cancel). No gaps, no silent data loss. Bounded by `MAX_OCCURRENCES` as a safety cap.
+  - **"Archive"** → `isActive = false`.
+- Paying any instance of a stale payment auto-clears `staleSince` and fills the gap (implicit "still using it"). *(Deferred to Phase 5 pay-flow wiring.)*
+- Settings list shows the same stale badge on each row.
+
+### Sweep short-circuit
+Once a payment is stale, the app-launch sweep skips it entirely (`if (payment.staleSince != null) continue`). Without this, every relaunch would materialize another `BACKFILL_LIMIT` past instances, trapping the user in a cycle. The flag must be explicitly resolved before the sweep touches the payment again.
+
+### Service changes
+- `catchUpUpcomingPaymentInstances`: skip payments with `staleSince != null` (short-circuit). For non-stale payments, loop bounded by `BACKFILL_LIMIT`. If the cap trips (loop exits while `currentLatest < todayIso`), set `staleSince = now` on the payment.
+- `clearStaleFlag(upcomingPaymentId)`: loops `ensureNextInstance` until the latest dueDate crosses today (bounded by `MAX_OCCURRENCES`), then nulls `staleSince`. Called by "Still using it" action.
+- `addContribution` (future, Phase 5): should call `clearStaleFlag` as a side effect when paying any instance of a stale payment (same full-backfill semantics).
+
+### Decisions
+| Question | Answer |
+|---|---|
+| Cap value | Flat `BACKFILL_LIMIT = 3`. Simple; can split per cadence in v2 if users complain. |
+| What "Still using it" does | Generates every missing period from the latest existing instance through the next future boundary, then clears the flag. User decides per-row (pay or cancel). No gaps. |
+| Why not just clear the flag? | Clearing only traps the user in a cycle: next launch sees non-stale payment with latest still far in the past → sweep adds 3 more missed → re-flags stale. Full backfill breaks the cycle. |
+| Stale state visibility | Dashboard row "Needs review" badge + detail header chip + settings badge. Stale payments stay on the dashboard (no separate banner). |
+| Clearing triggers | User confirm ("Still using it"), user archive (`isActive=false`), or paying any instance. |
+
+---
+
 ## Notifications
 
 - **Package**: `expo-notifications` — not yet installed. Add to [package.json](package.json), add plugin to [app.json](app.json). Expo SDK 55 supports local scheduling without any push server.
 - **Android permission**: `POST_NOTIFICATIONS` (Android 13+) handled automatically by the plugin.
 - **Android channel**: create one "upcoming-payments" channel on first permission grant.
 - **Permission prompt**: ask on first upcoming-payment creation (not on app launch — don't front-load permissions).
-- **Scheduling**: on Instance materialization, schedule up to 3 local notifications (N-days-before, day-of, and the "missed" one for the day after). Store the returned IDs as JSON in `Instances.notificationIds`.
+- **Scheduling**: on Instance materialization, schedule up to 3 local notifications for that single instance (N-days-before, day-of, and the "missed" one for the day after). Store the returned IDs as JSON in `Instances.notificationIds`.
 - **Cancelling**: on pay-complete / instance edit / instance delete, cancel by stored IDs and reschedule if needed.
-- **Top-up**: when the last materialized Instance flips to paid/missed, materialize the next period and schedule its notifications — keeps a ~3-period runway at all times.
+- **Top-up**: when the current Instance flips to paid/canceled, materialize the next single period and schedule its notifications. Only ever one pending future instance per upcoming payment — if the user doesn't open the app for a long time, we don't want stale notifications firing for periods they haven't seen yet.
 - **iOS killed-app caveat**: local notifications still fire when scheduled in advance (the OS holds them). Safe.
 - **Missed-payment belt-and-braces**: app-launch "mark overdue" sweep — covers the edge case where a notification was dismissed without action.
 
@@ -247,7 +283,6 @@ No `expo-task-manager` or `expo-background-fetch` needed for v1.
 
 | Path | Purpose |
 |---|---|
-| `app/modules/upcomingPayments/upcomingPaymentRecurrence.ts` | Pure `getNextDueDate(rule, afterDate)` — switches on `recurrence` and returns the next ISO due date via date-fns. ~15 lines. |
 | `app/modules/notifications/` | `expo-notifications` wrapper: `requestPermission`, `scheduleForInstance`, `cancelForInstance`, `setupChannel` |
 | `app/features/upcomingPayments/ui/PaySheet.tsx` | Bottom sheet: Pay / Pay partial / Enter & Pay + wallet picker + currency-mismatch banner |
 | `app/components/ProgressBar/index.tsx` | Themed progress bar for fixed-amount partial payments |
@@ -258,10 +293,10 @@ No `expo-task-manager` or `expo-background-fetch` needed for v1.
 |---|---|
 | [package.json](package.json) | Add `expo-notifications` via `yarn` |
 | [app.json](app.json) | Add `expo-notifications` plugin entry |
-| [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) | Add `materializeInstance`, `addContribution`, `markInstanceStatus`, `runOverdueMaterialization`. `getUpcomingInstancesForSection` already returns active pending rows with `dueDate < startOfNextMonth`, ordered chronologically. |
-| [app/services/upcomingPaymentQueries.ts:20](app/services/upcomingPaymentQueries.ts#L20) | On create, materialize ~3 periods of runway instead of only `firstDueDate` |
+| [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) | Add `addContribution`, `markInstanceStatus`. |
 | [app/queries/upcomingPayments.ts](app/queries/upcomingPayments.ts) | Add pay-flow mutations; invalidate `transactions` + `wallets` keys |
-| [App.tsx](App.tsx) | Setup notification channel + overdue sweep on mount |
+| [App.tsx](App.tsx) | Add notification channel setup (sweep already wired) |
+| Pay-flow wiring | Pay-complete callback must call `ensureNextInstance` + `clearStaleFlag(parentId)` so stale payments clear when the user pays. |
 
 ## Components to reuse (avoid rewriting)
 
@@ -281,20 +316,27 @@ Each phase is independently useful and testable. Stop, try it, move on.
 
 ### Phase 1 — DB + types ✅ DONE
 
-### Phase 2 — Pure logic + service layer ⚠️ PARTIAL
-**Done**: service functions (add / update / soft-delete / cancel-instance / restore-instance / list / by-id / instances-with-contributions / section); React Query hooks with invalidation.
-**Remaining**:
-- `app/modules/upcomingPayments/upcomingPaymentRecurrence.ts` — pure `getNextDueDate(rule, afterDate)`. Used by pay-flow top-up, overdue sweep, and detail-screen "Next due" header.
-- Services: `materializeInstance(upcomingPaymentId, dueDate)`, `addContribution`, `markInstanceStatus`, `runOverdueMaterialization`. The overdue sweep walks `getNextDueDate` from the last materialized instance until it passes today, inserting each past period as `status=pending` (UI handles the missed presentation).
-- ~~Fix `getUpcomingInstancesForSection`~~ **Done** — query returns active pending rows with `dueDate < startOfNextMonth`, ordered by `dueDate ASC`.
-- Ensure pay-related mutations invalidate `transactions` + `wallets` keys when added.
+### Phase 2 — Pure logic + service layer ✅ DONE (instance generation)
+**Done**:
+- CRUD service functions (add / update / soft-delete / cancel-instance / restore-instance / list / by-id / instances-with-contributions / section) + React Query hooks.
+- [`getNextDueDate`](app/modules/upcomingPayments/upcomingPaymentRecurrence.ts) pure helper.
+- [`ensureNextInstance`](app/services/upcomingPaymentQueries.ts) idempotent next-period insert (race-safe via composite unique index).
+- [`catchUpUpcomingPaymentInstances`](app/services/upcomingPaymentQueries.ts) — app-launch sweep that loops `ensureNextInstance` until the latest dueDate reaches today.
+- `cancelUpcomingPaymentInstance` auto-calls `ensureNextInstance` so the pipeline stays populated.
+- App-launch sweep wired in [App.tsx](App.tsx) with query invalidation.
+- `getUpcomingInstancesForSection` returns active pending rows with `dueDate < startOfNextMonth`, ordered chronologically.
+
+**Remaining** (ships with Phase 5 pay flow):
+- `addContribution`, `markInstanceStatus` service fns.
+- Pay-complete must call `ensureNextInstance` (currently only wired on cancel).
+- Pay-related mutations must invalidate `transactions` + `wallets` keys.
 
 ### Phase 3 — Read-only dashboard section ✅ DONE
 Built: `UpcomingPaymentRow`, `UpcomingPaymentsSection`, dashboard flag wiring, corrected section query (pending with `dueDate < startOfNextMonth`, chronological — missed derived on the frontend via `isInstanceMissed`).
 
 ### Phase 4 — Form (add flow) ✅ DONE (via separate form)
 Delivered as a standalone [UpcomingPaymentForm](app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm.tsx) with its own validation, not as a `ModeToggle` on `TransactionForm`. Fields built: RepetitionPicker, EndDatePicker, NotificationSettings, VariableAmountToggle, LockedInfoBox.
-**Gap**: first-insert only materializes one Instance; should materialize ~3 once `materializeInstance` exists.
+**Note**: first-insert materializes only one Instance (`firstDueDate`) — this is intentional. Top-up happens lazily via `ensureNextInstance` on pay/cancel/app-launch so we never pre-schedule notifications for periods the user hasn't seen.
 
 ### Phase 5 — Pay now / Pay partial / Enter & Pay ❌ NOT STARTED (ship blocker)
 1. Build `PaySheet` (handles pay-full, pay-partial, enter-amount in one place) + wallet picker + currency-mismatch banner.
@@ -302,6 +344,31 @@ Delivered as a standalone [UpcomingPaymentForm](app/features/upcomingPayments/ui
 3. Wire the Pay button on `UpcomingPaymentRow` ([line 34](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx#L34)) and the detail screen actions ([UpcomingPaymentDetails.tsx:99](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L99), [:103](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L103)).
 4. Build `ProgressBar` for the detail screen partial-payment display.
 5. Verify: wallet balance updates, transaction appears in history, dashboard row stays (partial) or is replaced (fully paid).
+
+### Phase 5.5 — Stale-payment handling ✅ DONE (pending manual verification)
+
+Caps `catchUpUpcomingPaymentInstances` at `BACKFILL_LIMIT = 3` and surfaces stale payments to the user instead of dumping rows. See [Stale-payment handling](#stale-payment-handling) for the design rationale.
+
+**Shipped**:
+1. **Schema**: `staleSince text` (nullable) on `UpcomingPayments`. Migration [drizzle/0005_absurd_reavers.sql](drizzle/0005_absurd_reavers.sql) (the previous 0005 was deleted and regenerated to fold the column in without a second migration).
+2. **Sweep cap + short-circuit**: [catchUpUpcomingPaymentInstances](app/services/upcomingPaymentQueries.ts) skips payments with `staleSince != null`; for non-stale payments, bounded by `BACKFILL_LIMIT = 3`. Tracks `cappedWithoutCatchingUp`: if the loop exits because iterations hit the cap, it sets `staleSince = now` on the parent payment.
+3. **`clearStaleFlag` service**: loops `ensureNextInstance` until the latest dueDate crosses today (bounded by `MAX_OCCURRENCES`), then nulls `staleSince`. This fills every missing period so the user can decide per-row, and leaves a future anchor so the next sweep no-ops.
+4. **`useClearStaleFlagMutation` hook**: invalidates `upcomingPayments`, `upcomingInstancesForSection`, and the specific `upcomingPaymentById` key.
+5. **`StalePaymentBanner` component**: filters `useGetUpcomingPayments` by `staleSince != null`, renders one card with Still using / Archive actions, returns `null` when empty.
+6. **Dashboard mount**: banner rendered above `UpcomingPaymentsSection` in [BalanceScreen](app/features/balance/ui/BalanceTab/BalanceScreen.tsx) behind the same `showUpcomingPayments` flag.
+7. **Detail screen**: red "Stale" chip in the header + "Still using this?" card with Still using / Archive buttons (Archive reuses the existing `onDelete` confirm flow).
+8. **Settings list badge**: stale badge lives on `UpcomingPaymentCard`, so every row in `UpcomingPaymentsSettings` shows it automatically.
+
+**Deferred to Phase 5** (pay flow):
+- `addContribution` must clear `staleSince` as a side effect when paying any instance of a stale payment. The service + mutation are ready; just need the pay-flow caller to invoke `clearStaleFlag(upcomingPaymentId)` after the transaction commits.
+
+**Manual verification** (no test runner):
+- **Test 1 — flag trips**: create monthly payment, `firstDueDate` = 10 months ago. Reopen app. Expect: 4 instance rows (original + 3 backfilled), `staleSince` set; dashboard rows show red **Needs review** badge; sweep does **not** re-materialize on subsequent relaunches (short-circuit).
+- **Test 2 — "Still using it" fills the gap**: open the stale payment's detail → tap Still using it. Expect: `staleSince` is NULL; all missing periods are materialized (for a 10-month-old monthly bill: ~11 pending rows total — 4 prior + ~7 newly-filled + 1 future); dashboard shows the missed rows for user to decide per-row. Next relaunch: sweep no-ops (latest is in the future).
+- **Test 3 — within-cap does not flag**: weekly payment, `firstDueDate` = 2 weeks ago. Reopen → 3 instances, `staleSince` NULL, no "Needs review" badge.
+- **Test 4 — archive path**: detail screen → Archive → confirm. Expect `isActive = false`; row removed from dashboard section.
+- **Test 5 — detail screen**: open a stale payment. Expect red Stale chip next to name + "Still using this?" card with alert icon + two buttons.
+- **Test 6 — settings badge**: open Settings → "All scheduled payments". Every stale row shows the red Stale badge.
 
 ### Phase 6 — Notifications ❌ NOT STARTED
 1. Add `expo-notifications` to [package.json](package.json) via `yarn` + plugin entry in [app.json](app.json) + prebuild.
@@ -358,7 +425,7 @@ End-to-end check list (manual — no test runner configured):
 1. `yarn db:generate` produces a clean migration file.
 2. App launches, `useMigrations` succeeds ([App.tsx:23](App.tsx#L23)), Drizzle Studio shows the 3 new tables.
 3. Tap "+" → toggle to "Upcoming" → create a monthly $1000 "Rent" starting tomorrow, no end date. Row appears on dashboard showing "Next: [tomorrow] · Monthly · no end date · $1000".
-4. Drizzle Studio: 1 UpcomingPayment row, ~3 pending Instance rows (materialized for notifications).
+4. Drizzle Studio: 1 UpcomingPayment row, 1 pending Instance row (only `firstDueDate` is materialized).
 5. Tap Pay → sheet opens → enter $400 as partial → wallet balance drops by $400, a Transaction appears in recent transactions, Contribution row exists, Instance status still `pending`.
 6. Tap Pay again → $600 → Instance flips to `paid`, its notifications are canceled, dashboard row now shows next month's due date.
 7. Create a variable-amount "Electricity" upcoming payment — dashboard shows "Variable" + "Enter & Pay". Tap → sheet requires amount input → submit $180 → Instance flips to `paid` in one step.

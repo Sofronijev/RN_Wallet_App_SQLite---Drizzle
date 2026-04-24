@@ -23,6 +23,7 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
     totalCount,
     paidCount,
     missedCount,
+    staleSince,
   } = row;
 
   return (
@@ -32,6 +33,7 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
         <Label numberOfLines={1} style={styles.name}>
           {name}
         </Label>
+        {staleSince ? <Label style={styles.staleBadge}>Stale</Label> : null}
       </View>
       <View style={styles.row}>
         <Label style={styles.meta}>Starts</Label>
@@ -78,6 +80,18 @@ const themedStyles = (theme: AppTheme) =>
       fontSize: 16,
       fontWeight: "bold",
       flex: 1,
+    },
+    staleBadge: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: theme.colors.redDark,
+      borderColor: theme.colors.redDark,
+      borderWidth: 1,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
     },
     row: {
       flexDirection: "row",

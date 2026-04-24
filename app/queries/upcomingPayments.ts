@@ -3,6 +3,7 @@ import { EditUpcomingPayment, NewUpcomingPayment } from "db";
 import {
   addUpcomingPayment,
   cancelUpcomingPaymentInstance,
+  clearStaleFlag,
   getAllUpcomingPayments,
   getUpcomingInstancesForSection,
   getUpcomingPaymentById,
@@ -122,6 +123,20 @@ export const useRestoreUpcomingPaymentInstanceMutation = (upcomingPaymentId: num
 
   return {
     restoreInstance: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const useClearStaleFlagMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: (id: number) => clearStaleFlag(id),
+    onSuccess: (_data, id) => invalidateUpcomingPayments(clientQuery, id),
+  });
+
+  return {
+    clearStaleFlag: mutate,
     isLoading: isPending,
     isError,
   };

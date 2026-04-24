@@ -196,6 +196,7 @@ export const upcomingPayments = sqliteTable("UpcomingPayments", {
   notifyOnDueDay: integer("notifyOnDueDay", { mode: "boolean" }).default(true).notNull(),
   notifyOnMissed: integer("notifyOnMissed", { mode: "boolean" }).default(true).notNull(),
   isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
+  staleSince: text("staleSince"),
   createdAt: text("createdAt")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

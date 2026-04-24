@@ -21,10 +21,20 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const navigation = useAppNavigation();
 
-  const { id, upcomingPaymentId, name, dueDate, expectedAmount, iconFamily, iconName, iconColor } =
-    row;
+  const {
+    id,
+    upcomingPaymentId,
+    name,
+    dueDate,
+    expectedAmount,
+    iconFamily,
+    iconName,
+    iconColor,
+    staleSince,
+  } = row;
   const isVariable = expectedAmount == null;
-  const isMissed = isInstanceMissed(row);
+  const isStale = staleSince != null;
+  const isMissed = !isStale && isInstanceMissed(row);
 
   const openDetail = () => {
     navigation.navigate("UpcomingPaymentDetails", { id: upcomingPaymentId });
@@ -47,6 +57,11 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
           <Label style={styles.dueDate} numberOfLines={1}>
             {`Due ${getFormattedDate(dueDate, dueDateFormat)}`}
           </Label>
+          {isStale && (
+            <View style={styles.missedBadge}>
+              <Label style={styles.missedBadgeText}>Needs review</Label>
+            </View>
+          )}
           {isMissed && (
             <View style={styles.missedBadge}>
               <Label style={styles.missedBadgeText}>Missed</Label>

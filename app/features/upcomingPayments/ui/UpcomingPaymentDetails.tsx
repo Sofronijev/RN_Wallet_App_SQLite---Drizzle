@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { parseISO } from "date-fns";
@@ -17,6 +17,7 @@ import { formatDecimalDigits } from "modules/numbers";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import {
   useCancelUpcomingPaymentInstanceMutation,
+  useClearStaleFlagMutation,
   useDeleteUpcomingPaymentMutation,
   useGetUpcomingPaymentById,
   useGetUpcomingPaymentInstances,
@@ -78,6 +79,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   const { deleteUpcomingPayment, isLoading: isDeleting } = useDeleteUpcomingPaymentMutation();
   const { cancelInstance, isLoading: isCanceling } = useCancelUpcomingPaymentInstanceMutation(id);
   const { restoreInstance, isLoading: isRestoring } = useRestoreUpcomingPaymentInstanceMutation(id);
+  const { clearStaleFlag, isLoading: isClearingStale } = useClearStaleFlagMutation();
 
   const nextPending = useMemo(
     () =>
@@ -176,9 +178,12 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.headerRow}>
           <View style={styles.icon}>{categoryIcon}</View>
           <View style={styles.headerText}>
-            <Label numberOfLines={1} style={styles.name}>
-              {payment.name}
-            </Label>
+            <View style={styles.nameRow}>
+              <Label numberOfLines={1} style={styles.name}>
+                {payment.name}
+              </Label>
+              {payment.staleSince ? <Label style={styles.staleChip}>Stale</Label> : null}
+            </View>
             <Label style={styles.category}>{payment.categoryName}</Label>
           </View>
           <Label style={[styles.amount, isVariable && styles.amountVariable]}>
@@ -191,6 +196,39 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
           <Label style={styles.description}>{payment.description}</Label>
         ) : null}
       </ShadowBoxView>
+
+      {payment.staleSince ? (
+        <ShadowBoxView style={styles.staleCard}>
+          <View style={styles.staleTitleRow}>
+            <MaterialCommunityIcons
+              name='alert-circle-outline'
+              size={20}
+              color={themeColors.redDark}
+            />
+            <Label style={styles.staleTitle}>Still using this?</Label>
+          </View>
+          <Label style={styles.staleSubtitle}>
+            We stopped generating new instances because this payment fell far behind. Confirm
+            you're still using it or archive it.
+          </Label>
+          <View style={styles.actionRow}>
+            <CustomButton
+              title='Still using it'
+              size='small'
+              style={styles.actionButton}
+              onPress={() => clearStaleFlag(id)}
+            />
+            <CustomButton
+              title='Archive'
+              size='small'
+              type='danger'
+              outline
+              style={styles.actionButton}
+              onPress={onDelete}
+            />
+          </View>
+        </ShadowBoxView>
+      ) : null}
 
       <Label style={styles.sectionHeader}>Next due</Label>
       <ShadowBoxView style={styles.section}>
@@ -298,7 +336,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
       />
       <AppActivityIndicator
         hideScreen
-        isLoading={isDeleting || isCanceling || isRestoring || instancesLoading}
+        isLoading={isDeleting || isCanceling || isRestoring || isClearingStale || instancesLoading}
       />
     </>
   );
@@ -336,9 +374,47 @@ const themeStyles = (theme: AppTheme) =>
     headerText: {
       flex: 1,
     },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
     name: {
       fontSize: 18,
       fontWeight: "bold",
+      flexShrink: 1,
+    },
+    staleChip: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: theme.colors.redDark,
+      borderColor: theme.colors.redDark,
+      borderWidth: 1,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    staleCard: {
+      marginTop: 12,
+      padding: 14,
+      gap: 8,
+      borderLeftWidth: 3,
+      borderLeftColor: theme.colors.redDark,
+    },
+    staleTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    staleTitle: {
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    staleSubtitle: {
+      fontSize: 13,
+      color: theme.colors.muted,
     },
     category: {
       fontSize: 13,

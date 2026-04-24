@@ -9,6 +9,7 @@ import {
 import { and, asc, desc, eq, getTableColumns, lt, sql } from "drizzle-orm";
 import { addDays, addMonths, addWeeks, addYears, format, startOfDay, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
+import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
 
 export const addUpcomingPayment = (payment: NewUpcomingPayment) =>
   db.transaction(async (tx) => {
@@ -81,11 +82,115 @@ export const updateUpcomingPayment = async (id: number, values: EditUpcomingPaym
 export const softDeleteUpcomingPayment = (id: number) =>
   db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
 
-export const cancelUpcomingPaymentInstance = (instanceId: number) =>
-  db
+export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
+  const [instance] = await db
+    .select({ upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId })
+    .from(upcomingPaymentInstances)
+    .where(eq(upcomingPaymentInstances.id, instanceId));
+
+  await db
     .update(upcomingPaymentInstances)
     .set({ status: "canceled", canceledAt: new Date().toISOString() })
     .where(eq(upcomingPaymentInstances.id, instanceId));
+
+  if (instance) {
+    await ensureNextInstance(instance.upcomingPaymentId);
+  }
+};
+
+export const ensureNextInstance = async (upcomingPaymentId: number): Promise<string | null> => {
+  const [payment] = await db
+    .select()
+    .from(upcomingPayments)
+    .where(eq(upcomingPayments.id, upcomingPaymentId));
+
+  if (!payment || !payment.isActive) return null;
+
+  const [latest] = await db
+    .select({ dueDate: upcomingPaymentInstances.dueDate })
+    .from(upcomingPaymentInstances)
+    .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
+    .orderBy(desc(upcomingPaymentInstances.dueDate))
+    .limit(1);
+
+  if (!latest) return null;
+
+  const nextDueDate = getNextDueDate(payment, latest.dueDate);
+  if (!nextDueDate) return null;
+
+  await db
+    .insert(upcomingPaymentInstances)
+    .values({
+      upcomingPaymentId,
+      dueDate: nextDueDate,
+      expectedAmount: payment.amount ?? null,
+    })
+    .onConflictDoNothing();
+
+  return nextDueDate;
+};
+
+export const BACKFILL_LIMIT = 3;
+
+export const catchUpUpcomingPaymentInstances = async () => {
+  const todayIso = getTodayIsoThreshold();
+  const activePayments = await db
+    .select({ id: upcomingPayments.id, staleSince: upcomingPayments.staleSince })
+    .from(upcomingPayments)
+    .where(eq(upcomingPayments.isActive, true));
+
+  for (const payment of activePayments) {
+    if (payment.staleSince != null) continue;
+
+    const [latest] = await db
+      .select({ dueDate: upcomingPaymentInstances.dueDate })
+      .from(upcomingPaymentInstances)
+      .where(eq(upcomingPaymentInstances.upcomingPaymentId, payment.id))
+      .orderBy(desc(upcomingPaymentInstances.dueDate))
+      .limit(1);
+
+    if (!latest) continue;
+
+    let currentLatest = latest.dueDate;
+    let iterations = 0;
+    let cappedWithoutCatchingUp = false;
+
+    while (currentLatest < todayIso) {
+      if (iterations >= BACKFILL_LIMIT) {
+        cappedWithoutCatchingUp = true;
+        break;
+      }
+      const inserted = await ensureNextInstance(payment.id);
+      if (!inserted) break;
+      currentLatest = inserted;
+      iterations++;
+    }
+
+    if (cappedWithoutCatchingUp) {
+      await db
+        .update(upcomingPayments)
+        .set({ staleSince: new Date().toISOString() })
+        .where(eq(upcomingPayments.id, payment.id));
+    }
+  }
+};
+
+export const clearStaleFlag = async (upcomingPaymentId: number) => {
+  const todayIso = getTodayIsoThreshold();
+
+  let iterations = 0;
+  while (iterations < MAX_OCCURRENCES) {
+    const inserted = await ensureNextInstance(upcomingPaymentId);
+    if (!inserted) break;
+    iterations++;
+    if (inserted >= todayIso) break;
+  }
+
+  await db
+    .update(upcomingPayments)
+    .set({ staleSince: null })
+    .where(eq(upcomingPayments.id, upcomingPaymentId));
+};
 
 export const restoreUpcomingPaymentInstance = (instanceId: number) =>
   db
@@ -125,6 +230,7 @@ export const getUpcomingInstancesForSection = async () => {
       expectedAmount: upcomingPaymentInstances.expectedAmount,
       status: upcomingPaymentInstances.status,
       name: upcomingPayments.name,
+      staleSince: upcomingPayments.staleSince,
       iconFamily: categories.iconFamily,
       iconName: categories.iconName,
       iconColor: categories.iconColor,

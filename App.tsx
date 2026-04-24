@@ -15,6 +15,8 @@ import RootNavigator from "navigation/RootNavigator";
 import { ThemeProvider, useAppTheme } from "app/theme/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { DashboardOptionsProvider } from "app/context/DashboardOptions/DashboardOptionsContext";
+import { catchUpUpcomingPaymentInstances } from "app/services/upcomingPaymentQueries";
+import { queryKeys } from "app/queries";
 
 const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
@@ -31,6 +33,16 @@ const AppContent = () => {
       );
     }
   }, [error]);
+
+  useEffect(() => {
+    if (!success) return;
+    catchUpUpcomingPaymentInstances()
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingInstancesForSection] });
+        queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingPayments] });
+      })
+      .catch(() => {});
+  }, [success]);
 
   const onLayoutRootView = useCallback(async () => {
     if (success) {
