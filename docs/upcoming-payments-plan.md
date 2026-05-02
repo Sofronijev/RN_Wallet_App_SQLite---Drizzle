@@ -1,28 +1,35 @@
 # Upcoming Payments / Bill Reminders
 
-## Status (2026-04-23)
+## Status (2026-05-02)
 
-**Architectural deviation from the original plan**: we went with a **separate `UpcomingPaymentForm`** under [app/features/upcomingPayments/](app/features/upcomingPayments/) instead of adding a `ModeToggle` to the existing `TransactionForm`. Everything below that assumes the single-form approach should be read as historical context — the separate-form path is the current design.
+**Architectural deviations from the original plan** (treat older sections of this doc as historical context where they conflict):
+- **Separate `UpcomingPaymentForm`** under [app/features/upcomingPayments/](app/features/upcomingPayments/) instead of a `ModeToggle` on `TransactionForm`.
+- **No `PaySheet`** — paying reuses the existing `TransactionForm` with a `linkedUpcomingInstanceId` field. One transaction → one contribution row → instance flips to `paid`. The dedicated bottom-sheet UI was abandoned.
+- **No partial payments / no `ProgressBar`** — `upcomingPaymentContributions` no longer carries an `amount` column; pay is binary (paid / not paid) per instance. Partial-pay support and the progress bar are explicitly out of v1.
+- **No `UpcomingPaymentsAllScreen`** — replaced by `UpcomingPaymentsSettings` (Active + Archived tabs), reachable from settings.
 
 ### Done
-- DB schema (`upcomingPayments`, `upcomingPaymentInstances`, `upcomingPaymentContributions`) + migrations + inferred types.
-- Service layer CRUD: [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) — add / update / soft-delete / cancel-instance / restore-instance / list / by-id / instances-with-contributions / section query.
-- React Query hooks: [app/queries/upcomingPayments.ts](app/queries/upcomingPayments.ts).
+- DB schema (`upcomingPayments`, `upcomingPaymentInstances`, `upcomingPaymentContributions` — note: contributions are link-only, no `amount` column) + migrations + inferred types.
+- Service layer CRUD: [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) — add / update / soft-delete / restore / cancel-instance / restore-instance / list / by-id / instances-with-contributions / section query / linkable-pending / instance-with-context.
+- React Query hooks: [app/queries/upcomingPayments.ts](app/queries/upcomingPayments.ts) including `invalidateUpcomingPayments` helper.
 - Separate `UpcomingPaymentForm` with RepetitionPicker, EndDatePicker, NotificationSettings, VariableAmountToggle, LockedInfoBox, validation, `deriveEditInitialValues`.
 - Dashboard: `UpcomingPaymentsSection` + `UpcomingPaymentRow` + `UpcomingPaymentCard`.
 - Detail screen: `UpcomingPaymentDetails` + `HistoryRow`.
-- Settings management list: `UpcomingPaymentsSettings`.
+- Settings management list with **Active / Archived tabs**: `UpcomingPaymentsSettings` (replaces the planned `UpcomingPaymentsAllScreen` and `UpcomingPaymentsListScreen`). Soft-delete + restore wired through.
 - `showUpcomingPayments` dashboard toggle wired through `dashboardSettingStorage`.
 - Navigation routes: `UpcomingPayment`, `UpcomingPaymentDetails`, `UpcomingPaymentsSettings`.
 - Recurrence helper [getNextDueDate](app/modules/upcomingPayments/upcomingPaymentRecurrence.ts) + services `ensureNextInstance` / `catchUpUpcomingPaymentInstances` in [upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts). Cancel mutation auto-tops up the next instance. App-launch sweep wired in [App.tsx](App.tsx).
-- Stale-payment handling (Phase 5.5): schema column `staleSince`, `BACKFILL_LIMIT = 3` cap in the sweep, `clearStaleFlag` service + `useClearStaleFlagMutation`, [StalePaymentBanner](app/features/upcomingPayments/ui/StalePaymentBanner.tsx) on dashboard, stale chip + "Still using this?" card on [UpcomingPaymentDetails](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx), stale badge on [UpcomingPaymentCard](app/features/upcomingPayments/ui/UpcomingPaymentCard.tsx) (used by settings list).
+- **Pay flow (Phase 5)**: Pay actions on [UpcomingPaymentRow](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx) and [UpcomingPaymentDetails](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx) navigate to `TransactionForm` with `upcomingPaymentInstanceId`. [addTransaction / editTransaction / deleteTransaction](app/services/transactionQueries.ts) create/update/remove the `upcomingPaymentContributions` link. [recomputeInstanceStatus](app/services/upcomingPaymentQueries.ts) flips the instance `paid` ↔ `pending` based on link presence and tops up the next instance. Editing a transaction's linked instance correctly recomputes both the prior and new instance.
+- Stale-payment handling (Phase 5.5): schema column `staleSince`, `BACKFILL_LIMIT = 3` cap in the sweep, `clearStaleFlag` service + `useClearStaleFlagMutation`, [StalePaymentBanner](app/features/upcomingPayments/ui/StalePaymentBanner.tsx) on dashboard, stale chip + "Still using this?" card on [UpcomingPaymentDetails](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx), stale badge on [UpcomingPaymentCard](app/features/upcomingPayments/ui/UpcomingPaymentCard.tsx) (used by settings list). **Auto-clear on pay** is now wired: `recomputeInstanceStatus` calls `clearStaleFlag` (executor-aware, runs inside the same transaction) when flipping a stale payment's instance to paid.
 
 ### Remaining
-1. **Pay flow (Phase 5)** — blocker for shipping. No `PaySheet`, no `addContribution` / `markInstanceStatus` service fns, no transaction creation on pay. `openPaySheet` handlers are TODO stubs in [UpcomingPaymentRow.tsx:34](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx#L34) and [UpcomingPaymentDetails.tsx:99](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L99). Pay-complete must also call `ensureNextInstance` + `clearStaleFlag` if the parent is stale.
-2. **`UpcomingPaymentsAllScreen`** — the dashboard "Show all" target (uncapped version of the section query) is not built.
-3. **Notifications (Phase 6)** — entirely missing: `expo-notifications` not in [package.json](package.json) / [app.json](app.json), no `app/modules/notifications/` wrapper, no scheduling, no cancel-on-pay, no permission prompt. The `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns are captured in the form but nothing reads them.
-4. **`ProgressBar`** — not built; needed for partial-payment progress on the detail screen.
-5. **`App.tsx` bootstrap** — overdue sweep is wired ([App.tsx:37](App.tsx#L37)); notification channel setup still missing.
+1. **Notifications (Phase 6)** — entirely missing: `expo-notifications` not in [package.json](package.json) / [app.json](app.json), no `app/modules/notifications/` wrapper, no scheduling, no cancel-on-pay, no permission prompt, no channel setup in [App.tsx](App.tsx). The `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns are captured in the form but nothing reads them. This is the only large chunk of plan work still untouched.
+2. **Dashboard "Show all" wiring** — if the section still surfaces a "Show all" affordance, point it at `UpcomingPaymentsSettings` or remove it. Low effort; verify before shipping.
+
+### Explicitly dropped from v1
+- `PaySheet` (superseded by `TransactionForm` + `linkedUpcomingInstanceId`).
+- Partial payments + `ProgressBar` (schema no longer carries per-contribution amounts).
+- Standalone `UpcomingPaymentsAllScreen` (covered by `UpcomingPaymentsSettings`).
 
 ---
 
@@ -338,12 +345,15 @@ Built: `UpcomingPaymentRow`, `UpcomingPaymentsSection`, dashboard flag wiring, c
 Delivered as a standalone [UpcomingPaymentForm](app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm.tsx) with its own validation, not as a `ModeToggle` on `TransactionForm`. Fields built: RepetitionPicker, EndDatePicker, NotificationSettings, VariableAmountToggle, LockedInfoBox.
 **Note**: first-insert materializes only one Instance (`firstDueDate`) — this is intentional. Top-up happens lazily via `ensureNextInstance` on pay/cancel/app-launch so we never pre-schedule notifications for periods the user hasn't seen.
 
-### Phase 5 — Pay now / Pay partial / Enter & Pay ❌ NOT STARTED (ship blocker)
-1. Build `PaySheet` (handles pay-full, pay-partial, enter-amount in one place) + wallet picker + currency-mismatch banner.
-2. Service: `addContribution` creates Transaction + Contribution atomically; if Instance reaches 100% (or any contribution for variable), flip to `paid`, cancel notifications, materialize next period.
-3. Wire the Pay button on `UpcomingPaymentRow` ([line 34](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx#L34)) and the detail screen actions ([UpcomingPaymentDetails.tsx:99](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L99), [:103](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx#L103)).
-4. Build `ProgressBar` for the detail screen partial-payment display.
-5. Verify: wallet balance updates, transaction appears in history, dashboard row stays (partial) or is replaced (fully paid).
+### Phase 5 — Pay flow ✅ DONE (design changed: TransactionForm reuse, no PaySheet, no partials)
+Final design diverges from the original "PaySheet with partial-pay UI" idea:
+1. Pay button on `UpcomingPaymentRow` and detail-screen pay actions navigate to the existing `TransactionForm` with `upcomingPaymentInstanceId`.
+2. [addTransaction / editTransaction / deleteTransaction](app/services/transactionQueries.ts) create/update/remove a row in `upcomingPaymentContributions` (link-only — no `amount` column on contributions).
+3. [recomputeInstanceStatus](app/services/upcomingPaymentQueries.ts) flips the instance to `paid` or back to `pending` based on whether a contribution exists, and tops up the next period via `ensureNextInstance`. Editing a transaction's linked instance recomputes both the prior and new instance.
+4. Wallet balance / transaction list / upcoming dashboard all invalidate via `invalidateAfterTransactionWrite`.
+5. **Auto-clear stale on pay**: when flipping a stale payment's instance to paid, `recomputeInstanceStatus` calls `clearStaleFlag` (executor-aware, same transaction) — paying any instance of a stale bill clears the red "Needs review" badge automatically.
+
+Dropped: `PaySheet` component, partial payments, `ProgressBar`, currency-mismatch banner. The `TransactionForm` flow already handles wallet selection and currency by virtue of being the existing transaction entry path.
 
 ### Phase 5.5 — Stale-payment handling ✅ DONE (pending manual verification)
 
@@ -359,8 +369,8 @@ Caps `catchUpUpcomingPaymentInstances` at `BACKFILL_LIMIT = 3` and surfaces stal
 7. **Detail screen**: red "Stale" chip in the header + "Still using this?" card with Still using / Archive buttons (Archive reuses the existing `onDelete` confirm flow).
 8. **Settings list badge**: stale badge lives on `UpcomingPaymentCard`, so every row in `UpcomingPaymentsSettings` shows it automatically.
 
-**Deferred to Phase 5** (pay flow):
-- `addContribution` must clear `staleSince` as a side effect when paying any instance of a stale payment. The service + mutation are ready; just need the pay-flow caller to invoke `clearStaleFlag(upcomingPaymentId)` after the transaction commits.
+**Wired in Phase 5**:
+- `recomputeInstanceStatus` ([upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts)) calls `clearStaleFlag(upcomingPaymentId, executor)` when flipping a stale payment's instance to paid. `clearStaleFlag` accepts a `DbExecutor` so it runs inside the same `db.transaction` opened by `addTransaction` / `editTransaction`. No invalidation work needed — `invalidateAfterTransactionWrite` already invalidates `upcomingPayments`.
 
 **Manual verification** (no test runner):
 - **Test 1 — flag trips**: create monthly payment, `firstDueDate` = 10 months ago. Reopen app. Expect: 4 instance rows (original + 3 backfilled), `staleSince` set; dashboard rows show red **Needs review** badge; sweep does **not** re-materialize on subsequent relaunches (short-circuit).

@@ -186,18 +186,21 @@ export const catchUpUpcomingPaymentInstances = async () => {
 // in a single tap. The next app-open cycle will continue if needed.
 const CLEAR_STALE_CATCHUP_LIMIT = 365;
 
-export const clearStaleFlag = async (upcomingPaymentId: number) => {
+export const clearStaleFlag = async (
+  upcomingPaymentId: number,
+  executor: DbExecutor = db
+) => {
   const todayIso = getTodayIsoThreshold();
 
   let iterations = 0;
   while (iterations < CLEAR_STALE_CATCHUP_LIMIT) {
-    const inserted = await ensureNextInstance(upcomingPaymentId);
+    const inserted = await ensureNextInstance(upcomingPaymentId, executor);
     if (!inserted) break;
     iterations++;
     if (inserted >= todayIso) break;
   }
 
-  await db
+  await executor
     .update(upcomingPayments)
     .set({ staleSince: null })
     .where(eq(upcomingPayments.id, upcomingPaymentId));
@@ -217,8 +220,13 @@ export const recomputeInstanceStatus = async (
     .select({
       upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId,
       status: upcomingPaymentInstances.status,
+      parentStaleSince: upcomingPayments.staleSince,
     })
     .from(upcomingPaymentInstances)
+    .innerJoin(
+      upcomingPayments,
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+    )
     .where(eq(upcomingPaymentInstances.id, instanceId));
   if (!instance) return;
 
@@ -236,7 +244,11 @@ export const recomputeInstanceStatus = async (
       .update(upcomingPaymentInstances)
       .set({ status: "paid", paidAt: new Date().toISOString() })
       .where(eq(upcomingPaymentInstances.id, instanceId));
-    await ensureNextInstance(instance.upcomingPaymentId, executor);
+    if (instance.parentStaleSince != null) {
+      await clearStaleFlag(instance.upcomingPaymentId, executor);
+    } else {
+      await ensureNextInstance(instance.upcomingPaymentId, executor);
+    }
   } else if (!shouldBePaid && currentlyPaid) {
     await executor
       .update(upcomingPaymentInstances)
