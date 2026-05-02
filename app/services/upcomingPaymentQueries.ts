@@ -7,9 +7,10 @@ import {
   upcomingPayments,
 } from "db/schema";
 import { and, asc, desc, eq, getTableColumns, lt, or, sql } from "drizzle-orm";
-import { addDays, addMonths, addWeeks, addYears, format, startOfDay, startOfMonth } from "date-fns";
+import { addMonths, format, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
+import { formatIsoDate } from "modules/timeAndDate";
 
 export const addUpcomingPayment = (payment: NewUpcomingPayment) =>
   db.transaction(async (tx) => {
@@ -181,11 +182,15 @@ export const catchUpUpcomingPaymentInstances = async () => {
   }
 };
 
+// Caps catch-up so a long-stale daily payment doesn't issue thousands of round-trips
+// in a single tap. The next app-open cycle will continue if needed.
+const CLEAR_STALE_CATCHUP_LIMIT = 365;
+
 export const clearStaleFlag = async (upcomingPaymentId: number) => {
   const todayIso = getTodayIsoThreshold();
 
   let iterations = 0;
-  while (iterations < MAX_OCCURRENCES) {
+  while (iterations < CLEAR_STALE_CATCHUP_LIMIT) {
     const inserted = await ensureNextInstance(upcomingPaymentId);
     if (!inserted) break;
     iterations++;
@@ -244,9 +249,10 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
   const rows = await db
     .select({
       ...getTableColumns(upcomingPaymentInstances),
-      transactionId: transactions.id,
-      transactionAmount: transactions.amount,
-      transactionDate: transactions.date,
+      transactionAmount: sql<number | null>`SUM(${transactions.amount})`.mapWith((v) =>
+        v == null ? null : Number(v),
+      ),
+      contributionCount: sql<number>`COUNT(${upcomingPaymentContributions.id})`.mapWith(Number),
     })
     .from(upcomingPaymentInstances)
     .leftJoin(
@@ -255,6 +261,7 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
     )
     .leftJoin(transactions, eq(transactions.id, upcomingPaymentContributions.transactionId))
     .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
+    .groupBy(upcomingPaymentInstances.id)
     .orderBy(desc(upcomingPaymentInstances.dueDate));
 
   return rows;
@@ -395,54 +402,27 @@ const isCompleted = (
 type TotalCountInput = {
   firstDueDate: string;
   endDate: string | null;
-  recurrence: string;
+  recurrence: "none" | "daily" | "weekly" | "monthly" | "yearly" | "custom";
   customIntervalValue: number | null;
   customIntervalUnit: "day" | "week" | "month" | null;
-};
-
-const getAdvance = (row: TotalCountInput, start: Date): ((index: number) => Date) | null => {
-  switch (row.recurrence) {
-    case "daily":
-      return (i) => addDays(start, i);
-    case "weekly":
-      return (i) => addWeeks(start, i);
-    case "monthly":
-      return (i) => addMonths(start, i);
-    case "yearly":
-      return (i) => addYears(start, i);
-    case "custom": {
-      if (!row.customIntervalUnit) return null;
-      if (!row.customIntervalValue || row.customIntervalValue <= 0) return null;
-      const value = row.customIntervalValue;
-      const addFn =
-        row.customIntervalUnit === "day"
-          ? addDays
-          : row.customIntervalUnit === "week"
-            ? addWeeks
-            : addMonths;
-      return (i) => addFn(start, i * value);
-    }
-    default:
-      return null;
-  }
 };
 
 export const MAX_OCCURRENCES = 10_000;
 
 const computeTotalCount = (row: TotalCountInput): number | null => {
   if (!row.endDate) return null;
-  const start = startOfDay(new Date(row.firstDueDate));
-  const end = startOfDay(new Date(row.endDate));
-  if (start > end) return 0;
+  const startIso = formatIsoDate(new Date(row.firstDueDate));
+  const endIso = formatIsoDate(new Date(row.endDate));
+  if (startIso > endIso) return 0;
   if (row.recurrence === "none") return 1;
 
-  const advance = getAdvance(row, start);
-  if (!advance) return null;
-
-  let count = 0;
-  while (advance(count) <= end) {
+  let current: string | null = startIso;
+  let count = 1;
+  while (count < MAX_OCCURRENCES) {
+    const next = getNextDueDate(row, current);
+    if (!next) break;
     count++;
-    if (count >= MAX_OCCURRENCES) return MAX_OCCURRENCES;
+    current = next;
   }
   return count;
 };

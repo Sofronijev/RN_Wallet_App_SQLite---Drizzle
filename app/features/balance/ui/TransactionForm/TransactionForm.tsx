@@ -137,7 +137,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         selectedWalletId: selectedWallet?.walletId,
         today: dateRef.current,
       });
-    return getDefaultInitialValues(selectedWallet?.walletId, dateRef.current);
+    return getDefaultInitialValues(wallets, selectedWallet?.walletId, dateRef.current);
   }, [editedTransaction, payContext, wallets, categoriesById, selectedWallet?.walletId]);
 
   const { values, setFieldValue, errors, handleSubmit, handleChange } =
@@ -187,7 +187,6 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     await setFieldValue("category", category);
     const type = category.id === 12 ? categoriesById[category.id].types[0] : null;
     await setFieldValue("type", type, hasSubmittedForm);
-    await setFieldValue("linkedUpcomingInstanceId", null);
   };
 
   const showCategoriesSheet = () => {
@@ -197,7 +196,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       props: {
         onSelect: onSelectCategory,
         initialSelected: values.category?.id,
-        isTransactionForm: true,
+        forForm: true,
       },
     });
   };
@@ -215,7 +214,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
       type: SHEETS.NUMERIC_KEYBOARD,
       props: {
         onSetAmount: onSetAmount,
-        initialValue: values.amount || editedTransaction?.amount,
+        initialValue: values.amount,
         showOperators: true,
       },
     });

@@ -26,7 +26,7 @@ import {
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 import { getRecurrenceLabel } from "../modules/recurrenceLabel";
-import { formatPaymentAmount } from "../modules/formatPaymentAmount";
+import { formatExpectedAmount } from "../modules/formatPaymentAmount";
 import StatusBadge from "components/StatusBadge";
 import HistoryRow from "./details/HistoryRow";
 
@@ -188,12 +188,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
             <Label style={styles.category}>{payment.categoryName}</Label>
           </View>
           <Label style={[styles.amount, isVariable && styles.amountVariable]}>
-            {formatPaymentAmount(payment.amount, {
-              delimiter,
-              decimal,
-              currency,
-              nullLabel: "Variable",
-            })}
+            {formatExpectedAmount(payment.amount, { delimiter, decimal, currency })}
           </Label>
         </View>
         {payment.description ? (
@@ -248,17 +243,16 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
                     <Label style={styles.nextSub}>{daysUntil(nextPending.dueDate)}</Label>
                   </View>
                   <Label style={styles.nextAmount}>
-                    {formatPaymentAmount(nextPending.expectedAmount, {
+                    {formatExpectedAmount(nextPending.expectedAmount, {
                       delimiter,
                       decimal,
                       currency,
-                      nullLabel: "Variable",
                     })}
                   </Label>
                 </View>
                 <View style={styles.actionRow}>
                   <CustomButton
-                    title={nextPending.expectedAmount == null ? "Enter & Pay" : "Pay"}
+                    title='Pay'
                     size='small'
                     style={styles.actionButton}
                     onPress={onPay}

@@ -4,7 +4,14 @@ import { UpcomingPaymentInstanceContext } from "app/queries/upcomingPayments";
 import { sameCurrency } from "modules/currency";
 import { TransactionFromInputs } from "./transactionFormValidation";
 
+const resolveWalletId = (wallets: Wallet[], preferredId: number | undefined): string => {
+  const preferred = wallets.find((w) => w.walletId === preferredId);
+  const fallback = preferred ?? wallets[0];
+  return fallback ? `${fallback.walletId}` : "";
+};
+
 export const getDefaultInitialValues = (
+  wallets: Wallet[],
   selectedWalletId: number | undefined,
   today: Date,
 ): TransactionFromInputs => ({
@@ -13,7 +20,7 @@ export const getDefaultInitialValues = (
   description: "",
   category: null,
   type: null,
-  walletId: `${selectedWalletId}`,
+  walletId: resolveWalletId(wallets, selectedWalletId),
   linkedUpcomingInstanceId: null,
 });
 
@@ -41,7 +48,8 @@ export const formatPayInitialValues = (
   { wallets, categoriesById, selectedWalletId, today }: PayDeps,
 ): TransactionFromInputs => {
   const matchingWallet = wallets.find((w) => sameCurrency(w.currencyCode, ctx.currencyCode));
-  const chosenWallet = matchingWallet ?? wallets.find((w) => w.walletId === selectedWalletId);
+  const preferred = wallets.find((w) => w.walletId === selectedWalletId);
+  const chosenWallet = matchingWallet ?? preferred ?? wallets[0];
   const isSameCurrency = chosenWallet
     ? sameCurrency(chosenWallet.currencyCode, ctx.currencyCode)
     : true;
@@ -53,7 +61,7 @@ export const formatPayInitialValues = (
     description: ctx.paymentDescription ?? "",
     category,
     type,
-    walletId: `${chosenWallet?.walletId ?? selectedWalletId}`,
+    walletId: chosenWallet ? `${chosenWallet.walletId}` : "",
     linkedUpcomingInstanceId: ctx.instanceId,
   };
 };

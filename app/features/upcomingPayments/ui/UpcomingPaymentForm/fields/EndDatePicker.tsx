@@ -1,9 +1,11 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { startOfDay } from "date-fns";
 import { pressableOpacityStyle } from "modules/pressable";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Label from "components/Label";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
+import { formatIsoDate } from "modules/timeAndDate";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
 type Props = {
@@ -21,10 +23,7 @@ const EndDatePicker: React.FC<Props> = ({ endDate, onChange, minimumDate }) => {
   const selectNoEnd = () => onChange(null);
   const selectHasEnd = () => {
     if (!hasEnd) {
-      const seed = minimumDate ?? new Date();
-      const date = new Date(seed);
-      date.setHours(0, 0, 0, 0);
-      onChange(date.toISOString());
+      onChange(formatIsoDate(startOfDay(minimumDate ?? new Date())));
     }
   };
 

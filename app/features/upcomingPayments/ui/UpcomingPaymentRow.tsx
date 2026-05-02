@@ -10,7 +10,7 @@ import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingInstanceSectionRow } from "app/queries/upcomingPayments";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
-import { formatPaymentAmount } from "../modules/formatPaymentAmount";
+import { formatExpectedAmount } from "../modules/formatPaymentAmount";
 
 type Props = {
   row: UpcomingInstanceSectionRow;
@@ -71,10 +71,10 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
       </View>
       <View style={styles.rightColumn}>
         <Label style={[styles.amount, isVariable && styles.amountVariable]}>
-          {formatPaymentAmount(expectedAmount, { delimiter, decimal, nullLabel: "Variable" })}
+          {formatExpectedAmount(expectedAmount, { delimiter, decimal })}
         </Label>
         <ButtonText
-          title={isVariable ? "Enter & Pay" : "Pay"}
+          title='Pay'
           onPress={openPaySheet}
           buttonStyle={styles.payButtonText}
         />

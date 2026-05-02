@@ -65,12 +65,19 @@ export type UpcomingInstanceSectionRow = ReturnType<
   typeof useGetUpcomingInstancesForSection
 >["data"][number];
 
-const invalidateUpcomingPayments = (clientQuery: ReturnType<typeof useQueryClient>, id?: number) => {
+export const invalidateUpcomingPayments = (
+  clientQuery: ReturnType<typeof useQueryClient>,
+  id?: number,
+) => {
   clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPayments] });
   clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingInstancesForSection] });
+  clientQuery.invalidateQueries({ queryKey: [queryKeys.linkablePendingInstances] });
   if (typeof id === "number") {
     clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentById, id] });
     clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentInstances, id] });
+  } else {
+    clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentById] });
+    clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentInstances] });
   }
 };
 

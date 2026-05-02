@@ -7,7 +7,7 @@ import ShadowBoxView from "components/ShadowBoxView";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { dueDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { displayCurrency, sameCurrency } from "modules/currency";
-import { formatPaymentAmount } from "app/features/upcomingPayments/modules/formatPaymentAmount";
+import { formatExpectedAmount } from "app/features/upcomingPayments/modules/formatPaymentAmount";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import {
   LinkableInstanceRow,
@@ -93,12 +93,7 @@ const LinkedPaymentSection: React.FC<Props> = ({
       >
         <InstanceIdentity row={row} styles={styles} />
         <Label style={styles.rowAmount}>
-          {formatPaymentAmount(row.expectedAmount, {
-            delimiter,
-            decimal,
-            currency,
-            nullLabel: "Variable",
-          })}
+          {formatExpectedAmount(row.expectedAmount, { delimiter, decimal, currency })}
         </Label>
         {isSelected && <MaterialIcons name='check' size={18} color={themeColors.primary} />}
       </Pressable>

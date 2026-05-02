@@ -16,6 +16,7 @@ import {
   getTransactions,
 } from "app/services/transactionQueries";
 import { queryKeys } from "./index";
+import { invalidateUpcomingPayments } from "./upcomingPayments";
 import { NewTransaction, TransactionType } from "db";
 
 export const useGetMonthlyBalanceQuery = (
@@ -137,11 +138,7 @@ const invalidateAfterTransactionWrite = (clientQuery: ReturnType<typeof useQuery
   clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
   clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
   clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
-  clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPayments] });
-  clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentById] });
-  clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingPaymentInstances] });
-  clientQuery.invalidateQueries({ queryKey: [queryKeys.upcomingInstancesForSection] });
-  clientQuery.invalidateQueries({ queryKey: [queryKeys.linkablePendingInstances] });
+  invalidateUpcomingPayments(clientQuery);
 };
 
 export const addTransactionMutation = () => {

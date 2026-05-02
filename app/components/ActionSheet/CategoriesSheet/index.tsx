@@ -9,50 +9,46 @@ import { CategoriesWithType } from "db";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import CheckMark from "components/CheckMark";
 import { useColors } from "app/theme/useThemedStyles";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList, useAppNavigation } from "navigation/routes";
+import { useAppNavigation } from "navigation/routes";
 
 type Data =
   | {
       multiple?: false;
       onSelect: (categoryId: number) => void;
       initialSelected?: number;
-      isTransactionForm?: boolean;
+      forForm?: boolean;
     }
   | {
       multiple: true;
       onSelect: (data: Record<CategoriesWithType["id"], boolean>) => void;
       initialSelected?: Record<CategoriesWithType["id"], boolean>;
-      isTransactionForm?: boolean;
+      forForm?: boolean;
     };
 
 const keyExtractor = <T extends { id: number }>(item: T) => item.id.toString();
 
 export const CATEGORIES_NUMBER_OF_ROWS = 4;
 
-const TransactionBottomSheet: FC<Data> = ({
-  onSelect,
-  multiple,
-  initialSelected,
-  isTransactionForm,
-}) => {
+const TransactionBottomSheet: FC<Data> = ({ onSelect, multiple, initialSelected, forForm }) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const { data: categories } = useGetCategories();
 
   const colors = useColors();
   const navigation = useAppNavigation();
 
-  const addNewButton = {
+  const addNewButton: CategoriesWithType = {
     id: 0,
     name: "New category",
     type: "system",
     iconFamily: "Ionicons",
     iconName: "add-outline",
     iconColor: colors.border,
+    transactionType: "expense",
+    sortOrder: 0,
+    types: [],
   };
 
-  const listData = isTransactionForm
+  const listData = forForm
     ? [...categories.filter((category) => category.type !== "system"), addNewButton]
     : categories;
 
@@ -61,9 +57,8 @@ const TransactionBottomSheet: FC<Data> = ({
     return initialSelected ?? {};
   };
 
-  const [selected, setSelected] = useState<Record<CategoriesWithType["id"], boolean>>(
-    setInitialSelected()
-  );
+  const [selected, setSelected] =
+    useState<Record<CategoriesWithType["id"], boolean>>(setInitialSelected());
 
   const onCategoryPress = (item: CategoriesWithType) => {
     if (!multiple) {
@@ -98,7 +93,7 @@ const TransactionBottomSheet: FC<Data> = ({
 
   const renderItem = ({ item }: { item: CategoriesWithType }) => {
     const isSelected = multiple ? selected[item.id] : initialSelected === item.id;
-    const isNewCategoryButton = isTransactionForm && item.id === 0;
+    const isNewCategoryButton = forForm && item.id === 0;
 
     if (isNewCategoryButton) {
       return (

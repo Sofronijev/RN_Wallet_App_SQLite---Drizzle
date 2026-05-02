@@ -44,7 +44,6 @@ const HistoryRow: React.FC<Props> = ({
   const meta = isMissed ? statusMeta.missed : statusMeta[row.status];
   const paidAmount =
     row.transactionAmount != null ? Math.abs(row.transactionAmount) : row.expectedAmount ?? null;
-  const isVariable = row.expectedAmount == null;
   const isCanceled = row.status === "canceled";
 
   return (
@@ -65,7 +64,7 @@ const HistoryRow: React.FC<Props> = ({
       {isMissed && (
         <View style={styles.actionRow}>
           <ButtonText
-            title={isVariable ? "Enter & Pay" : "Pay"}
+            title='Pay'
             onPress={() => onPay(row.id)}
             buttonStyle={styles.actionText}
           />

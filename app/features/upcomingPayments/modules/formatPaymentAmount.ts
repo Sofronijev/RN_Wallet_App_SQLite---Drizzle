@@ -15,3 +15,8 @@ export const formatPaymentAmount = (
   const formatted = formatDecimalDigits(amount, delimiter, decimal);
   return currency ? `${formatted} ${currency}` : formatted;
 };
+
+export const formatExpectedAmount = (
+  amount: number | null | undefined,
+  opts: Omit<Options, "nullLabel">,
+) => formatPaymentAmount(amount, { ...opts, nullLabel: "Variable" });

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Keyboard, Platform, StyleSheet, TextStyle, TouchableOpacity, View } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { startOfDay } from "date-fns";
 import {
   calendarDateFormat,
   formatIsoDate,
@@ -23,12 +24,6 @@ type DatePickerInputProps = {
   onDateSelect?: (selectedDate: string) => void;
   style?: TextStyle;
   hideTime?: boolean;
-};
-
-const startOfDay = (date: Date) => {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  return next;
 };
 
 const DatePickerInput: React.FC<DatePickerInputProps> = ({

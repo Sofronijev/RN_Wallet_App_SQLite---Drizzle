@@ -173,7 +173,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
       props: {
         onSelect: onSelectCategory,
         initialSelected: values.category?.id,
-        isTransactionForm: true,
+        forForm: true,
       },
     });
   };

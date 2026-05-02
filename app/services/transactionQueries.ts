@@ -55,7 +55,7 @@ export const getTransactions = (walletId: number, limit?: number, offset?: numbe
       eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
     )
     .where(eq(transactions.wallet_id, walletId))
-    .orderBy(desc(sql`strftime('%Y-%m-%dT%H:%M:%S', ${transactions.date})`));
+    .orderBy(desc(transactions.date));
 
   if (limit) {
     query.limit(limit);
