@@ -1,6 +1,7 @@
 import React, { FC, useCallback, useRef } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import { Ionicons } from "@expo/vector-icons";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
@@ -19,7 +20,7 @@ const currencyArray = Object.values(currencies);
 const keyExtractor = (item: CurrencyType) => item.currencyCode;
 
 const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode, allowedCurrencyCodes }) => {
-  const sheetRef = useRef<BottomSheetModal>(null);
+  const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const styles = useThemedStyles(themedStyles);
   const { primary } = useColors();
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import SheetHeader from "../components/SheetHeader";
@@ -22,7 +23,7 @@ const PickerSheet = <T extends number | null>({
   data,
   onSelect,
 }: PickerSheetProps<T>) => {
-  const sheetRef = useRef<BottomSheetModal>(null);
+  const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const styles = useThemedStyles(themeStyles);
 
   const onItemPress = (value: T) => () => {
