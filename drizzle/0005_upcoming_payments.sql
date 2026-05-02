@@ -2,12 +2,12 @@ CREATE TABLE `UpcomingPaymentContributions` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`instanceId` integer NOT NULL,
 	`transactionId` integer NOT NULL,
-	`amount` real NOT NULL,
 	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`instanceId`) REFERENCES `UpcomingPaymentInstances`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`transactionId`) REFERENCES `Transactions`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `upcoming_contribution_unique_tx` ON `UpcomingPaymentContributions` (`transactionId`);--> statement-breakpoint
 CREATE TABLE `UpcomingPaymentInstances` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`upcomingPaymentId` integer NOT NULL,

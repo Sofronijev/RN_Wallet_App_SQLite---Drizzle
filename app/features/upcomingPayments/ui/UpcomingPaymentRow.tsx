@@ -41,7 +41,7 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   };
 
   const openPaySheet = () => {
-    console.log("TODO: open PaySheet for instance", id);
+    navigation.navigate("Transaction", { upcomingPaymentInstanceId: id });
   };
 
   return (

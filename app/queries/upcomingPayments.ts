@@ -1,13 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EditUpcomingPayment, NewUpcomingPayment } from "db";
 import {
   addUpcomingPayment,
   cancelUpcomingPaymentInstance,
   clearStaleFlag,
   getAllUpcomingPayments,
+  getLinkablePendingInstances,
   getUpcomingInstancesForSection,
   getUpcomingPaymentById,
   getUpcomingPaymentInstancesWithContributions,
+  getUpcomingPaymentInstanceWithContext,
   restoreUpcomingPayment,
   restoreUpcomingPaymentInstance,
   softDeleteUpcomingPayment,
@@ -100,6 +102,38 @@ export const useUpdateUpcomingPaymentMutation = () => {
     isError,
   };
 };
+
+export const useGetUpcomingPaymentInstanceContext = (instanceId: number | undefined) => {
+  const enabled = typeof instanceId === "number";
+  const { data, isLoading, isFetching, isError } = useQuery({
+    enabled,
+    queryKey: [queryKeys.upcomingPaymentInstanceContext, instanceId],
+    queryFn: enabled ? () => getUpcomingPaymentInstanceWithContext(instanceId as number) : skipToken,
+  });
+
+  return { data: data ?? null, isLoading: isLoading || isFetching, isError };
+};
+export type UpcomingPaymentInstanceContext = NonNullable<
+  ReturnType<typeof useGetUpcomingPaymentInstanceContext>["data"]
+>;
+
+export const useGetLinkablePendingInstances = (
+  categoryId: number | null | undefined,
+  includeInstanceId?: number | null,
+) => {
+  const enabled = typeof categoryId === "number";
+  const includeKey = includeInstanceId ?? null;
+  const { data, isLoading, isFetching, isError } = useQuery({
+    enabled,
+    queryKey: [queryKeys.linkablePendingInstances, categoryId, includeKey],
+    queryFn: enabled
+      ? () => getLinkablePendingInstances(categoryId, includeKey)
+      : skipToken,
+  });
+
+  return { data: data ?? [], isLoading: isLoading || isFetching, isError };
+};
+export type LinkableInstanceRow = ReturnType<typeof useGetLinkablePendingInstances>["data"][number];
 
 export const useCancelUpcomingPaymentInstanceMutation = (upcomingPaymentId: number) => {
   const clientQuery = useQueryClient();

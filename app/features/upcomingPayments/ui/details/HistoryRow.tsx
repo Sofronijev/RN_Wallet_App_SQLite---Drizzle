@@ -42,7 +42,8 @@ const HistoryRow: React.FC<Props> = ({
 }) => {
   const styles = useThemedStyles(themeStyles);
   const meta = isMissed ? statusMeta.missed : statusMeta[row.status];
-  const paidAmount = row.contributionAmount ?? row.transactionAmount ?? row.expectedAmount ?? null;
+  const paidAmount =
+    row.transactionAmount != null ? Math.abs(row.transactionAmount) : row.expectedAmount ?? null;
   const isVariable = row.expectedAmount == null;
   const isCanceled = row.status === "canceled";
 

@@ -1,5 +1,5 @@
 import { Keyboard, StyleSheet, View, TouchableOpacity } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
@@ -25,7 +25,7 @@ import { transactionStrings } from "constants/strings";
 import CustomButton from "components/CustomButton";
 import WalletPicker from "./WalletPicker";
 import { getCategoryIcon } from "components/CategoryIcon";
-import { Type, TransactionWithDetails } from "db";
+import { Type } from "db";
 import {
   addTransactionMutation,
   deleteTransactionMutation,
@@ -43,6 +43,17 @@ import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import colors from "constants/colors";
+import LinkedPaymentSection from "./LinkedPaymentSection";
+import {
+  LinkableInstanceRow,
+  useGetUpcomingPaymentInstanceContext,
+} from "app/queries/upcomingPayments";
+import { displayCurrency, sameCurrency } from "modules/currency";
+import {
+  formatEditInitialValues,
+  formatPayInitialValues,
+  getDefaultInitialValues,
+} from "../../modules/transactionInitialValues";
 
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
@@ -51,15 +62,20 @@ type Props = {
 
 const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const editTransactionId = route.params?.id;
+  const upcomingPaymentInstanceId = route.params?.upcomingPaymentInstanceId;
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data: editedTransaction } = useGetTransactionByIdQuery(editTransactionId);
+  const { data: payContext } = useGetUpcomingPaymentInstanceContext(upcomingPaymentInstanceId);
   const { data: wallets } = useGetWalletsWithBalance();
   const { categoriesById } = useGetCategories();
   const { addTransaction } = addTransactionMutation();
   const { editTransaction } = editTransactionMutation();
   const { deleteTransaction } = deleteTransactionMutation();
-  const isLoading = (!!editTransactionId && !editedTransaction) || !wallets.length;
+  const isLoading =
+    (!!editTransactionId && !editedTransaction) ||
+    (!!upcomingPaymentInstanceId && !payContext) ||
+    !wallets.length;
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
@@ -81,9 +97,16 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
         wallet_id: Number(values.walletId),
       };
       if (editTransactionId) {
-        editTransaction({ id: editTransactionId, transaction: transactionData });
+        editTransaction({
+          id: editTransactionId,
+          transaction: transactionData,
+          linkedUpcomingInstanceId: values.linkedUpcomingInstanceId,
+        });
       } else {
-        addTransaction(transactionData);
+        addTransaction({
+          transaction: transactionData,
+          linkedUpcomingInstanceId: values.linkedUpcomingInstanceId,
+        });
       }
       navigation.goBack();
     }
@@ -105,28 +128,21 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     deleteTransactionAlert(onDeleteTransaction);
   };
 
-  const formatEditInitialValues = (transaction: TransactionWithDetails) => {
-    return {
-      date: formatIsoDate(transaction.date),
-      amount: Math.abs(transaction.amount),
-      description: transaction.description ?? "",
-      category: transaction.category,
-      type: transaction.type,
-      walletId: `${transaction.wallet_id}`,
-    };
-  };
+  const initialValues = useMemo<TransactionFromInputs>(() => {
+    if (editedTransaction) return formatEditInitialValues(editedTransaction);
+    if (payContext)
+      return formatPayInitialValues(payContext, {
+        wallets,
+        categoriesById,
+        selectedWalletId: selectedWallet?.walletId,
+        today: dateRef.current,
+      });
+    return getDefaultInitialValues(selectedWallet?.walletId, dateRef.current);
+  }, [editedTransaction, payContext, wallets, categoriesById, selectedWallet?.walletId]);
+
   const { values, setFieldValue, errors, handleSubmit, handleChange } =
     useFormik<TransactionFromInputs>({
-      initialValues: editedTransaction
-        ? formatEditInitialValues(editedTransaction)
-        : {
-            date: formatIsoDate(dateRef.current),
-            amount: 0,
-            description: "",
-            category: null,
-            type: null,
-            walletId: `${selectedWallet?.walletId}`,
-          },
+      initialValues,
       validationSchema: transactionValidationSchema,
       validateOnChange: hasSubmittedForm,
       onSubmit: onTransactionSubmit,
@@ -134,9 +150,11 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     });
 
   const pickedWallet = wallets.find((wallet) => wallet.walletId === +values.walletId);
-  const walletCurrency = pickedWallet?.currencySymbol || pickedWallet?.currencyCode;
+  const walletCurrency = displayCurrency(pickedWallet);
 
   const isEditingSystemTransaction = !!editTransactionId && values.category?.type === "system";
+  const isCategoryLocked = values.linkedUpcomingInstanceId != null;
+  const isCategoryDisabled = isEditingSystemTransaction || isCategoryLocked;
 
   useEffect(() => {
     if (editedTransaction) {
@@ -151,11 +169,15 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [editedTransaction]);
 
+  const hasOpenedAmountSheet = useRef(false);
   useEffect(() => {
-    if (!editTransactionId) {
-      showAmountSheet();
-    }
-  }, [editTransactionId]);
+    if (hasOpenedAmountSheet.current) return;
+    if (editTransactionId) return;
+    if (upcomingPaymentInstanceId && !payContext) return;
+    hasOpenedAmountSheet.current = true;
+    if (values.amount > 0) return;
+    showAmountSheet();
+  }, [editTransactionId, upcomingPaymentInstanceId, payContext, values.amount]);
 
   const typeOptions = values.category?.id ? categoriesById[values.category.id]?.types ?? [] : [];
 
@@ -165,6 +187,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     await setFieldValue("category", category);
     const type = category.id === 12 ? categoriesById[category.id].types[0] : null;
     await setFieldValue("type", type, hasSubmittedForm);
+    await setFieldValue("linkedUpcomingInstanceId", null);
   };
 
   const showCategoriesSheet = () => {
@@ -210,6 +233,17 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     setFieldValue("walletId", walletId);
   };
 
+  const onSelectLinkedInstance = (instance: LinkableInstanceRow | null) => {
+    setFieldValue("linkedUpcomingInstanceId", instance?.instanceId ?? null);
+    if (
+      instance &&
+      instance.expectedAmount != null &&
+      sameCurrency(pickedWallet?.currencyCode, instance.currencyCode)
+    ) {
+      setFieldValue("amount", instance.expectedAmount, hasSubmittedForm);
+    }
+  };
+
   const onSubmit = () => {
     setHasSubmittedForm(true);
     handleSubmit();
@@ -251,26 +285,26 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           style={[
             styles.input,
             styles.paddingVertical,
-            isEditingSystemTransaction && styles.disable,
+            isCategoryDisabled && styles.disable,
           ]}
         >
           <TouchableOpacity
             onPress={showCategoriesSheet}
             style={styles.flexRow}
-            disabled={isEditingSystemTransaction}
+            disabled={isCategoryDisabled}
           >
             <View style={styles.icon}>{getCategoryInputIcon}</View>
             <Label
               style={[
                 styles.label,
                 !values.category?.name && styles.placeHolder,
-                isEditingSystemTransaction && styles.disabledText,
+                isCategoryDisabled && styles.disabledText,
               ]}
             >
               {values.category?.name ?? "Select category"}
             </Label>
           </TouchableOpacity>
-          {values.category?.id && !isEditingSystemTransaction && (
+          {values.category?.id && !isCategoryDisabled && (
             <TypeSelector
               categoryId={values.category?.id}
               types={typeOptions}
@@ -293,6 +327,19 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
           <Label style={styles.systemText}>
             Balance correction is a built-in category with limited editing.
           </Label>
+        )}
+        {!isEditingSystemTransaction && (
+          <View style={styles.input}>
+            <LinkedPaymentSection
+              categoryId={values.category?.id ?? null}
+              walletCurrencyCode={pickedWallet?.currencyCode ?? null}
+              linkedInstanceId={values.linkedUpcomingInstanceId}
+              onSelect={onSelectLinkedInstance}
+              initiallyExpanded={
+                !!upcomingPaymentInstanceId || values.linkedUpcomingInstanceId != null
+              }
+            />
+          </View>
         )}
         <CustomButton title='Save' onPress={onSubmit} style={styles.button} />
       </View>

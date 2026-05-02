@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "4a52cd7b-6014-4bdf-b43f-279359a51ea5",
+  "id": "77d903b5-d1a2-4851-9dd1-8ae7266a4550",
   "prevId": "3e763139-ff76-4966-b9d3-6da131e37f0a",
   "tables": {
     "Categories": {
@@ -408,13 +408,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "amount": {
-          "name": "amount",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "createdAt": {
           "name": "createdAt",
           "type": "text",
@@ -424,7 +417,15 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "upcoming_contribution_unique_tx": {
+          "name": "upcoming_contribution_unique_tx",
+          "columns": [
+            "transactionId"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
         "UpcomingPaymentContributions_instanceId_UpcomingPaymentInstances_id_fk": {
           "name": "UpcomingPaymentContributions_instanceId_UpcomingPaymentInstances_id_fk",

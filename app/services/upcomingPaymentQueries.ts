@@ -1,4 +1,4 @@
-import { db, EditUpcomingPayment, NewUpcomingPayment } from "db";
+import { db, DbExecutor, EditUpcomingPayment, NewUpcomingPayment } from "db";
 import {
   categories,
   transactions,
@@ -6,7 +6,7 @@ import {
   upcomingPaymentInstances,
   upcomingPayments,
 } from "db/schema";
-import { and, asc, desc, eq, getTableColumns, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, lt, or, sql } from "drizzle-orm";
 import { addDays, addMonths, addWeeks, addYears, format, startOfDay, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
@@ -101,15 +101,18 @@ export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
   }
 };
 
-export const ensureNextInstance = async (upcomingPaymentId: number): Promise<string | null> => {
-  const [payment] = await db
+export const ensureNextInstance = async (
+  upcomingPaymentId: number,
+  executor: DbExecutor = db
+): Promise<string | null> => {
+  const [payment] = await executor
     .select()
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, upcomingPaymentId));
 
   if (!payment || !payment.isActive) return null;
 
-  const [latest] = await db
+  const [latest] = await executor
     .select({ dueDate: upcomingPaymentInstances.dueDate })
     .from(upcomingPaymentInstances)
     .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
@@ -121,7 +124,7 @@ export const ensureNextInstance = async (upcomingPaymentId: number): Promise<str
   const nextDueDate = getNextDueDate(payment, latest.dueDate);
   if (!nextDueDate) return null;
 
-  await db
+  await executor
     .insert(upcomingPaymentInstances)
     .values({
       upcomingPaymentId,
@@ -201,11 +204,46 @@ export const restoreUpcomingPaymentInstance = (instanceId: number) =>
     .set({ status: "pending", canceledAt: null })
     .where(eq(upcomingPaymentInstances.id, instanceId));
 
+export const recomputeInstanceStatus = async (
+  instanceId: number,
+  executor: DbExecutor = db
+): Promise<void> => {
+  const [instance] = await executor
+    .select({
+      upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId,
+      status: upcomingPaymentInstances.status,
+    })
+    .from(upcomingPaymentInstances)
+    .where(eq(upcomingPaymentInstances.id, instanceId));
+  if (!instance) return;
+
+  const [link] = await executor
+    .select({ id: upcomingPaymentContributions.id })
+    .from(upcomingPaymentContributions)
+    .where(eq(upcomingPaymentContributions.instanceId, instanceId))
+    .limit(1);
+
+  const shouldBePaid = link != null;
+  const currentlyPaid = instance.status === "paid";
+
+  if (shouldBePaid && !currentlyPaid) {
+    await executor
+      .update(upcomingPaymentInstances)
+      .set({ status: "paid", paidAt: new Date().toISOString() })
+      .where(eq(upcomingPaymentInstances.id, instanceId));
+    await ensureNextInstance(instance.upcomingPaymentId, executor);
+  } else if (!shouldBePaid && currentlyPaid) {
+    await executor
+      .update(upcomingPaymentInstances)
+      .set({ status: "pending", paidAt: null })
+      .where(eq(upcomingPaymentInstances.id, instanceId));
+  }
+};
+
 export const getUpcomingPaymentInstancesWithContributions = async (upcomingPaymentId: number) => {
   const rows = await db
     .select({
       ...getTableColumns(upcomingPaymentInstances),
-      contributionAmount: upcomingPaymentContributions.amount,
       transactionId: transactions.id,
       transactionAmount: transactions.amount,
       transactionDate: transactions.date,
@@ -220,6 +258,68 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
     .orderBy(desc(upcomingPaymentInstances.dueDate));
 
   return rows;
+};
+
+export const getUpcomingPaymentInstanceWithContext = async (instanceId: number) => {
+  const [row] = await db
+    .select({
+      instanceId: upcomingPaymentInstances.id,
+      dueDate: upcomingPaymentInstances.dueDate,
+      expectedAmount: upcomingPaymentInstances.expectedAmount,
+      status: upcomingPaymentInstances.status,
+      upcomingPaymentId: upcomingPayments.id,
+      paymentName: upcomingPayments.name,
+      paymentDescription: upcomingPayments.description,
+      categoryId: upcomingPayments.categoryId,
+      typeId: upcomingPayments.typeId,
+      currencyCode: upcomingPayments.currencyCode,
+      currencySymbol: upcomingPayments.currencySymbol,
+    })
+    .from(upcomingPaymentInstances)
+    .innerJoin(
+      upcomingPayments,
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+    )
+    .where(eq(upcomingPaymentInstances.id, instanceId));
+
+  if (!row) return null;
+  return row;
+};
+
+export const getLinkablePendingInstances = async (
+  categoryId: number,
+  includeInstanceId?: number | null,
+) => {
+  const pendingInCategory = and(
+    eq(upcomingPayments.categoryId, categoryId),
+    eq(upcomingPaymentInstances.status, "pending"),
+  );
+  const matchClause =
+    includeInstanceId != null
+      ? or(pendingInCategory, eq(upcomingPaymentInstances.id, includeInstanceId))
+      : pendingInCategory;
+
+  return db
+    .select({
+      instanceId: upcomingPaymentInstances.id,
+      upcomingPaymentId: upcomingPayments.id,
+      paymentName: upcomingPayments.name,
+      dueDate: upcomingPaymentInstances.dueDate,
+      expectedAmount: upcomingPaymentInstances.expectedAmount,
+      iconFamily: categories.iconFamily,
+      iconName: categories.iconName,
+      iconColor: categories.iconColor,
+      currencyCode: upcomingPayments.currencyCode,
+      currencySymbol: upcomingPayments.currencySymbol,
+    })
+    .from(upcomingPaymentInstances)
+    .innerJoin(
+      upcomingPayments,
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+    )
+    .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
+    .where(and(eq(upcomingPayments.isActive, true), matchClause))
+    .orderBy(asc(upcomingPaymentInstances.dueDate));
 };
 
 export const getUpcomingInstancesForSection = async () => {

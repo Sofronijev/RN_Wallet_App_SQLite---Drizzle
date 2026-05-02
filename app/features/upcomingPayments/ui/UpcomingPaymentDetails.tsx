@@ -79,11 +79,11 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
 
   const onPay = () => {
     if (!nextPending) return;
-    console.log("TODO: open PaySheet for instance", nextPending.id);
+    navigation.navigate("Transaction", { upcomingPaymentInstanceId: nextPending.id });
   };
 
   const onPayInstance = (instanceId: number) => {
-    console.log("TODO: open PaySheet for instance", instanceId);
+    navigation.navigate("Transaction", { upcomingPaymentInstanceId: instanceId });
   };
 
   const onCancelInstance = (instanceId: number) => {

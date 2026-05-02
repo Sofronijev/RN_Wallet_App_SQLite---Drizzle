@@ -16,4 +16,6 @@ export const queryKeys = {
   upcomingPaymentById: "upcomingPaymentById",
   upcomingPaymentInstances: "upcomingPaymentInstances",
   upcomingInstancesForSection: "upcomingInstancesForSection",
+  linkablePendingInstances: "linkablePendingInstances",
+  upcomingPaymentInstanceContext: "upcomingPaymentInstanceContext",
 } as const;

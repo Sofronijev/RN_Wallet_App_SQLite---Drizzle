@@ -228,19 +228,22 @@ export const upcomingPaymentInstances = sqliteTable(
 );
 
 // Upcoming Payment Contributions Table
-export const upcomingPaymentContributions = sqliteTable("UpcomingPaymentContributions", {
-  id: integer("id").primaryKey(),
-  instanceId: integer("instanceId")
-    .references(() => upcomingPaymentInstances.id, { onDelete: "cascade", onUpdate: "cascade" })
-    .notNull(),
-  transactionId: integer("transactionId")
-    .references(() => transactions.id, { onDelete: "cascade", onUpdate: "cascade" })
-    .notNull(),
-  amount: real("amount").notNull(),
-  createdAt: text("createdAt")
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-});
+export const upcomingPaymentContributions = sqliteTable(
+  "UpcomingPaymentContributions",
+  {
+    id: integer("id").primaryKey(),
+    instanceId: integer("instanceId")
+      .references(() => upcomingPaymentInstances.id, { onDelete: "cascade", onUpdate: "cascade" })
+      .notNull(),
+    transactionId: integer("transactionId")
+      .references(() => transactions.id, { onDelete: "cascade", onUpdate: "cascade" })
+      .notNull(),
+    createdAt: text("createdAt")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [uniqueIndex("upcoming_contribution_unique_tx").on(table.transactionId)],
+);
 
 //Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -297,6 +300,10 @@ export const transactionsRelations = relations(transactions, ({ one, many }) => 
   transfer: one(transfer, {
     fields: [transactions.transfer_id],
     references: [transfer.id],
+  }),
+  upcomingPayment: one(upcomingPaymentContributions, {
+    fields: [transactions.id],
+    references: [upcomingPaymentContributions.transactionId],
   }),
 }));
 
