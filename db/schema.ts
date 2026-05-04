@@ -245,6 +245,23 @@ export const upcomingPaymentContributions = sqliteTable(
   (table) => [uniqueIndex("upcoming_contribution_unique_tx").on(table.transactionId)],
 );
 
+// Notifications Table
+export const notifications = sqliteTable("Notifications", {
+  id: integer("id").primaryKey(),
+  osNotificationId: text("osNotificationId"),
+  entityType: text("entityType", { enum: ["payment"] }),
+  entityId: integer("entityId"),
+  title: text("title").notNull(),
+  body: text("body"),
+  data: text("data"),
+  scheduledFor: integer("scheduledFor").notNull(),
+  firedAt: integer("firedAt"),
+  viewedAt: integer("viewedAt"),
+  createdAt: integer("createdAt")
+    .default(sql`(unixepoch() * 1000)`)
+    .notNull(),
+});
+
 //Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   transactions: many(transactions),

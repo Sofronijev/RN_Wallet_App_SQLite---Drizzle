@@ -4,10 +4,10 @@ import AppNavigator from "./AppNavigator";
 import AuthNavigator from "./AuthNavigator";
 import { usePinCodeStatus } from "app/features/pinCode/ui/PinCodeStatusProvider";
 import DrizzleStudio from "db/DrizzleStudio";
-import colors from "constants/colors";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { StatusBar } from "expo-status-bar";
 import { useAppTheme } from "app/theme/ThemeContext";
+import useNotifications from "app/notifications/useNotifications";
 
 const RootNavigator: React.FC = () => {
   const { pinVisible, isLoading } = usePinCodeStatus();
@@ -21,6 +21,8 @@ const RootNavigator: React.FC = () => {
       closeSheet();
     }
   }, [pinVisible]);
+
+  useNotifications();
 
   return (
     <View style={{ flex: 1 }}>

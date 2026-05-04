@@ -29,7 +29,7 @@ const AppContent = () => {
     if (error) {
       Alert.alert(
         "Initialization Error",
-        "There was a problem initializing the app. Please try restarting the app. If the issue persists, consider reinstalling the app."
+        "There was a problem initializing the app. Please try restarting the app. If the issue persists, consider reinstalling the app.",
       );
     }
   }, [error]);

@@ -1,3 +1,17 @@
+CREATE TABLE `Notifications` (
+	`id` integer PRIMARY KEY NOT NULL,
+	`osNotificationId` text,
+	`entityType` text,
+	`entityId` integer,
+	`title` text NOT NULL,
+	`body` text,
+	`data` text,
+	`scheduledFor` integer NOT NULL,
+	`firedAt` integer,
+	`viewedAt` integer,
+	`createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `UpcomingPaymentContributions` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`instanceId` integer NOT NULL,
