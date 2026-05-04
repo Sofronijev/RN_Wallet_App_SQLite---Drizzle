@@ -3,7 +3,7 @@ import { NotificationContentInput, NotificationTriggerInput } from "expo-notific
 
 export async function scheduleInAppNotification(
   content: NotificationContentInput,
-  trigger: NotificationTriggerInput,
+  trigger: NotificationTriggerInput = null,
 ) {
   await Notifications.scheduleNotificationAsync({
     content,
