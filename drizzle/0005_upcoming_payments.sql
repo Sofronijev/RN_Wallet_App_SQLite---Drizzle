@@ -6,10 +6,10 @@ CREATE TABLE `Notifications` (
 	`title` text NOT NULL,
 	`body` text,
 	`data` text,
-	`scheduledFor` integer NOT NULL,
-	`firedAt` integer,
-	`viewedAt` integer,
-	`createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL
+	`scheduledFor` text NOT NULL,
+	`firedAt` text,
+	`viewedAt` text,
+	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `UpcomingPaymentContributions` (

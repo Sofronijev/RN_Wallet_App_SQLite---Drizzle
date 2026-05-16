@@ -254,11 +254,11 @@ export const notifications = sqliteTable("Notifications", {
   title: text("title").notNull(),
   body: text("body"),
   data: text("data"),
-  scheduledFor: integer("scheduledFor").notNull(),
-  firedAt: integer("firedAt"),
-  viewedAt: integer("viewedAt"),
-  createdAt: integer("createdAt")
-    .default(sql`(unixepoch() * 1000)`)
+  scheduledFor: text("scheduledFor").notNull(),
+  firedAt: text("firedAt"),
+  viewedAt: text("viewedAt"),
+  createdAt: text("createdAt")
+    .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 });
 
