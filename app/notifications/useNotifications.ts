@@ -14,9 +14,9 @@ Notifications.setNotificationHandler({
 export default function useNotifications() {
   useEffect(() => {
     const lastResponse = Notifications.getLastNotificationResponse();
-    if (lastResponse) {
-      console.log("COLD_START", lastResponse)
-    }
+    // if (lastResponse) {
+    //   // TODO - on cold start
+    // }
 
     (async () => {
       if (Platform.OS === "android") {
@@ -26,20 +26,19 @@ export default function useNotifications() {
           importance: Notifications.AndroidImportance.HIGH,
         });
       }
-      await Notifications.requestPermissionsAsync();
     })();
 
-    const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log("RECIEVED", notification);
-    });
+    // const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
+    //   // TODO - on notification received
+    // });
 
-    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log("ON TAP", response);
-    });
+    // const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+    //   // TODO - on notification tap
+    // });
 
-    return () => {
-      notificationListener.remove();
-      responseListener.remove();
-    };
+    // return () => {
+    //   notificationListener.remove();
+    //   responseListener.remove();
+    // };
   }, []);
 }

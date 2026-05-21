@@ -91,13 +91,16 @@ const themeStyles = (theme: AppTheme) =>
       fontWeight: "500",
       color: theme.colors.muted,
       paddingBottom: 8,
+      paddingHorizontal: 16,
     },
     listContent: {
       paddingVertical: 4,
+      paddingHorizontal: 16,
       gap: 8,
     },
     customRow: {
       marginTop: 12,
+      marginHorizontal: 16,
       padding: 12,
       flexDirection: "row",
       alignItems: "center",

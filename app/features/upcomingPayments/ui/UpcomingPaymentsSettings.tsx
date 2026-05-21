@@ -7,6 +7,7 @@ import { useAppNavigation } from "navigation/routes";
 import { pressableOpacityStyle } from "modules/pressable";
 import { UpcomingPaymentRow, useGetUpcomingPayments } from "app/queries/upcomingPayments";
 import { useThemedStyles } from "app/theme/useThemedStyles";
+import NotificationPermissionBanner from "app/notifications/NotificationPermissionBanner";
 import UpcomingPaymentCard from "./UpcomingPaymentCard";
 
 type Tab = "active" | "archived";
@@ -54,6 +55,8 @@ const UpcomingPaymentsSettings: React.FC = () => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={tab === "active" ? <NotificationPermissionBanner /> : null}
+        ListHeaderComponentStyle={styles.bannerHeader}
       />
       {tab === "active" ? (
         <View style={styles.addButton}>
@@ -82,5 +85,8 @@ const themedStyles = () =>
     tabs: {
       marginHorizontal: 16,
       marginTop: 12,
+    },
+    bannerHeader: {
+      marginBottom: 8,
     },
   });

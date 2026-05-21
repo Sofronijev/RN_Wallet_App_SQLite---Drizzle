@@ -24,7 +24,6 @@ export const deriveEditInitialValues = (
     customIntervalValue: payment.customIntervalValue,
     customIntervalUnit: payment.customIntervalUnit as CustomIntervalUnit | null,
     endDate: payment.endDate,
-    isVariableAmount: payment.amount == null,
     notifyDaysBefore: payment.notifyDaysBefore,
     notifyOnDueDay: payment.notifyOnDueDay,
     notifyOnMissed: payment.notifyOnMissed,

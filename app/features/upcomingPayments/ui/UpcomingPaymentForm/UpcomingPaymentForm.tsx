@@ -19,7 +19,7 @@ import CustomButton from "components/CustomButton";
 import RepetitionPicker from "./fields/RepetitionPicker";
 import EndDatePicker from "./fields/EndDatePicker";
 import NotificationSettings from "./fields/NotificationSettings";
-import VariableAmountToggle from "./fields/VariableAmountToggle";
+import NotificationPermissionBanner from "app/notifications/NotificationPermissionBanner";
 import LockedInfoBox from "./LockedInfoBox";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
@@ -87,7 +87,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
     const payload = {
       name: values.name.trim(),
       description: values.description.trim() || null,
-      amount: values.isVariableAmount ? null : values.amount,
+      amount: values.amount > 0 ? values.amount : null,
       categoryId: values.category.id,
       typeId: values.type?.id ?? null,
       currencyCode: values.currencyCode,
@@ -140,8 +140,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
       customIntervalValue: null,
       customIntervalUnit: null,
       endDate: null,
-      isVariableAmount: false,
-      notifyDaysBefore: 1,
+      notifyDaysBefore: null,
       notifyOnDueDay: true,
       notifyOnMissed: true,
     };
@@ -227,8 +226,6 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
     handleSubmit();
   };
 
-  const showAmountField = !values.isVariableAmount;
-
   const getCategoryInputIcon = values.category ? (
     getCategoryIcon({
       color: values.category.iconColor,
@@ -252,54 +249,47 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
           />
           <InputErrorLabel text={errors.name} isVisible={!!errors.name} />
         </View>
-        {(hasMultipleCurrencies || showAmountField) && (
-          <View style={[styles.input, styles.amountRow]}>
-            {showAmountField && (
-              <AmountInput
-                onPress={showAmountSheet}
-                style={styles.amountInput}
-                amount={values.amount}
-                walletCurrency={walletCurrency}
-              />
-            )}
-            {hasMultipleCurrencies && (
-              <View
-                style={[styles.currencyBox, isLocked && styles.lockedWrapper]}
-                pointerEvents={isLocked ? "none" : "auto"}
-              >
-                <ShadowBoxView style={[styles.currencyBox, styles.paddingVertical]}>
-                  <Pressable
-                    onPress={showCurrencySheet}
-                    style={pressableOpacityStyle(styles.currencyPressable)}
-                  >
-                    <Label
-                      numberOfLines={1}
-                      style={[styles.currencyLabel, !values.currencyCode && styles.placeHolder]}
-                    >
-                      {values.currencyCode
-                        ? showAmountField
-                          ? values.currencySymbol || values.currencyCode
-                          : `${values.currencySymbol || ""} ${values.currencyCode}`.trim()
-                        : "Currency"}
-                    </Label>
-                  </Pressable>
-                </ShadowBoxView>
-              </View>
-            )}
-          </View>
-        )}
-        {isLocked && hasMultipleCurrencies && (
-          <LockedInfoBox text='Currency is locked because this payment has recorded history. Changing it would mix currencies across paid transactions.' />
-        )}
-        {hasMultipleCurrencies && (
-          <InputErrorLabel text={errors.currencyCode} isVisible={!!errors.currencyCode} />
-        )}
-        {showAmountField && <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />}
-        <View style={styles.input}>
-          <VariableAmountToggle
-            value={values.isVariableAmount}
-            onChange={(v) => setFieldValue("isVariableAmount", v)}
+        <View style={[styles.input, styles.amountRow]}>
+          <AmountInput
+            onPress={showAmountSheet}
+            style={styles.amountInput}
+            amount={values.amount}
+            walletCurrency={walletCurrency}
           />
+          {hasMultipleCurrencies && (
+            <View
+              style={[styles.currencyBox, isLocked && styles.lockedWrapper]}
+              pointerEvents={isLocked ? "none" : "auto"}
+            >
+              <ShadowBoxView style={[styles.currencyBox, styles.paddingVertical]}>
+                <Pressable
+                  onPress={showCurrencySheet}
+                  style={pressableOpacityStyle(styles.currencyPressable)}
+                >
+                  <Label
+                    numberOfLines={1}
+                    style={[styles.currencyLabel, !values.currencyCode && styles.placeHolder]}
+                  >
+                    {values.currencyCode
+                      ? values.currencySymbol || values.currencyCode
+                      : "Currency"}
+                  </Label>
+                </Pressable>
+              </ShadowBoxView>
+            </View>
+          )}
+        </View>
+        <Label style={styles.amountHelper}>
+          Leave empty to enter the amount when each payment is due
+        </Label>
+        <View style={styles.horizontalInset}>
+          {isLocked && hasMultipleCurrencies && (
+            <LockedInfoBox text='Currency is locked because this payment has recorded history. Changing it would mix currencies across paid transactions.' />
+          )}
+          {hasMultipleCurrencies && (
+            <InputErrorLabel text={errors.currencyCode} isVisible={!!errors.currencyCode} />
+          )}
+          <InputErrorLabel text={errors.amount} isVisible={!!errors.amount} />
         </View>
         <ShadowBoxView style={[styles.input, styles.paddingVertical]}>
           <Pressable onPress={showCategoriesSheet} style={pressableOpacityStyle(styles.flexRow)}>
@@ -318,8 +308,10 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
             />
           )}
         </ShadowBoxView>
-        <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
-        <InputErrorLabel text={errors.type} isVisible={!!errors.type} />
+        <View style={styles.horizontalInset}>
+          <InputErrorLabel text={errors.category} isVisible={!!errors.category} />
+          <InputErrorLabel text={errors.type} isVisible={!!errors.type} />
+        </View>
         <StyledLabelInput
           placeholder='Note (optional)'
           style={styles.input}
@@ -327,7 +319,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
           value={values.description}
           onChangeText={handleChange("description")}
         />
-        <View style={styles.input}>
+        <View style={styles.inputNoInset}>
           <RepetitionPicker
             recurrence={values.recurrence}
             onRecurrenceChange={(value) => setFieldValue("recurrence", value)}
@@ -336,14 +328,16 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
             customIntervalUnit={values.customIntervalUnit}
             onCustomIntervalUnitChange={(value) => setFieldValue("customIntervalUnit", value)}
           />
-          <InputErrorLabel
-            text={errors.customIntervalValue as string | undefined}
-            isVisible={!!errors.customIntervalValue}
-          />
-          <InputErrorLabel
-            text={errors.customIntervalUnit as string | undefined}
-            isVisible={!!errors.customIntervalUnit}
-          />
+          <View style={styles.horizontalInset}>
+            <InputErrorLabel
+              text={errors.customIntervalValue as string | undefined}
+              isVisible={!!errors.customIntervalValue}
+            />
+            <InputErrorLabel
+              text={errors.customIntervalUnit as string | undefined}
+              isVisible={!!errors.customIntervalUnit}
+            />
+          </View>
         </View>
         <View style={styles.input}>
           <Label style={styles.heading}>Start date</Label>
@@ -377,6 +371,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
           </View>
         )}
         <View style={styles.input}>
+          <NotificationPermissionBanner />
           <NotificationSettings
             notifyDaysBefore={values.notifyDaysBefore}
             onNotifyDaysBeforeChange={(value) => setFieldValue("notifyDaysBefore", value)}
@@ -404,8 +399,13 @@ const themeStyles = (theme: AppTheme) =>
       marginBottom: 20,
     },
     inputsContainer: {
-      marginHorizontal: 16,
       marginBottom: 40,
+    },
+    horizontalInset: {
+      paddingHorizontal: 16,
+    },
+    inputNoInset: {
+      marginTop: 12,
     },
     heading: {
       fontSize: 15,
@@ -420,12 +420,14 @@ const themeStyles = (theme: AppTheme) =>
     },
     input: {
       marginTop: 12,
+      marginHorizontal: 16,
     },
     variableAmount: {
       marginTop: 4,
     },
     button: {
       marginTop: 20,
+      marginHorizontal: 16,
     },
     paddingVertical: {
       paddingVertical: 10,
@@ -451,6 +453,12 @@ const themeStyles = (theme: AppTheme) =>
     },
     amountInput: {
       flex: 3,
+    },
+    amountHelper: {
+      fontSize: 12,
+      color: theme.colors.text,
+      paddingTop: 6,
+      marginHorizontal: 16,
     },
     icon: {
       width: 45,

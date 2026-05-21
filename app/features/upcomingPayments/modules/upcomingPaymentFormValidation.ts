@@ -16,7 +16,6 @@ export type UpcomingPaymentFormInputs = {
   customIntervalValue: number | null;
   customIntervalUnit: CustomIntervalUnit | null;
   endDate: string | null;
-  isVariableAmount: boolean;
   notifyDaysBefore: number | null;
   notifyOnDueDay: boolean;
   notifyOnMissed: boolean;
@@ -26,14 +25,7 @@ export const upcomingPaymentValidationSchema = Yup.object({
   date: Yup.string().required().label("Date"),
   amount: Yup.number()
     .typeError("Please enter a valid number for the amount")
-    .when("isVariableAmount", {
-      is: true,
-      then: (schema) => schema.nullable().notRequired(),
-      otherwise: (schema) =>
-        schema
-          .required("Please enter the payment amount")
-          .moreThan(0, "Amount must be greater than 0"),
-    })
+    .min(0, "Amount cannot be negative")
     .label("Amount"),
   category: Yup.object().required("Please choose a category").nullable().label("Category"),
   type: Yup.object()
@@ -83,7 +75,6 @@ export const upcomingPaymentValidationSchema = Yup.object({
         }),
       otherwise: (schema) => schema.notRequired(),
     }),
-  isVariableAmount: Yup.boolean(),
   notifyDaysBefore: Yup.number().nullable(),
   notifyOnDueDay: Yup.boolean(),
   notifyOnMissed: Yup.boolean(),

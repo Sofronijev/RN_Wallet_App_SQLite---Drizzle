@@ -89,6 +89,5 @@ const themeStyles = (theme: AppTheme) =>
     dateWrapper: {
       marginTop: 10,
       paddingVertical: 4,
-      paddingHorizontal: 8,
     },
   });

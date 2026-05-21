@@ -249,7 +249,7 @@ export const upcomingPaymentContributions = sqliteTable(
 export const notifications = sqliteTable("Notifications", {
   id: integer("id").primaryKey(),
   osNotificationId: text("osNotificationId"),
-  entityType: text("entityType", { enum: ["payment"] }),
+  entityType: text("entityType", { enum: ["payment-series", "payment-instance"] }),
   entityId: integer("entityId"),
   title: text("title").notNull(),
   body: text("body"),

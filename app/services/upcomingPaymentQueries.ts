@@ -11,20 +11,38 @@ import { addMonths, format, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
 import { formatIsoDate } from "modules/timeAndDate";
+import {
+  cancelNotificationsForInstance,
+  cancelNotificationsForPayment,
+  createNotification,
+  rebuildNotificationsForPayment,
+  safeScheduleNotifications,
+} from "app/services/notificationQueries";
 
-export const addUpcomingPayment = (payment: NewUpcomingPayment) =>
-  db.transaction(async (tx) => {
-    const [inserted] = await tx
+export const addUpcomingPayment = async (payment: NewUpcomingPayment) => {
+  const { paymentRow, instanceRow } = await db.transaction(async (tx) => {
+    const [insertedPayment] = await tx
       .insert(upcomingPayments)
       .values(payment)
-      .returning({ id: upcomingPayments.id });
+      .returning();
 
-    await tx.insert(upcomingPaymentInstances).values({
-      upcomingPaymentId: inserted.id,
-      dueDate: payment.firstDueDate,
-      expectedAmount: payment.amount ?? null,
-    });
+    const [insertedInstance] = await tx
+      .insert(upcomingPaymentInstances)
+      .values({
+        upcomingPaymentId: insertedPayment.id,
+        dueDate: payment.firstDueDate,
+        expectedAmount: payment.amount ?? null,
+      })
+      .returning();
+
+    return { paymentRow: insertedPayment, instanceRow: insertedInstance };
   });
+
+  await safeScheduleNotifications(
+    () => createNotification(paymentRow, instanceRow),
+    "addUpcomingPayment",
+  );
+};
 
 export const getUpcomingPaymentById = async (id: number) => {
   const todayIso = getTodayIsoThreshold();
@@ -66,6 +84,15 @@ export const getUpcomingPaymentById = async (id: number) => {
   return { ...row, historyCount, totalCount: computeTotalCount(row) };
 };
 
+const REBUILD_TRIGGER_FIELDS = [
+  "name",
+  "recurrence",
+  "endDate",
+  "firstDueDate",
+  "notifyDaysBefore",
+  "notifyOnDueDay",
+] as const;
+
 export const updateUpcomingPayment = async (id: number, values: EditUpcomingPayment) => {
   const existing = await getUpcomingPaymentById(id);
   if (!existing) throw new Error("Upcoming payment not found");
@@ -77,20 +104,54 @@ export const updateUpcomingPayment = async (id: number, values: EditUpcomingPaym
     delete safeValues.firstDueDate;
   }
 
-  return db.update(upcomingPayments).set(safeValues).where(eq(upcomingPayments.id, id));
+  const needsRebuild = REBUILD_TRIGGER_FIELDS.some((field) => {
+    const incoming = safeValues[field];
+    if (incoming === undefined) return false;
+    return incoming !== existing[field];
+  });
+
+  await db.update(upcomingPayments).set(safeValues).where(eq(upcomingPayments.id, id));
+
+  if (!needsRebuild) return;
+
+  await cancelNotificationsForPayment(id);
+  const [updatedPayment] = await db
+    .select()
+    .from(upcomingPayments)
+    .where(eq(upcomingPayments.id, id));
+  if (!updatedPayment) return;
+  await safeScheduleNotifications(
+    () => rebuildNotificationsForPayment(updatedPayment),
+    "updateUpcomingPayment",
+  );
 };
 
-export const softDeleteUpcomingPayment = (id: number) =>
-  db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
+export const softDeleteUpcomingPayment = async (id: number) => {
+  await cancelNotificationsForPayment(id);
+  await db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
+};
 
-export const restoreUpcomingPayment = (id: number) =>
-  db.update(upcomingPayments).set({ isActive: true }).where(eq(upcomingPayments.id, id));
+export const restoreUpcomingPayment = async (id: number) => {
+  await db.update(upcomingPayments).set({ isActive: true }).where(eq(upcomingPayments.id, id));
+
+  const [payment] = await db
+    .select()
+    .from(upcomingPayments)
+    .where(eq(upcomingPayments.id, id));
+  if (!payment) return;
+  await safeScheduleNotifications(
+    () => rebuildNotificationsForPayment(payment),
+    "restoreUpcomingPayment",
+  );
+};
 
 export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
   const [instance] = await db
     .select({ upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId })
     .from(upcomingPaymentInstances)
     .where(eq(upcomingPaymentInstances.id, instanceId));
+
+  await cancelNotificationsForInstance(instanceId);
 
   await db
     .update(upcomingPaymentInstances)
@@ -125,14 +186,22 @@ export const ensureNextInstance = async (
   const nextDueDate = getNextDueDate(payment, latest.dueDate);
   if (!nextDueDate) return null;
 
-  await executor
+  const [insertedInstance] = await executor
     .insert(upcomingPaymentInstances)
     .values({
       upcomingPaymentId,
       dueDate: nextDueDate,
       expectedAmount: payment.amount ?? null,
     })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning();
+
+  if (insertedInstance) {
+    await safeScheduleNotifications(
+      () => createNotification(payment, insertedInstance, executor),
+      "ensureNextInstance",
+    );
+  }
 
   return nextDueDate;
 };
@@ -206,11 +275,30 @@ export const clearStaleFlag = async (
     .where(eq(upcomingPayments.id, upcomingPaymentId));
 };
 
-export const restoreUpcomingPaymentInstance = (instanceId: number) =>
-  db
+export const restoreUpcomingPaymentInstance = async (instanceId: number) => {
+  await db
     .update(upcomingPaymentInstances)
     .set({ status: "pending", canceledAt: null })
     .where(eq(upcomingPaymentInstances.id, instanceId));
+
+  const [row] = await db
+    .select({
+      instance: getTableColumns(upcomingPaymentInstances),
+      payment: getTableColumns(upcomingPayments),
+    })
+    .from(upcomingPaymentInstances)
+    .innerJoin(
+      upcomingPayments,
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
+    )
+    .where(eq(upcomingPaymentInstances.id, instanceId));
+
+  if (!row) return;
+  await safeScheduleNotifications(
+    () => createNotification(row.payment, row.instance),
+    "restoreUpcomingPaymentInstance",
+  );
+};
 
 export const recomputeInstanceStatus = async (
   instanceId: number,
@@ -240,6 +328,7 @@ export const recomputeInstanceStatus = async (
   const currentlyPaid = instance.status === "paid";
 
   if (shouldBePaid && !currentlyPaid) {
+    await cancelNotificationsForInstance(instanceId, executor);
     await executor
       .update(upcomingPaymentInstances)
       .set({ status: "paid", paidAt: new Date().toISOString() })
@@ -254,6 +343,25 @@ export const recomputeInstanceStatus = async (
       .update(upcomingPaymentInstances)
       .set({ status: "pending", paidAt: null })
       .where(eq(upcomingPaymentInstances.id, instanceId));
+
+    const [row] = await executor
+      .select({
+        instance: getTableColumns(upcomingPaymentInstances),
+        payment: getTableColumns(upcomingPayments),
+      })
+      .from(upcomingPaymentInstances)
+      .innerJoin(
+        upcomingPayments,
+        eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
+      )
+      .where(eq(upcomingPaymentInstances.id, instanceId));
+
+    if (row) {
+      await safeScheduleNotifications(
+        () => createNotification(row.payment, row.instance, executor),
+        "recomputeInstanceStatus",
+      );
+    }
   }
 };
 
