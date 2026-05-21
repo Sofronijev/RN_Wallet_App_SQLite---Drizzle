@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "components/CustomButton";
 import TwoOptionSelector from "components/TwoOptionsSelector";
+import NullScreen from "components/NullScreen";
 import { useAppNavigation } from "navigation/routes";
 import { pressableOpacityStyle } from "modules/pressable";
 import { UpcomingPaymentRow, useGetUpcomingPayments } from "app/queries/upcomingPayments";
@@ -54,6 +55,21 @@ const UpcomingPaymentsSettings: React.FC = () => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          tab === "active" ? (
+            <NullScreen
+              icon='wallet'
+              title='No upcoming payments yet'
+              subtitle='Create your first recurring bill or subscription to track it here.'
+            />
+          ) : (
+            <NullScreen
+              icon='wallet'
+              title='No archived payments'
+              subtitle='Archived payments will appear here once you archive them from the details screen.'
+            />
+          )
+        }
       />
       {tab === "active" ? (
         <View style={styles.addButton}>
@@ -72,6 +88,7 @@ export default UpcomingPaymentsSettings;
 const themedStyles = () =>
   StyleSheet.create({
     container: {
+      flexGrow: 1,
       paddingVertical: 12,
       paddingHorizontal: 16,
       gap: 8,
