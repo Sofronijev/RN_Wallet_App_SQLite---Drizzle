@@ -36,48 +36,48 @@ const showScheduleFailureAlert = (result: ScheduleResult) => {
 };
 
 export const useGetUpcomingPayments = () => {
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: [queryKeys.upcomingPayments],
     queryFn: getAllUpcomingPayments,
   });
 
-  return { data: data ?? [], isLoading: isLoading || isFetching, isError };
+  return { data: data ?? [], isLoading, isError };
 };
 export type UpcomingPaymentRow = ReturnType<typeof useGetUpcomingPayments>["data"][number];
 
 export const useGetUpcomingPaymentById = (id: number | undefined) => {
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: [queryKeys.upcomingPaymentById, id],
     queryFn: () => getUpcomingPaymentById(id as number),
     enabled: typeof id === "number",
   });
 
-  return { data: data ?? null, isLoading: isLoading || isFetching, isError };
+  return { data: data ?? null, isLoading, isError };
 };
 export type UpcomingPaymentDetailRow = NonNullable<
   ReturnType<typeof useGetUpcomingPaymentById>["data"]
 >;
 
 export const useGetUpcomingPaymentInstances = (id: number | undefined) => {
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: [queryKeys.upcomingPaymentInstances, id],
     queryFn: () => getUpcomingPaymentInstancesWithContributions(id as number),
     enabled: typeof id === "number",
   });
 
-  return { data: data ?? [], isLoading: isLoading || isFetching, isError };
+  return { data: data ?? [], isLoading, isError };
 };
 export type UpcomingPaymentInstanceRow = ReturnType<
   typeof useGetUpcomingPaymentInstances
 >["data"][number];
 
 export const useGetUpcomingInstancesForSection = () => {
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: [queryKeys.upcomingInstancesForSection],
     queryFn: getUpcomingInstancesForSection,
   });
 
-  return { data: data ?? [], isLoading: isLoading || isFetching, isError };
+  return { data: data ?? [], isLoading, isError };
 };
 export type UpcomingInstanceSectionRow = ReturnType<
   typeof useGetUpcomingInstancesForSection
@@ -136,13 +136,13 @@ export const useUpdateUpcomingPaymentMutation = () => {
 
 export const useGetUpcomingPaymentInstanceContext = (instanceId: number | undefined) => {
   const enabled = typeof instanceId === "number";
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     enabled,
     queryKey: [queryKeys.upcomingPaymentInstanceContext, instanceId],
     queryFn: enabled ? () => getUpcomingPaymentInstanceWithContext(instanceId as number) : skipToken,
   });
 
-  return { data: data ?? null, isLoading: isLoading || isFetching, isError };
+  return { data: data ?? null, isLoading, isError };
 };
 export type UpcomingPaymentInstanceContext = NonNullable<
   ReturnType<typeof useGetUpcomingPaymentInstanceContext>["data"]
@@ -154,7 +154,7 @@ export const useGetLinkablePendingInstances = (
 ) => {
   const enabled = typeof categoryId === "number";
   const includeKey = includeInstanceId ?? null;
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     enabled,
     queryKey: [queryKeys.linkablePendingInstances, categoryId, includeKey],
     queryFn: enabled
@@ -162,7 +162,7 @@ export const useGetLinkablePendingInstances = (
       : skipToken,
   });
 
-  return { data: data ?? [], isLoading: isLoading || isFetching, isError };
+  return { data: data ?? [], isLoading, isError };
 };
 export type LinkableInstanceRow = ReturnType<typeof useGetLinkablePendingInstances>["data"][number];
 

@@ -17,19 +17,27 @@ type Data =
       onSelect: (categoryId: number) => void;
       initialSelected?: number;
       forForm?: boolean;
+      excludeIncome?: boolean;
     }
   | {
       multiple: true;
       onSelect: (data: Record<CategoriesWithType["id"], boolean>) => void;
       initialSelected?: Record<CategoriesWithType["id"], boolean>;
       forForm?: boolean;
+      excludeIncome?: boolean;
     };
 
 const keyExtractor = <T extends { id: number }>(item: T) => item.id.toString();
 
 export const CATEGORIES_NUMBER_OF_ROWS = 4;
 
-const TransactionBottomSheet: FC<Data> = ({ onSelect, multiple, initialSelected, forForm }) => {
+const TransactionBottomSheet: FC<Data> = ({
+  onSelect,
+  multiple,
+  initialSelected,
+  forForm,
+  excludeIncome,
+}) => {
   const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const { data: categories } = useGetCategories();
 
@@ -48,9 +56,12 @@ const TransactionBottomSheet: FC<Data> = ({ onSelect, multiple, initialSelected,
     types: [],
   };
 
-  const listData = forForm
-    ? [...categories.filter((category) => category.type !== "system"), addNewButton]
+  const filtered = excludeIncome
+    ? categories.filter((category) => category.transactionType !== "income")
     : categories;
+  const listData = forForm
+    ? [...filtered.filter((category) => category.type !== "system"), addNewButton]
+    : filtered;
 
   const setInitialSelected = () => {
     if (!multiple) return {};

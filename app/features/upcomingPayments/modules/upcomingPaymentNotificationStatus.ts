@@ -1,3 +1,5 @@
+import { getTodayIsoThreshold } from "./upcomingPaymentStatus";
+
 type ExpectFlags = {
   notifyDaysBefore: number | null;
   notifyOnDueDay: boolean;
@@ -41,9 +43,12 @@ const parseNotificationIds = (raw: string | null): string[] => {
 
 export const instanceHasMissingReminders = (
   payment: ExpectFlags,
-  instance: { notificationIds: string | null },
+  instance: { notificationIds: string | null; dueDate: string },
 ): boolean => {
   if (!paymentExpectsReminders(payment)) return false;
+  // Past instances can't have future reminders — all triggers would be filtered out,
+  // so an empty notificationIds is expected, not a problem worth surfacing.
+  if (instance.dueDate < getTodayIsoThreshold()) return false;
   return parseNotificationIds(instance.notificationIds).length === 0;
 };
 
@@ -56,6 +61,7 @@ export const sectionRowHasMissingReminders = (
     endDate: string | null;
     notificationIds: string | null;
     hasSeriesNotifications: boolean;
+    dueDate: string;
   },
 ): boolean => {
   if (isSeriesMode(row)) {

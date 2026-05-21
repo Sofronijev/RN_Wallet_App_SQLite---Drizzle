@@ -350,7 +350,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
         style={styles.container}
         contentContainerStyle={styles.content}
         data={historyRows}
-        keyExtractor={(row, index) => (row.id ?? `${row.dueDate}-${index}`).toString()}
+        keyExtractor={(row) => row.id.toString()}
         renderItem={({ item }) => (
           <ShadowBoxView>
             <HistoryRow

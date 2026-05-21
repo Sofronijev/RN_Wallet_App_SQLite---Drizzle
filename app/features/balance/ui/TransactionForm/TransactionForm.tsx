@@ -69,13 +69,15 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const { data: payContext } = useGetUpcomingPaymentInstanceContext(upcomingPaymentInstanceId);
   const { data: wallets } = useGetWalletsWithBalance();
   const { categoriesById } = useGetCategories();
-  const { addTransaction } = addTransactionMutation();
-  const { editTransaction } = editTransactionMutation();
-  const { deleteTransaction } = deleteTransactionMutation();
+  const { addTransaction, isLoading: isAdding } = addTransactionMutation();
+  const { editTransaction, isLoading: isEditing } = editTransactionMutation();
+  const { deleteTransaction, isLoading: isDeleting } = deleteTransactionMutation();
+  const isSubmitting = isAdding || isEditing || isDeleting;
   const isLoading =
     (!!editTransactionId && !editedTransaction) ||
     (!!upcomingPaymentInstanceId && !payContext) ||
-    !wallets.length;
+    !wallets.length ||
+    isSubmitting;
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
@@ -340,7 +342,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
             />
           </View>
         )}
-        <CustomButton title='Save' onPress={onSubmit} style={styles.button} />
+        <CustomButton
+          title='Save'
+          onPress={onSubmit}
+          style={styles.button}
+          disabled={isSubmitting}
+        />
       </View>
       <AppActivityIndicator hideScreen isLoading={isLoading} />
     </ScrollView>

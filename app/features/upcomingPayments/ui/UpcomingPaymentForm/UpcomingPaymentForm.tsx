@@ -106,7 +106,6 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
 
     const onError = (err: unknown) => {
       const message = err instanceof Error ? err.message : String(err);
-      console.error("Upcoming payment save failed:", err);
       Alert.alert("Could not save", message);
     };
 
@@ -173,6 +172,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
         onSelect: onSelectCategory,
         initialSelected: values.category?.id,
         forForm: true,
+        excludeIncome: true,
       },
     });
   };

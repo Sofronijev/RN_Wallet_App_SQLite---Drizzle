@@ -1,4 +1,4 @@
-import { addDays, addMonths, addWeeks, addYears } from "date-fns";
+import { addDays, addMonths, addWeeks, addYears, parseISO } from "date-fns";
 import { formatIsoDate } from "modules/timeAndDate";
 
 type RecurrenceRule = {
@@ -35,8 +35,8 @@ const advance = (rule: RecurrenceRule, after: Date): Date | null => {
 };
 
 export const getNextDueDate = (rule: RecurrenceRule, afterDate: string): string | null => {
-  const next = advance(rule, new Date(afterDate));
+  const next = advance(rule, parseISO(afterDate));
   if (!next) return null;
-  if (rule.endDate && next > new Date(rule.endDate)) return null;
+  if (rule.endDate && next > parseISO(rule.endDate)) return null;
   return formatIsoDate(next);
 };

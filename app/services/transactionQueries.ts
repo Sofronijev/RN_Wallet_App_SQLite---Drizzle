@@ -196,7 +196,8 @@ export const addTransaction = async (transaction: NewTransaction, opts?: LinkOpt
   const linkedUpcomingInstanceId = opts?.linkedUpcomingInstanceId ?? null;
 
   if (linkedUpcomingInstanceId == null) {
-    return db.insert(transactions).values(transaction);
+    await db.insert(transactions).values(transaction);
+    return;
   }
 
   await db.transaction(async (tx) => {

@@ -7,7 +7,7 @@ import {
   upcomingPaymentInstances,
   upcomingPayments,
 } from "db/schema";
-import { and, asc, desc, eq, getTableColumns, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, gt, lt, or, sql } from "drizzle-orm";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
@@ -42,10 +42,7 @@ export const addUpcomingPayment = async (
     return { paymentRow: insertedPayment, instanceRow: insertedInstance };
   });
 
-  return safeScheduleNotifications(
-    () => createNotification(paymentRow, instanceRow),
-    "addUpcomingPayment",
-  );
+  return safeScheduleNotifications(() => createNotification(paymentRow, instanceRow));
 };
 
 export const getUpcomingPaymentById = async (id: number) => {
@@ -102,6 +99,9 @@ const REBUILD_TRIGGER_FIELDS = [
   "firstDueDate",
   "notifyDaysBefore",
   "notifyOnDueDay",
+  "notifyOnMissed",
+  "customIntervalValue",
+  "customIntervalUnit",
 ] as const;
 
 export const updateUpcomingPayment = async (
@@ -134,10 +134,22 @@ export const updateUpcomingPayment = async (
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
   if (!updatedPayment) return { ok: true };
-  return safeScheduleNotifications(
-    () => rebuildNotificationsForPayment(updatedPayment),
-    "updateUpcomingPayment",
-  );
+
+  // If endDate moved earlier, drop any pending instances now past the new end —
+  // their notifications were already cleared by cancelNotificationsForPayment above.
+  if (updatedPayment.endDate) {
+    await db
+      .delete(upcomingPaymentInstances)
+      .where(
+        and(
+          eq(upcomingPaymentInstances.upcomingPaymentId, id),
+          eq(upcomingPaymentInstances.status, "pending"),
+          gt(upcomingPaymentInstances.dueDate, updatedPayment.endDate),
+        ),
+      );
+  }
+
+  return safeScheduleNotifications(() => rebuildNotificationsForPayment(updatedPayment));
 };
 
 export const softDeleteUpcomingPayment = async (id: number) => {
@@ -153,10 +165,7 @@ export const restoreUpcomingPayment = async (id: number): Promise<ScheduleResult
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
   if (!payment) return { ok: true };
-  return safeScheduleNotifications(
-    () => rebuildNotificationsForPayment(payment),
-    "restoreUpcomingPayment",
-  );
+  return safeScheduleNotifications(() => rebuildNotificationsForPayment(payment));
 };
 
 export const recreatePaymentNotifications = async (id: number): Promise<ScheduleResult> => {
@@ -166,10 +175,7 @@ export const recreatePaymentNotifications = async (id: number): Promise<Schedule
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
   if (!payment) return { ok: true };
-  return safeScheduleNotifications(
-    () => rebuildNotificationsForPayment(payment),
-    "recreatePaymentNotifications",
-  );
+  return safeScheduleNotifications(() => rebuildNotificationsForPayment(payment));
 };
 
 export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
@@ -224,9 +230,8 @@ export const ensureNextInstance = async (
     .returning();
 
   if (insertedInstance) {
-    await safeScheduleNotifications(
-      () => createNotification(payment, insertedInstance, executor),
-      "ensureNextInstance",
+    await safeScheduleNotifications(() =>
+      createNotification(payment, insertedInstance, executor),
     );
   }
 
@@ -321,10 +326,7 @@ export const restoreUpcomingPaymentInstance = async (instanceId: number) => {
     .where(eq(upcomingPaymentInstances.id, instanceId));
 
   if (!row) return;
-  await safeScheduleNotifications(
-    () => createNotification(row.payment, row.instance),
-    "restoreUpcomingPaymentInstance",
-  );
+  await safeScheduleNotifications(() => createNotification(row.payment, row.instance));
 };
 
 export const recomputeInstanceStatus = async (
@@ -384,9 +386,8 @@ export const recomputeInstanceStatus = async (
       .where(eq(upcomingPaymentInstances.id, instanceId));
 
     if (row) {
-      await safeScheduleNotifications(
-        () => createNotification(row.payment, row.instance, executor),
-        "recomputeInstanceStatus",
+      await safeScheduleNotifications(() =>
+        createNotification(row.payment, row.instance, executor),
       );
     }
   }

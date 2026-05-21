@@ -31,13 +31,11 @@ const LIMIT_ERROR_MARKER = "limit reached";
 // Returns a result so user-facing callers can surface an alert.
 export const safeScheduleNotifications = async (
   fn: () => Promise<void>,
-  context: string,
 ): Promise<ScheduleResult> => {
   try {
     await fn();
     return { ok: true };
   } catch (err) {
-    console.warn(`[notifications] ${context} failed:`, err);
     const message = err instanceof Error ? err.message : String(err);
     const reason = message.toLowerCase().includes(LIMIT_ERROR_MARKER) ? "limit" : "error";
     return { ok: false, reason, message };
