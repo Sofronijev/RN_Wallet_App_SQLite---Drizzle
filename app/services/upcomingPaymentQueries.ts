@@ -1,17 +1,30 @@
 import { db, DbExecutor, EditUpcomingPayment, NewUpcomingPayment } from "db";
 import {
   categories,
-  notifications,
   transactions,
   upcomingPaymentContributions,
   upcomingPaymentInstances,
   upcomingPayments,
+  wallet,
 } from "db/schema";
-import { and, asc, desc, eq, getTableColumns, gt, lt, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  gt,
+  gte,
+  isNull,
+  lt,
+  or,
+  sql,
+} from "drizzle-orm";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
 import { formatIsoDate } from "modules/timeAndDate";
+import { Recurrence } from "app/features/upcomingPayments/modules/types";
 import {
   cancelNotificationsForInstance,
   cancelNotificationsForPayment,
@@ -20,6 +33,142 @@ import {
   safeScheduleNotifications,
   ScheduleResult,
 } from "app/services/notificationQueries";
+
+// How many future pending instances we keep scheduled per recurrence. Each
+// instance can hold up to 3 notification triggers, so daily=5 → up to 15 iOS
+// slots per payment. The iOS cap is 64, so users with many daily payments may
+// hit the limit (surfaced via safeScheduleNotifications + recreate CTA).
+const WINDOW_SIZE: Record<Recurrence, number> = {
+  none: 1,
+  daily: 5,
+  weekly: 2,
+  monthly: 1,
+  yearly: 1,
+  custom: 1,
+};
+
+// How many past instances we backfill before giving up and flagging the payment
+// stale. Daily gets more head-room because a long weekend shouldn't trigger
+// "Still using this?". Everything else stales after 3 missed cycles.
+const BACKFILL_CAP: Record<Recurrence, number> = {
+  none: 3,
+  daily: 5,
+  weekly: 3,
+  monthly: 3,
+  yearly: 3,
+  custom: 3,
+};
+
+const countFuturePending = async (
+  upcomingPaymentId: number,
+  todayIso: string,
+  executor: DbExecutor,
+) => {
+  const [row] = await executor
+    .select({ count: sql<number>`COUNT(*)`.mapWith(Number) })
+    .from(upcomingPaymentInstances)
+    .where(
+      and(
+        eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId),
+        eq(upcomingPaymentInstances.status, "pending"),
+        gte(upcomingPaymentInstances.dueDate, todayIso),
+      ),
+    );
+  return row?.count ?? 0;
+};
+
+const insertNextInstance = async (
+  upcomingPaymentId: number,
+  executor: DbExecutor,
+): Promise<{ dueDate: string } | null> => {
+  const [payment] = await executor
+    .select()
+    .from(upcomingPayments)
+    .where(eq(upcomingPayments.id, upcomingPaymentId));
+  if (!payment || !payment.isActive) return null;
+
+  const [latest] = await executor
+    .select({ dueDate: upcomingPaymentInstances.dueDate })
+    .from(upcomingPaymentInstances)
+    .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
+    .orderBy(desc(upcomingPaymentInstances.dueDate))
+    .limit(1);
+  if (!latest) return null;
+
+  const nextDueDate = getNextDueDate(payment, latest.dueDate);
+  if (!nextDueDate) return null;
+
+  const [insertedInstance] = await executor
+    .insert(upcomingPaymentInstances)
+    .values({
+      upcomingPaymentId,
+      dueDate: nextDueDate,
+      expectedAmount: payment.amount ?? null,
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  if (insertedInstance) {
+    await safeScheduleNotifications(() =>
+      createNotification(payment, insertedInstance, executor),
+    );
+  }
+
+  return { dueDate: nextDueDate };
+};
+
+// Generates instances forward until we have WINDOW_SIZE pending future instances
+// or hit endDate. If we're catching up from far in the past, stops at BACKFILL_CAP
+// past iterations and sets staleSince. Safe to call repeatedly — no-op once full.
+export const ensureWindow = async (
+  upcomingPaymentId: number,
+  executor: DbExecutor = db,
+): Promise<void> => {
+  const [payment] = await executor
+    .select({
+      id: upcomingPayments.id,
+      isActive: upcomingPayments.isActive,
+      staleSince: upcomingPayments.staleSince,
+      recurrence: upcomingPayments.recurrence,
+    })
+    .from(upcomingPayments)
+    .where(eq(upcomingPayments.id, upcomingPaymentId));
+  if (!payment || !payment.isActive || payment.staleSince != null) return;
+
+  const todayIso = getTodayIsoThreshold();
+  const windowSize = WINDOW_SIZE[payment.recurrence];
+  const backfillCap = BACKFILL_CAP[payment.recurrence];
+
+  let backfillSteps = 0;
+  const maxIterations = windowSize + backfillCap + 1;
+
+  for (let i = 0; i < maxIterations; i++) {
+    const count = await countFuturePending(upcomingPaymentId, todayIso, executor);
+    if (count >= windowSize) return;
+
+    const [latest] = await executor
+      .select({ dueDate: upcomingPaymentInstances.dueDate })
+      .from(upcomingPaymentInstances)
+      .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
+      .orderBy(desc(upcomingPaymentInstances.dueDate))
+      .limit(1);
+    if (!latest) return;
+
+    if (latest.dueDate < todayIso) {
+      if (backfillSteps >= backfillCap) {
+        await executor
+          .update(upcomingPayments)
+          .set({ staleSince: new Date().toISOString() })
+          .where(eq(upcomingPayments.id, upcomingPaymentId));
+        return;
+      }
+      backfillSteps++;
+    }
+
+    const inserted = await insertNextInstance(upcomingPaymentId, executor);
+    if (!inserted) return;
+  }
+};
 
 export const addUpcomingPayment = async (
   payment: NewUpcomingPayment,
@@ -42,7 +191,10 @@ export const addUpcomingPayment = async (
     return { paymentRow: insertedPayment, instanceRow: insertedInstance };
   });
 
-  return safeScheduleNotifications(() => createNotification(paymentRow, instanceRow));
+  return safeScheduleNotifications(async () => {
+    await createNotification(paymentRow, instanceRow);
+    await ensureWindow(paymentRow.id);
+  });
 };
 
 export const getUpcomingPaymentById = async (id: number) => {
@@ -73,10 +225,6 @@ export const getUpcomingPaymentById = async (id: number) => {
       missingInstanceReminderCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} AND (${upcomingPaymentInstances.notificationIds} IS NULL OR ${upcomingPaymentInstances.notificationIds} = '' OR ${upcomingPaymentInstances.notificationIds} = '[]') THEN 1 END)`.mapWith(
         Number,
       ),
-      hasSeriesNotifications:
-        sql<number>`(SELECT COUNT(*) FROM ${notifications} WHERE ${notifications.entityType} = 'payment-series' AND ${notifications.entityId} = ${upcomingPayments.id})`.mapWith(
-          (v) => Number(v) > 0,
-        ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
@@ -149,7 +297,10 @@ export const updateUpcomingPayment = async (
       );
   }
 
-  return safeScheduleNotifications(() => rebuildNotificationsForPayment(updatedPayment));
+  return safeScheduleNotifications(async () => {
+    await rebuildNotificationsForPayment(updatedPayment);
+    await ensureWindow(id);
+  });
 };
 
 export const softDeleteUpcomingPayment = async (id: number) => {
@@ -165,7 +316,10 @@ export const restoreUpcomingPayment = async (id: number): Promise<ScheduleResult
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
   if (!payment) return { ok: true };
-  return safeScheduleNotifications(() => rebuildNotificationsForPayment(payment));
+  return safeScheduleNotifications(async () => {
+    await rebuildNotificationsForPayment(payment);
+    await ensureWindow(id);
+  });
 };
 
 export const recreatePaymentNotifications = async (id: number): Promise<ScheduleResult> => {
@@ -175,7 +329,10 @@ export const recreatePaymentNotifications = async (id: number): Promise<Schedule
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
   if (!payment) return { ok: true };
-  return safeScheduleNotifications(() => rebuildNotificationsForPayment(payment));
+  return safeScheduleNotifications(async () => {
+    await rebuildNotificationsForPayment(payment);
+    await ensureWindow(id);
+  });
 };
 
 export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
@@ -192,119 +349,44 @@ export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
     .where(eq(upcomingPaymentInstances.id, instanceId));
 
   if (instance) {
-    await ensureNextInstance(instance.upcomingPaymentId);
+    await ensureWindow(instance.upcomingPaymentId);
   }
 };
-
-export const ensureNextInstance = async (
-  upcomingPaymentId: number,
-  executor: DbExecutor = db
-): Promise<string | null> => {
-  const [payment] = await executor
-    .select()
-    .from(upcomingPayments)
-    .where(eq(upcomingPayments.id, upcomingPaymentId));
-
-  if (!payment || !payment.isActive) return null;
-
-  const [latest] = await executor
-    .select({ dueDate: upcomingPaymentInstances.dueDate })
-    .from(upcomingPaymentInstances)
-    .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
-    .orderBy(desc(upcomingPaymentInstances.dueDate))
-    .limit(1);
-
-  if (!latest) return null;
-
-  const nextDueDate = getNextDueDate(payment, latest.dueDate);
-  if (!nextDueDate) return null;
-
-  const [insertedInstance] = await executor
-    .insert(upcomingPaymentInstances)
-    .values({
-      upcomingPaymentId,
-      dueDate: nextDueDate,
-      expectedAmount: payment.amount ?? null,
-    })
-    .onConflictDoNothing()
-    .returning();
-
-  if (insertedInstance) {
-    await safeScheduleNotifications(() =>
-      createNotification(payment, insertedInstance, executor),
-    );
-  }
-
-  return nextDueDate;
-};
-
-export const BACKFILL_LIMIT = 3;
 
 export const catchUpUpcomingPaymentInstances = async () => {
-  const todayIso = getTodayIsoThreshold();
   const activePayments = await db
-    .select({ id: upcomingPayments.id, staleSince: upcomingPayments.staleSince })
+    .select({ id: upcomingPayments.id })
     .from(upcomingPayments)
-    .where(eq(upcomingPayments.isActive, true));
+    .where(and(eq(upcomingPayments.isActive, true), isNull(upcomingPayments.staleSince)));
 
-  for (const payment of activePayments) {
-    if (payment.staleSince != null) continue;
-
-    const [latest] = await db
-      .select({ dueDate: upcomingPaymentInstances.dueDate })
-      .from(upcomingPaymentInstances)
-      .where(eq(upcomingPaymentInstances.upcomingPaymentId, payment.id))
-      .orderBy(desc(upcomingPaymentInstances.dueDate))
-      .limit(1);
-
-    if (!latest) continue;
-
-    let currentLatest = latest.dueDate;
-    let iterations = 0;
-    let cappedWithoutCatchingUp = false;
-
-    while (currentLatest < todayIso) {
-      if (iterations >= BACKFILL_LIMIT) {
-        cappedWithoutCatchingUp = true;
-        break;
-      }
-      const inserted = await ensureNextInstance(payment.id);
-      if (!inserted) break;
-      currentLatest = inserted;
-      iterations++;
-    }
-
-    if (cappedWithoutCatchingUp) {
-      await db
-        .update(upcomingPayments)
-        .set({ staleSince: new Date().toISOString() })
-        .where(eq(upcomingPayments.id, payment.id));
-    }
-  }
+  await Promise.all(activePayments.map((p) => ensureWindow(p.id)));
 };
 
 // Caps catch-up so a long-stale daily payment doesn't issue thousands of round-trips
-// in a single tap. The next app-open cycle will continue if needed.
+// in a single tap.
 const CLEAR_STALE_CATCHUP_LIMIT = 365;
 
 export const clearStaleFlag = async (
   upcomingPaymentId: number,
-  executor: DbExecutor = db
+  executor: DbExecutor = db,
 ) => {
-  const todayIso = getTodayIsoThreshold();
-
-  let iterations = 0;
-  while (iterations < CLEAR_STALE_CATCHUP_LIMIT) {
-    const inserted = await ensureNextInstance(upcomingPaymentId, executor);
-    if (!inserted) break;
-    iterations++;
-    if (inserted >= todayIso) break;
-  }
-
+  // Reset stale flag first so insertNextInstance / ensureWindow won't skip.
   await executor
     .update(upcomingPayments)
     .set({ staleSince: null })
     .where(eq(upcomingPayments.id, upcomingPaymentId));
+
+  const todayIso = getTodayIsoThreshold();
+
+  // Aggressive catch-up: the user explicitly confirmed they're still using it.
+  for (let i = 0; i < CLEAR_STALE_CATCHUP_LIMIT; i++) {
+    const inserted = await insertNextInstance(upcomingPaymentId, executor);
+    if (!inserted) break;
+    if (inserted.dueDate >= todayIso) break;
+  }
+
+  // Then fill the forward window.
+  await ensureWindow(upcomingPaymentId, executor);
 };
 
 export const restoreUpcomingPaymentInstance = async (instanceId: number) => {
@@ -365,7 +447,7 @@ export const recomputeInstanceStatus = async (
     if (instance.parentStaleSince != null) {
       await clearStaleFlag(instance.upcomingPaymentId, executor);
     } else {
-      await ensureNextInstance(instance.upcomingPaymentId, executor);
+      await ensureWindow(instance.upcomingPaymentId, executor);
     }
   } else if (!shouldBePaid && currentlyPaid) {
     await executor
@@ -401,6 +483,14 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
         v == null ? null : Number(v),
       ),
       contributionCount: sql<number>`COUNT(${upcomingPaymentContributions.id})`.mapWith(Number),
+      // MAX picks one wallet currency per instance — partial multi-wallet
+      // payments aren't a supported flow yet, so each instance has at most one.
+      paidCurrencyCode: sql<string | null>`MAX(${wallet.currencyCode})`.mapWith((v) =>
+        v == null ? null : String(v),
+      ),
+      paidCurrencySymbol: sql<string | null>`MAX(${wallet.currencySymbol})`.mapWith((v) =>
+        v == null ? null : String(v),
+      ),
     })
     .from(upcomingPaymentInstances)
     .leftJoin(
@@ -408,6 +498,7 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
       eq(upcomingPaymentContributions.instanceId, upcomingPaymentInstances.id)
     )
     .leftJoin(transactions, eq(transactions.id, upcomingPaymentContributions.transactionId))
+    .leftJoin(wallet, eq(wallet.walletId, transactions.wallet_id))
     .where(eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPaymentId))
     .groupBy(upcomingPaymentInstances.id)
     .orderBy(desc(upcomingPaymentInstances.dueDate));
@@ -495,10 +586,8 @@ export const getUpcomingInstancesForSection = async () => {
       notifyDaysBefore: upcomingPayments.notifyDaysBefore,
       notifyOnDueDay: upcomingPayments.notifyOnDueDay,
       notifyOnMissed: upcomingPayments.notifyOnMissed,
-      hasSeriesNotifications:
-        sql<number>`(SELECT COUNT(*) FROM ${notifications} WHERE ${notifications.entityType} = 'payment-series' AND ${notifications.entityId} = ${upcomingPayments.id})`.mapWith(
-          (v) => Number(v) > 0,
-        ),
+      currencyCode: upcomingPayments.currencyCode,
+      currencySymbol: upcomingPayments.currencySymbol,
       iconFamily: categories.iconFamily,
       iconName: categories.iconName,
       iconColor: categories.iconColor,
@@ -539,10 +628,6 @@ export const getAllUpcomingPayments = async () => {
       missingInstanceReminderCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} AND (${upcomingPaymentInstances.notificationIds} IS NULL OR ${upcomingPaymentInstances.notificationIds} = '' OR ${upcomingPaymentInstances.notificationIds} = '[]') THEN 1 END)`.mapWith(
         Number,
       ),
-      hasSeriesNotifications:
-        sql<number>`(SELECT COUNT(*) FROM ${notifications} WHERE ${notifications.entityType} = 'payment-series' AND ${notifications.entityId} = ${upcomingPayments.id})`.mapWith(
-          (v) => Number(v) > 0,
-        ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
@@ -567,7 +652,7 @@ const isCompleted = (
 type TotalCountInput = {
   firstDueDate: string;
   endDate: string | null;
-  recurrence: "none" | "daily" | "weekly" | "monthly" | "yearly" | "custom";
+  recurrence: Recurrence;
   customIntervalValue: number | null;
   customIntervalUnit: "day" | "week" | "month" | null;
 };

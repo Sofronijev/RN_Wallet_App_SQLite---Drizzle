@@ -39,31 +39,6 @@ export const schedulePaymentReminderForDate = (
   });
 };
 
-export const schedulePaymentReminderRepeating = (
-  content: NotificationContentInput,
-  recurrence: "daily" | "weekly",
-  anchorDate: string,
-): Promise<string> => {
-  if (recurrence === "daily") {
-    return scheduleInAppNotification(content, {
-      type: SchedulableTriggerInputTypes.DAILY,
-      hour: DEFAULT_REMINDER_HOUR,
-      minute: DEFAULT_REMINDER_MINUTE,
-      channelId: "payment-reminders",
-    });
-  }
-
-  // expo-notifications weekday: 1 = Sunday ... 7 = Saturday
-  const weekday = parseISO(anchorDate).getDay() + 1;
-  return scheduleInAppNotification(content, {
-    type: SchedulableTriggerInputTypes.WEEKLY,
-    weekday,
-    hour: DEFAULT_REMINDER_HOUR,
-    minute: DEFAULT_REMINDER_MINUTE,
-    channelId: "payment-reminders",
-  });
-};
-
 export const getScheduledList = async () => {
   const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
   return scheduledNotifications;

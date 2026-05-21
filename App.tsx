@@ -36,12 +36,16 @@ const AppContent = () => {
 
   useEffect(() => {
     if (!success) return;
-    catchUpUpcomingPaymentInstances()
-      .then(() => {
-        queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingInstancesForSection] });
-        queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingPayments] });
-      })
-      .catch(() => {});
+    // Defer one tick so the UI paints before we touch the DB on cold start.
+    const handle = setTimeout(() => {
+      catchUpUpcomingPaymentInstances()
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingInstancesForSection] });
+          queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingPayments] });
+        })
+        .catch(() => {});
+    }, 0);
+    return () => clearTimeout(handle);
   }, [success]);
 
   const onLayoutRootView = useCallback(async () => {

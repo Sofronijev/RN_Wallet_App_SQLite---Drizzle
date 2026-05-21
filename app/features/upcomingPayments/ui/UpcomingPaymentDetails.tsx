@@ -356,7 +356,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
             <HistoryRow
               row={item}
               isMissed={isInstanceMissed(item)}
-              currency={currency}
+              paymentCurrency={currency}
               decimal={decimal}
               delimiter={delimiter}
               isLast

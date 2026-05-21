@@ -3,7 +3,6 @@ import {
   getScheduledList,
   IOS_NOTIFICATION_HARD_CAP,
   schedulePaymentReminderForDate,
-  schedulePaymentReminderRepeating,
   withReminderTime,
 } from "app/notifications";
 import {
@@ -16,7 +15,7 @@ import {
 import { notifications, upcomingPaymentInstances } from "db/schema";
 import { addDays, parseISO } from "date-fns";
 import { formatIsoDate } from "modules/timeAndDate";
-import { and, asc, eq, gte, inArray, or } from "drizzle-orm";
+import { and, asc, eq, gte, inArray } from "drizzle-orm";
 import { Platform } from "react-native";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 
@@ -57,10 +56,6 @@ const hasExistingNotifications = (notificationIds: string | null): boolean => {
   }
 };
 
-const isSeriesMode = (payment: Pick<UpcomingPayment, "recurrence" | "endDate">) =>
-  (payment.recurrence === "daily" || payment.recurrence === "weekly") &&
-  payment.endDate == null;
-
 type InstanceTrigger =
   | { kind: "lead"; date: string; daysBefore: number }
   | { kind: "due"; date: string }
@@ -75,17 +70,13 @@ const instanceBody = (trigger: InstanceTrigger): string => {
 
 const buildContent = (
   payment: Pick<UpcomingPayment, "id" | "name">,
-  instance?: Pick<UpcomingPaymentInstance, "id">,
-  trigger?: InstanceTrigger,
-) => {
-  const data: Record<string, string> = { paymentId: String(payment.id) };
-  if (instance) data.instanceId = String(instance.id);
-  return {
-    title: payment.name,
-    body: instance && trigger ? instanceBody(trigger) : "Recurring payment reminder",
-    data,
-  };
-};
+  instance: Pick<UpcomingPaymentInstance, "id">,
+  trigger: InstanceTrigger,
+) => ({
+  title: payment.name,
+  body: instanceBody(trigger),
+  data: { paymentId: String(payment.id), instanceId: String(instance.id) },
+});
 
 const ensureIosSlots = async (slotsNeeded: number) => {
   if (Platform.OS !== "ios") return;
@@ -126,10 +117,10 @@ const computeInstanceTriggerDates = (
   return triggers;
 };
 
-const scheduleForNewInstance = async (
+export const createNotification = async (
   payment: UpcomingPayment,
   instance: Pick<UpcomingPaymentInstance, "id" | "dueDate" | "notificationIds">,
-  executor: DbExecutor,
+  executor: DbExecutor = db,
 ) => {
   if (hasExistingNotifications(instance.notificationIds)) return;
 
@@ -144,7 +135,10 @@ const scheduleForNewInstance = async (
   // notificationIds consistent with what was actually scheduled.
   for (const trigger of triggers) {
     const content = buildContent(payment, instance, trigger);
-    const osId = await schedulePaymentReminderForDate(content, trigger.date);
+    const osId = await schedulePaymentReminderForDate(
+      { title: content.title, body: content.body, data: content.data },
+      trigger.date,
+    );
     osIds.push(osId);
     await addNotification(
       {
@@ -163,70 +157,6 @@ const scheduleForNewInstance = async (
       .set({ notificationIds: JSON.stringify(osIds) })
       .where(eq(upcomingPaymentInstances.id, instance.id));
   }
-};
-
-const scheduleForNewSeries = async (payment: UpcomingPayment, executor: DbExecutor) => {
-  if (payment.recurrence !== "daily" && payment.recurrence !== "weekly") return;
-
-  const existing = await executor
-    .select({ id: notifications.id })
-    .from(notifications)
-    .where(
-      and(
-        eq(notifications.entityType, "payment-series"),
-        eq(notifications.entityId, payment.id),
-      ),
-    )
-    .limit(1);
-  if (existing.length > 0) return;
-
-  const anchors: string[] = [];
-  if (payment.notifyOnDueDay) {
-    anchors.push(payment.firstDueDate);
-  }
-  if (
-    payment.recurrence === "weekly" &&
-    payment.notifyDaysBefore &&
-    payment.notifyDaysBefore > 0
-  ) {
-    anchors.push(
-      formatIsoDate(addDays(parseISO(payment.firstDueDate), -payment.notifyDaysBefore)),
-    );
-  }
-  if (anchors.length === 0) return;
-
-  await ensureIosSlots(anchors.length);
-
-  const content = buildContent(payment);
-
-  for (const anchor of anchors) {
-    const osId = await schedulePaymentReminderRepeating(content, payment.recurrence, anchor);
-    await addNotification(
-      {
-        title: content.title,
-        body: content.body,
-        data: JSON.stringify(content.data),
-        osNotificationId: osId,
-        entityType: "payment-series",
-        entityId: payment.id,
-        scheduledFor: anchor,
-      },
-      executor,
-    );
-  }
-};
-
-export const createNotification = async (
-  payment: UpcomingPayment,
-  instance?: Pick<UpcomingPaymentInstance, "id" | "dueDate" | "notificationIds">,
-  executor: DbExecutor = db,
-) => {
-  if (isSeriesMode(payment)) {
-    await scheduleForNewSeries(payment, executor);
-    return;
-  }
-  if (!instance) return;
-  await scheduleForNewInstance(payment, instance, executor);
 };
 
 const cancelOsNotificationsByIds = async (osIds: string[]) => {
@@ -283,20 +213,12 @@ export const cancelNotificationsForPayment = async (
     .where(eq(upcomingPaymentInstances.upcomingPaymentId, paymentId));
   const instanceIds = instanceRows.map((r) => r.id);
 
-  const whereInstance =
-    instanceIds.length > 0
-      ? and(
-          eq(notifications.entityType, "payment-instance"),
-          inArray(notifications.entityId, instanceIds),
-        )
-      : undefined;
+  if (instanceIds.length === 0) return;
 
-  const whereSeries = and(
-    eq(notifications.entityType, "payment-series"),
-    eq(notifications.entityId, paymentId),
+  const where = and(
+    eq(notifications.entityType, "payment-instance"),
+    inArray(notifications.entityId, instanceIds),
   );
-
-  const where = whereInstance ? or(whereSeries, whereInstance) : whereSeries;
 
   const rows = await executor
     .select({ id: notifications.id, osNotificationId: notifications.osNotificationId })
@@ -310,23 +232,16 @@ export const cancelNotificationsForPayment = async (
     await executor.delete(notifications).where(where);
   }
 
-  if (instanceIds.length > 0) {
-    await executor
-      .update(upcomingPaymentInstances)
-      .set({ notificationIds: null })
-      .where(inArray(upcomingPaymentInstances.id, instanceIds));
-  }
+  await executor
+    .update(upcomingPaymentInstances)
+    .set({ notificationIds: null })
+    .where(inArray(upcomingPaymentInstances.id, instanceIds));
 };
 
 export const rebuildNotificationsForPayment = async (
   payment: UpcomingPayment,
   executor: DbExecutor = db,
 ) => {
-  if (isSeriesMode(payment)) {
-    await createNotification(payment, undefined, executor);
-    return;
-  }
-
   const todayIso = getTodayIsoThreshold();
   const pending = await executor
     .select({

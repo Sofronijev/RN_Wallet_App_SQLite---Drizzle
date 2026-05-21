@@ -10,7 +10,7 @@ import { formatPaymentAmount } from "../../modules/formatPaymentAmount";
 type Props = {
   row: UpcomingPaymentInstanceRow;
   isMissed: boolean;
-  currency: string;
+  paymentCurrency: string;
   decimal: string;
   delimiter: string;
   isLast: boolean;
@@ -32,7 +32,7 @@ const statusMeta: Record<
 const HistoryRow: React.FC<Props> = ({
   row,
   isMissed,
-  currency,
+  paymentCurrency,
   decimal,
   delimiter,
   isLast,
@@ -45,6 +45,12 @@ const HistoryRow: React.FC<Props> = ({
   const paidAmount =
     row.transactionAmount != null ? Math.abs(row.transactionAmount) : row.expectedAmount ?? null;
   const isCanceled = row.status === "canceled";
+  // When paid, show the wallet's currency (the actual money that moved).
+  // When unpaid, fall back to the payment's own currency (the expected amount).
+  const currency =
+    row.transactionAmount != null
+      ? row.paidCurrencySymbol || row.paidCurrencyCode || paymentCurrency
+      : paymentCurrency;
 
   return (
     <View style={[styles.container, !isLast && styles.divider]}>
