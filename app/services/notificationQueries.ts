@@ -20,13 +20,27 @@ import { and, asc, eq, gte, inArray, or } from "drizzle-orm";
 import { Platform } from "react-native";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 
+export type ScheduleResult =
+  | { ok: true }
+  | { ok: false; reason: "limit" | "error"; message: string };
+
+const LIMIT_ERROR_MARKER = "limit reached";
+
 // Scheduling can fail (iOS slot cap, missing permission). Don't let those
 // failures roll back the user's save — DB state is the source of truth.
-export const safeScheduleNotifications = async (fn: () => Promise<void>, context: string) => {
+// Returns a result so user-facing callers can surface an alert.
+export const safeScheduleNotifications = async (
+  fn: () => Promise<void>,
+  context: string,
+): Promise<ScheduleResult> => {
   try {
     await fn();
+    return { ok: true };
   } catch (err) {
     console.warn(`[notifications] ${context} failed:`, err);
+    const message = err instanceof Error ? err.message : String(err);
+    const reason = message.toLowerCase().includes(LIMIT_ERROR_MARKER) ? "limit" : "error";
+    return { ok: false, reason, message };
   }
 };
 

@@ -1,6 +1,7 @@
 import { db, DbExecutor, EditUpcomingPayment, NewUpcomingPayment } from "db";
 import {
   categories,
+  notifications,
   transactions,
   upcomingPaymentContributions,
   upcomingPaymentInstances,
@@ -17,9 +18,12 @@ import {
   createNotification,
   rebuildNotificationsForPayment,
   safeScheduleNotifications,
+  ScheduleResult,
 } from "app/services/notificationQueries";
 
-export const addUpcomingPayment = async (payment: NewUpcomingPayment) => {
+export const addUpcomingPayment = async (
+  payment: NewUpcomingPayment,
+): Promise<ScheduleResult> => {
   const { paymentRow, instanceRow } = await db.transaction(async (tx) => {
     const [insertedPayment] = await tx
       .insert(upcomingPayments)
@@ -38,7 +42,7 @@ export const addUpcomingPayment = async (payment: NewUpcomingPayment) => {
     return { paymentRow: insertedPayment, instanceRow: insertedInstance };
   });
 
-  await safeScheduleNotifications(
+  return safeScheduleNotifications(
     () => createNotification(paymentRow, instanceRow),
     "addUpcomingPayment",
   );
@@ -69,6 +73,13 @@ export const getUpcomingPaymentById = async (id: number) => {
         sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} THEN 1 END)`.mapWith(
           Number
         ),
+      missingInstanceReminderCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} AND (${upcomingPaymentInstances.notificationIds} IS NULL OR ${upcomingPaymentInstances.notificationIds} = '' OR ${upcomingPaymentInstances.notificationIds} = '[]') THEN 1 END)`.mapWith(
+        Number,
+      ),
+      hasSeriesNotifications:
+        sql<number>`(SELECT COUNT(*) FROM ${notifications} WHERE ${notifications.entityType} = 'payment-series' AND ${notifications.entityId} = ${upcomingPayments.id})`.mapWith(
+          (v) => Number(v) > 0,
+        ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
@@ -93,7 +104,10 @@ const REBUILD_TRIGGER_FIELDS = [
   "notifyOnDueDay",
 ] as const;
 
-export const updateUpcomingPayment = async (id: number, values: EditUpcomingPayment) => {
+export const updateUpcomingPayment = async (
+  id: number,
+  values: EditUpcomingPayment,
+): Promise<ScheduleResult> => {
   const existing = await getUpcomingPaymentById(id);
   if (!existing) throw new Error("Upcoming payment not found");
 
@@ -112,15 +126,15 @@ export const updateUpcomingPayment = async (id: number, values: EditUpcomingPaym
 
   await db.update(upcomingPayments).set(safeValues).where(eq(upcomingPayments.id, id));
 
-  if (!needsRebuild) return;
+  if (!needsRebuild) return { ok: true };
 
   await cancelNotificationsForPayment(id);
   const [updatedPayment] = await db
     .select()
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
-  if (!updatedPayment) return;
-  await safeScheduleNotifications(
+  if (!updatedPayment) return { ok: true };
+  return safeScheduleNotifications(
     () => rebuildNotificationsForPayment(updatedPayment),
     "updateUpcomingPayment",
   );
@@ -131,17 +145,30 @@ export const softDeleteUpcomingPayment = async (id: number) => {
   await db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
 };
 
-export const restoreUpcomingPayment = async (id: number) => {
+export const restoreUpcomingPayment = async (id: number): Promise<ScheduleResult> => {
   await db.update(upcomingPayments).set({ isActive: true }).where(eq(upcomingPayments.id, id));
 
   const [payment] = await db
     .select()
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
-  if (!payment) return;
-  await safeScheduleNotifications(
+  if (!payment) return { ok: true };
+  return safeScheduleNotifications(
     () => rebuildNotificationsForPayment(payment),
     "restoreUpcomingPayment",
+  );
+};
+
+export const recreatePaymentNotifications = async (id: number): Promise<ScheduleResult> => {
+  await cancelNotificationsForPayment(id);
+  const [payment] = await db
+    .select()
+    .from(upcomingPayments)
+    .where(eq(upcomingPayments.id, id));
+  if (!payment) return { ok: true };
+  return safeScheduleNotifications(
+    () => rebuildNotificationsForPayment(payment),
+    "recreatePaymentNotifications",
   );
 };
 
@@ -459,8 +486,18 @@ export const getUpcomingInstancesForSection = async () => {
       dueDate: upcomingPaymentInstances.dueDate,
       expectedAmount: upcomingPaymentInstances.expectedAmount,
       status: upcomingPaymentInstances.status,
+      notificationIds: upcomingPaymentInstances.notificationIds,
       name: upcomingPayments.name,
       staleSince: upcomingPayments.staleSince,
+      recurrence: upcomingPayments.recurrence,
+      endDate: upcomingPayments.endDate,
+      notifyDaysBefore: upcomingPayments.notifyDaysBefore,
+      notifyOnDueDay: upcomingPayments.notifyOnDueDay,
+      notifyOnMissed: upcomingPayments.notifyOnMissed,
+      hasSeriesNotifications:
+        sql<number>`(SELECT COUNT(*) FROM ${notifications} WHERE ${notifications.entityType} = 'payment-series' AND ${notifications.entityId} = ${upcomingPayments.id})`.mapWith(
+          (v) => Number(v) > 0,
+        ),
       iconFamily: categories.iconFamily,
       iconName: categories.iconName,
       iconColor: categories.iconColor,
@@ -498,6 +535,13 @@ export const getAllUpcomingPayments = async () => {
       pendingCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' THEN 1 END)`.mapWith(
         Number
       ),
+      missingInstanceReminderCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} AND (${upcomingPaymentInstances.notificationIds} IS NULL OR ${upcomingPaymentInstances.notificationIds} = '' OR ${upcomingPaymentInstances.notificationIds} = '[]') THEN 1 END)`.mapWith(
+        Number,
+      ),
+      hasSeriesNotifications:
+        sql<number>`(SELECT COUNT(*) FROM ${notifications} WHERE ${notifications.entityType} = 'payment-series' AND ${notifications.entityId} = ${upcomingPayments.id})`.mapWith(
+          (v) => Number(v) > 0,
+        ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))

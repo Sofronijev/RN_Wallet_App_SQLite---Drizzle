@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import React from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import ButtonText from "components/ButtonText";
@@ -7,10 +8,11 @@ import { pressableOpacityStyle } from "modules/pressable";
 import { dueDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useAppNavigation } from "navigation/routes";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingInstanceSectionRow } from "app/queries/upcomingPayments";
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 import { formatExpectedAmount } from "../modules/formatPaymentAmount";
+import { sectionRowHasMissingReminders } from "../modules/upcomingPaymentNotificationStatus";
 
 type Props = {
   row: UpcomingInstanceSectionRow;
@@ -18,6 +20,7 @@ type Props = {
 
 const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   const styles = useThemedStyles(themedStyles);
+  const themeColors = useColors();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const navigation = useAppNavigation();
 
@@ -35,6 +38,7 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
   const isVariable = expectedAmount == null;
   const isStale = staleSince != null;
   const isMissed = !isStale && isInstanceMissed(row);
+  const hasMissingReminders = sectionRowHasMissingReminders(row);
 
   const openDetail = () => {
     navigation.navigate("UpcomingPaymentDetails", { id: upcomingPaymentId });
@@ -50,9 +54,19 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
         <CategoryIcon color={iconColor} iconFamily={iconFamily} name={iconName} />
       </View>
       <View style={styles.descriptionContainer}>
-        <Label numberOfLines={1} style={styles.name}>
-          {name}
-        </Label>
+        <View style={styles.nameRow}>
+          <Label numberOfLines={1} style={styles.name}>
+            {name}
+          </Label>
+          {hasMissingReminders && (
+            <MaterialCommunityIcons
+              name='bell-off-outline'
+              size={14}
+              color={themeColors.redDark}
+              style={styles.reminderWarningIcon}
+            />
+          )}
+        </View>
         <View style={styles.metaRow}>
           <Label style={styles.dueDate} numberOfLines={1}>
             {`Due ${getFormattedDate(dueDate, dueDateFormat)}`}
@@ -98,9 +112,17 @@ const themedStyles = (theme: AppTheme) =>
     descriptionContainer: {
       flex: 1,
     },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
     name: {
       fontSize: 15,
       fontWeight: "bold",
+      flexShrink: 1,
+    },
+    reminderWarningIcon: {
+      marginLeft: 6,
     },
     metaRow: {
       flexDirection: "row",

@@ -20,6 +20,7 @@ import {
   useDeleteUpcomingPaymentMutation,
   useGetUpcomingPaymentById,
   useGetUpcomingPaymentInstances,
+  useRecreatePaymentNotificationsMutation,
   useRestoreUpcomingPaymentInstanceMutation,
   useRestoreUpcomingPaymentMutation,
 } from "app/queries/upcomingPayments";
@@ -27,6 +28,7 @@ import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles"
 import { isInstanceMissed } from "../modules/upcomingPaymentStatus";
 import { getRecurrenceLabel } from "../modules/recurrenceLabel";
 import { formatExpectedAmount } from "../modules/formatPaymentAmount";
+import { paymentHasMissingReminders } from "../modules/upcomingPaymentNotificationStatus";
 import StatusBadge from "components/StatusBadge";
 import HistoryRow from "./details/HistoryRow";
 
@@ -61,6 +63,8 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   const { cancelInstance, isLoading: isCanceling } = useCancelUpcomingPaymentInstanceMutation(id);
   const { restoreInstance, isLoading: isRestoring } = useRestoreUpcomingPaymentInstanceMutation(id);
   const { clearStaleFlag, isLoading: isClearingStale } = useClearStaleFlagMutation();
+  const { recreateNotifications, isLoading: isRecreatingNotifications } =
+    useRecreatePaymentNotificationsMutation();
 
   const nextPending = useMemo(
     () =>
@@ -127,6 +131,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const isArchived = payment ? !payment.isActive : false;
+  const showReminderIssue = payment != null && !isArchived && paymentHasMissingReminders(payment);
 
   useEffect(() => {
     navigation.setOptions({
@@ -224,6 +229,31 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
               outline
               style={styles.actionButton}
               onPress={onDelete}
+            />
+          </View>
+        </ShadowBoxView>
+      ) : null}
+
+      {showReminderIssue ? (
+        <ShadowBoxView style={styles.staleCard}>
+          <View style={styles.staleTitleRow}>
+            <MaterialCommunityIcons
+              name='bell-off-outline'
+              size={20}
+              color={themeColors.redDark}
+            />
+            <Label style={styles.staleTitle}>Reminders not scheduled</Label>
+          </View>
+          <Label style={styles.staleSubtitle}>
+            You opted in to reminders for this payment, but they aren't currently scheduled. This
+            usually happens when the device's reminder limit was hit. Tap Recreate to try again.
+          </Label>
+          <View style={styles.actionRow}>
+            <CustomButton
+              title='Recreate reminders'
+              size='small'
+              style={styles.actionButton}
+              onPress={() => recreateNotifications(id)}
             />
           </View>
         </ShadowBoxView>
@@ -347,6 +377,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
           isCanceling ||
           isRestoring ||
           isClearingStale ||
+          isRecreatingNotifications ||
           instancesLoading
         }
       />
