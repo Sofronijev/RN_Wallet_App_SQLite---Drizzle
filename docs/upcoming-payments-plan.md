@@ -1,12 +1,16 @@
 # Upcoming Payments / Bill Reminders
 
-## Status (2026-05-02)
+> **⚠️ Reference branch — not shipping.**
+> This branch (`upcomingPayments/notifications`) contains the full notification implementation. **The decision was made not to ship notifications.** Active development continues on a separate branch where notifications are removed in favor of aggressive in-app surfacing. See [Why notifications are not shipping](#why-notifications-are-not-shipping) at the end of this doc for the reasoning.
+
+## Status (2026-05-21)
 
 **Architectural deviations from the original plan** (treat older sections of this doc as historical context where they conflict):
 - **Separate `UpcomingPaymentForm`** under [app/features/upcomingPayments/](app/features/upcomingPayments/) instead of a `ModeToggle` on `TransactionForm`.
 - **No `PaySheet`** — paying reuses the existing `TransactionForm` with a `linkedUpcomingInstanceId` field. One transaction → one contribution row → instance flips to `paid`. The dedicated bottom-sheet UI was abandoned.
 - **No partial payments / no `ProgressBar`** — `upcomingPaymentContributions` no longer carries an `amount` column; pay is binary (paid / not paid) per instance. Partial-pay support and the progress bar are explicitly out of v1.
 - **No `UpcomingPaymentsAllScreen`** — replaced by `UpcomingPaymentsSettings` (Active + Archived tabs), reachable from settings.
+- **Notifications implemented in full on this branch** — per-instance scheduling, no series mode, window-fill of 5/2/1 future instances per recurrence cadence, recurrence-aware backfill cap, missing-reminder detection. Kept here as a reference implementation; not shipping.
 
 ### Done
 - DB schema (`upcomingPayments`, `upcomingPaymentInstances`, `upcomingPaymentContributions` — note: contributions are link-only, no `amount` column) + migrations + inferred types.
@@ -20,11 +24,11 @@
 - Navigation routes: `UpcomingPayment`, `UpcomingPaymentDetails`, `UpcomingPaymentsSettings`.
 - Recurrence helper [getNextDueDate](app/modules/upcomingPayments/upcomingPaymentRecurrence.ts) + services `ensureNextInstance` / `catchUpUpcomingPaymentInstances` in [upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts). Cancel mutation auto-tops up the next instance. App-launch sweep wired in [App.tsx](App.tsx).
 - **Pay flow (Phase 5)**: Pay actions on [UpcomingPaymentRow](app/features/upcomingPayments/ui/UpcomingPaymentRow.tsx) and [UpcomingPaymentDetails](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx) navigate to `TransactionForm` with `upcomingPaymentInstanceId`. [addTransaction / editTransaction / deleteTransaction](app/services/transactionQueries.ts) create/update/remove the `upcomingPaymentContributions` link. [recomputeInstanceStatus](app/services/upcomingPaymentQueries.ts) flips the instance `paid` ↔ `pending` based on link presence and tops up the next instance. Editing a transaction's linked instance correctly recomputes both the prior and new instance.
-- Stale-payment handling (Phase 5.5): schema column `staleSince`, `BACKFILL_LIMIT = 3` cap in the sweep, `clearStaleFlag` service + `useClearStaleFlagMutation`, [StalePaymentBanner](app/features/upcomingPayments/ui/StalePaymentBanner.tsx) on dashboard, stale chip + "Still using this?" card on [UpcomingPaymentDetails](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx), stale badge on [UpcomingPaymentCard](app/features/upcomingPayments/ui/UpcomingPaymentCard.tsx) (used by settings list). **Auto-clear on pay** is now wired: `recomputeInstanceStatus` calls `clearStaleFlag` (executor-aware, runs inside the same transaction) when flipping a stale payment's instance to paid.
+- Stale-payment handling (Phase 5.5): schema column `staleSince`, **recurrence-aware backfill cap** (`BACKFILL_CAP = { daily: 5, rest: 3 }`), `clearStaleFlag` service + `useClearStaleFlagMutation`, stale chip + "Still using this?" card on [UpcomingPaymentDetails](app/features/upcomingPayments/ui/UpcomingPaymentDetails.tsx), stale badge on [UpcomingPaymentCard](app/features/upcomingPayments/ui/UpcomingPaymentCard.tsx) (used by settings list). **Auto-clear on pay** is wired: `recomputeInstanceStatus` calls `clearStaleFlag` (executor-aware, runs inside the same transaction) when flipping a stale payment's instance to paid. *Note: `StalePaymentBanner` from earlier iterations was removed; the stale CTA lives inline on the detail screen now.*
+- **Notifications (Phase 6) — DONE on this branch** (preserved for reference; not shipping): `expo-notifications` integrated, per-instance scheduling, **window-fill** of `WINDOW_SIZE = { daily: 5, weekly: 2, rest: 1 }` future pending instances per payment, iOS 64-slot guard via `ensureIosSlots`, `safeScheduleNotifications` returning `{ ok: true } | { ok: false, reason: "limit" | "error" }`, "Reminders not scheduled" CTA on the detail screen when missing-reminder detection trips, permission banner [NotificationPermissionBanner](app/notifications/NotificationPermissionBanner.tsx) shown on the form + month list + settings list. See [Notifications — actual implementation](#notifications--actual-implementation) below for what was built and how it differs from the original plan.
 
 ### Remaining
-1. **Notifications (Phase 6)** — entirely missing: `expo-notifications` not in [package.json](package.json) / [app.json](app.json), no `app/modules/notifications/` wrapper, no scheduling, no cancel-on-pay, no permission prompt, no channel setup in [App.tsx](App.tsx). The `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns are captured in the form but nothing reads them. This is the only large chunk of plan work still untouched.
-2. **Dashboard "Show all" wiring** — if the section still surfaces a "Show all" affordance, point it at `UpcomingPaymentsSettings` or remove it. Low effort; verify before shipping.
+1. **Dashboard "Show all" wiring** — if the section still surfaces a "Show all" affordance, point it at `UpcomingPaymentsSettings` or remove it. Low effort; verify before shipping.
 
 ### Explicitly dropped from v1
 - `PaySheet` (superseded by `TransactionForm` + `linkedUpcomingInstanceId`).
@@ -242,7 +246,9 @@ Once a payment is stale, the app-launch sweep skips it entirely (`if (payment.st
 
 ---
 
-## Notifications
+## Notifications — original plan (historical)
+
+> The section below is the original Phase 6 plan. The actual shipped design on this branch differs in several important ways — see [Notifications — actual implementation](#notifications--actual-implementation) for what was actually built and why.
 
 - **Package**: `expo-notifications` — not yet installed. Add to [package.json](package.json), add plugin to [app.json](app.json). Expo SDK 55 supports local scheduling without any push server.
 - **Android permission**: `POST_NOTIFICATIONS` (Android 13+) handled automatically by the plugin.
@@ -255,6 +261,87 @@ Once a payment is stale, the app-launch sweep skips it entirely (`if (payment.st
 - **Missed-payment belt-and-braces**: app-launch "mark overdue" sweep — covers the edge case where a notification was dismissed without action.
 
 No `expo-task-manager` or `expo-background-fetch` needed for v1.
+
+---
+
+## Notifications — actual implementation
+
+What was actually built on this branch. **All of this code is preserved here as a reference; the active branch removes it.** See [Why notifications are not shipping](#why-notifications-are-not-shipping) for the decision.
+
+### Wrapper module: [app/notifications/](app/notifications/)
+- [index.ts](app/notifications/index.ts) — thin Expo wrapper: `schedulePaymentReminderForDate`, `cancelScheduledNotification`, `getScheduledList`, `withReminderTime` (forces 9:00 local time), `IOS_NOTIFICATION_HARD_CAP = 64`.
+- [useNotifications.ts](app/notifications/useNotifications.ts) — sets `NotificationHandler` and creates the Android `payment-reminders` channel on mount.
+- [useNotificationPermission.ts](app/notifications/useNotificationPermission.ts) — tracks `status` + `canAskAgain`; rechecks on `AppState` → `active` so coming back from Settings refreshes the status.
+- [NotificationPermissionBanner.tsx](app/notifications/NotificationPermissionBanner.tsx) — small banner that appears on the upcoming-payment form, the month list, and the settings list when status ≠ `granted`. Tapping it either fires the native prompt or opens iOS Settings (depending on `canAskAgain`).
+
+### Schema additions
+- `Notifications` table: `osNotificationId`, `entityType` (enum `["payment-instance"]`), `entityId`, `title`, `body`, `data` (JSON), `scheduledFor`, `firedAt`, `viewedAt`, `createdAt`. The `firedAt`/`viewedAt` columns are reserved for a future in-app inbox; they're not populated yet (response listeners are commented out in `useNotifications.ts`).
+- `UpcomingPaymentInstances.notificationIds` — JSON array of OS-scheduled notification IDs for the instance.
+
+### Service: [app/services/notificationQueries.ts](app/services/notificationQueries.ts)
+- `safeScheduleNotifications(fn)` — wraps any scheduling call; catches throws and returns `{ ok: true } | { ok: false, reason: "limit" | "error", message }`. The `limit` reason is detected by string-matching `"limit reached"` in the error message thrown by `ensureIosSlots`. **DB state is the source of truth** — scheduling failures never roll back the user's save; the user gets an alert and a "Recreate reminders" CTA on the detail screen.
+- `createNotification(payment, instance)` — computes up to 3 triggers per instance:
+  - `lead` (N days before, if `notifyDaysBefore > 0`)
+  - `due` (day-of)
+  - `missed` (day after due date)
+  - Each trigger is filtered if its scheduled fire time has already passed (`withReminderTime(date) <= now`). Past-due instances therefore get zero triggers, which is correct.
+- `ensureIosSlots(slotsNeeded)` — best-effort check against the 64-cap before scheduling. Race-prone (two concurrent flows can both pass) but harmless because the eventual failure is trapped by `safeScheduleNotifications`.
+- `cancelNotificationsForInstance` / `cancelNotificationsForPayment` — cancel by stored OS IDs, delete from the `Notifications` table, null out `instance.notificationIds`.
+- `rebuildNotificationsForPayment(payment)` — fetches all pending instances with `dueDate >= today` and calls `createNotification` for each. Used after edits that change the schedule (`recurrence`, `endDate`, `firstDueDate`, `notifyDaysBefore`, `notifyOnDueDay`, `notifyOnMissed`, `customIntervalValue`, `customIntervalUnit`, `name`).
+
+### Window-fill: [app/services/upcomingPaymentQueries.ts](app/services/upcomingPaymentQueries.ts) — `ensureWindow`
+
+The biggest deviation from the original plan. The plan called for "one pending instance in flight per upcoming payment" — but that doesn't work for daily/weekly payments unless we use Expo's `DAILY`/`WEEKLY` recurring triggers, which **don't accept a start date** (they fire from the next matching time-of-day/weekday onward). A series-mode trigger scheduled for a payment whose `firstDueDate` is months away would start firing tomorrow.
+
+Series mode was tried (`scheduleForNewSeries`, `entityType: "payment-series"`) and abandoned. The window-fill approach replaces it:
+
+```ts
+const WINDOW_SIZE: Record<Recurrence, number> = {
+  none: 1, daily: 5, weekly: 2, monthly: 1, yearly: 1, custom: 1,
+};
+const BACKFILL_CAP: Record<Recurrence, number> = {
+  none: 3, daily: 5, weekly: 3, monthly: 3, yearly: 3, custom: 3,
+};
+```
+
+`ensureWindow(paymentId)` generates instances forward until either:
+- `WINDOW_SIZE[recurrence]` future pending instances exist, OR
+- `endDate` is reached, OR
+- `BACKFILL_CAP[recurrence]` past iterations have been spent without crossing today → mark `staleSince` and stop.
+
+This means a daily payment occupies up to 5 instances × up to 3 triggers each = **15 iOS slots per payment**. With the 64-cap, users with ~4 daily payments can hit the ceiling; the failure path is "save succeeded, notifications partial" with a recreate CTA.
+
+`ensureWindow` is called from: `addUpcomingPayment` (after creating the first instance), `updateUpcomingPayment` (after rebuild), `restoreUpcomingPayment`, `recreatePaymentNotifications`, `cancelUpcomingPaymentInstance` (to top up after cancel), `recomputeInstanceStatus` (to top up after pay), and `catchUpUpcomingPaymentInstances` (the app-launch sweep). `clearStaleFlag` does an aggressive 365-iteration catch-up first, then calls `ensureWindow`.
+
+### Missing-reminder detection: [app/features/upcomingPayments/modules/upcomingPaymentNotificationStatus.ts](app/features/upcomingPayments/modules/upcomingPaymentNotificationStatus.ts)
+
+Pure-function helpers that infer "this payment expected reminders but none are scheduled":
+- `paymentExpectsReminders(payment)` — true if any of the three notify flags is set.
+- `instanceHasMissingReminders(payment, instance)` — true if the instance is pending, dueDate ≥ today, and `notificationIds` is empty. Past-due instances are explicitly excluded (their triggers were all filtered out at scheduling time — empty is correct).
+- `sectionRowHasMissingReminders(row)` — used to render the `bell-off-outline` icon on dashboard rows.
+- `paymentHasMissingReminders(payment)` — uses the SQL-aggregated `missingInstanceReminderCount` from `getUpcomingPaymentById` / `getAllUpcomingPayments` to drive the "Reminders not scheduled" card on the detail screen.
+
+### Notification permission UX flow
+1. User creates first upcoming payment → form is open → `NotificationPermissionBanner` is visible if status ≠ `granted`.
+2. Banner says "Notifications are off. Tap to enable reminders for upcoming payments."
+3. Tap → if `canAskAgain`, fires `Notifications.requestPermissionsAsync`. Otherwise opens iOS Settings via `Linking.openSettings`.
+4. App regains focus → `useNotificationPermission` rechecks status. Banner disappears if granted.
+
+### Failure / recovery surface
+- Save always succeeds even if scheduling fails (`safeScheduleNotifications` traps).
+- If the iOS cap is hit: an alert tells the user. The detail screen shows a "Reminders not scheduled" card with a "Recreate reminders" button.
+- If a payment has `paymentExpectsReminders=true` but `missingInstanceReminderCount > 0`, the dashboard card and the row in the section show a small `bell-off-outline` icon. Tap → detail → Recreate CTA.
+
+### Differences from the original plan
+| Original plan | What was built |
+|---|---|
+| "One pending instance in flight" | Window-fill: 5 daily / 2 weekly / 1 monthly |
+| Notification scheduling via series triggers (implicit) | Per-instance scheduling only; series triggers attempted and abandoned |
+| `app/modules/notifications/` wrapper | `app/notifications/` (top-level) |
+| Permission asked at first creation | Permission banner shown contextually (form, month list, settings list) |
+| `BACKFILL_LIMIT = 3` flat | Recurrence-aware: `daily: 5`, rest: `3` |
+| No mention of cap-failure UX | `safeScheduleNotifications` + "Recreate reminders" CTA + bell-off badges |
+| `firedAt` / `viewedAt` populated | Columns reserved but unwritten (listeners commented out) |
 
 ---
 
@@ -380,13 +467,16 @@ Caps `catchUpUpcomingPaymentInstances` at `BACKFILL_LIMIT = 3` and surfaces stal
 - **Test 5 — detail screen**: open a stale payment. Expect red Stale chip next to name + "Still using this?" card with alert icon + two buttons.
 - **Test 6 — settings badge**: open Settings → "All scheduled payments". Every stale row shows the red Stale badge.
 
-### Phase 6 — Notifications ❌ NOT STARTED
-1. Add `expo-notifications` to [package.json](package.json) via `yarn` + plugin entry in [app.json](app.json) + prebuild.
-2. Write `app/modules/notifications/` wrapper: `requestPermission`, `scheduleForInstance`, `cancelForInstance`, `setupChannel`.
-3. Ask permission on first upcoming-payment creation (not at app launch).
-4. Schedule on Instance materialization; cancel on pay-complete / edit / delete.
-5. Launch-time overdue sweep in [App.tsx](App.tsx) — materializes past-due virtual periods as `pending` (the UI derives missed via `isInstanceMissed`). No status flip on already-materialized rows — they stay `pending` until paid or canceled.
-6. Read the existing `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns (they're already captured by the form).
+### Phase 6 — Notifications ✅ DONE (reference-only; not shipping)
+Built on this branch. See [Notifications — actual implementation](#notifications--actual-implementation) for the full design rationale and the diff vs. the original Phase 6 plan. The active branch removes all of this; this branch is the snapshot.
+
+Original Phase 6 checklist for reference:
+1. ✅ `expo-notifications` added to [package.json](package.json) + plugin entry in [app.json](app.json) + prebuild.
+2. ✅ `app/notifications/` wrapper: `schedulePaymentReminderForDate`, `cancelScheduledNotification`, `getScheduledList`, `withReminderTime`, `IOS_NOTIFICATION_HARD_CAP`. (Renamed from the planned `app/modules/notifications/`.)
+3. ✅ Permission asked via `NotificationPermissionBanner` on the upcoming-payment form, the month list, and the settings list — not at app launch.
+4. ✅ Scheduling happens inside `createNotification` ([app/services/notificationQueries.ts](app/services/notificationQueries.ts)), cancellation via `cancelNotificationsForInstance` / `cancelNotificationsForPayment`. Pay → `recomputeInstanceStatus` cancels instance notifications when flipping to paid.
+5. ✅ Launch-time sweep wired in [App.tsx](App.tsx) (deferred via `setTimeout(0)` so the UI paints first).
+6. ✅ `notifyDaysBefore` / `notifyOnDueDay` / `notifyOnMissed` columns are read by `computeInstanceTriggerDates`.
 
 ### Phase 7 — Detail + List + settings ✅ DONE
 `UpcomingPaymentDetails` (rule header + history + edit/delete), `UpcomingPaymentsSettings` (management list), `showUpcomingPayments` toggle — all shipped.
@@ -444,3 +534,64 @@ End-to-end check list (manual — no test runner configured):
 10. Force-quit the app, wait past a scheduled notification time → notification fires.
 11. Toggle `showUpcomingPayments` off in DashboardSettings → section disappears.
 12. Tap a row → detail screen shows the rule + history of past Instances with their Transactions. Delete the upcoming payment → Instances + Contributions gone, but the real Transactions from steps 5/6 still exist in history and wallet balance is unchanged.
+
+---
+
+## Why notifications are not shipping
+
+After the notification system was built, tested, and refactored to the window-fill design, the decision was made to **drop notifications entirely** before shipping the feature. This branch (`upcomingPayments/notifications`) is preserved as the reference implementation; active development continues on a separate branch where the entire notification subsystem is removed and replaced with stronger in-app surfacing.
+
+### The reasoning
+
+**1. The app's engagement profile doesn't justify notifications.**
+SpendyFly is a manual expense tracker. The user opens it to log spending — typically daily, often multiple times a day. People who download a budgeting app are already engaged with the problem; they don't need to be reminded to open it. The notification's most-valuable signal ("a payment is due") is already visible the moment the user opens the app and looks at the dashboard.
+
+**2. Hybrid trackers don't lean on notifications.**
+Pure expense trackers (Monefy, Money Lover, Spendee, Wallet by BudgetBakers) ship without push notifications. Bill-reminder apps (Bobby, Bills Reminder, Mint Bills) do, because reminding *is* the product. SpendyFly sits on the expense-tracker side of that line — bill tracking is a secondary convenience feature, not the reason users downloaded it. Users don't expect a push from this app, and many deny the permission on first prompt anyway.
+
+**3. The engineering cost is disproportionate.**
+What the notification system carries:
+- iOS 64-slot global cap, surfaced via `ensureIosSlots` + best-effort race handling + `safeScheduleNotifications` cap-failure path + "Recreate reminders" recovery CTA.
+- Three trigger kinds per instance (lead / due / missed) with past-trigger filtering.
+- Window-fill of 5 daily / 2 weekly / 1 monthly future instances per payment, with recurrence-aware backfill.
+- A `Notifications` DB table mirroring OS state for cancellation lookups.
+- Missing-reminder detection at three layers (per-instance, per-section-row, per-payment-card).
+- Permission banner UX (canAskAgain branching, Linking.openSettings fallback, AppState refresh).
+- The whole abandoned series-mode attempt that taught us Expo's `DAILY`/`WEEKLY` triggers don't accept start dates.
+
+Roughly **~600 lines** of dedicated notification code, plus its DB tables, plus its UX edge cases — for a feature whose value tops out at "remind me about something I'll see anyway when I open the app today."
+
+**4. In-app surfacing covers the same ground at a fraction of the cost.**
+The active branch replaces notifications with:
+- A prominent **"X payments overdue"** / **"Rent is due today"** banner at the top of the Balance screen when there's anything actionable.
+- Stronger missed-count treatment on the existing `UpcomingPaymentsSection` card.
+- The monthly-forecast widget already added (`Expected: 1.240,00 $`) for at-a-glance financial awareness.
+
+The user who opens the app daily sees these the moment they launch. The user who doesn't open the app for a week would have ignored the push too.
+
+**5. Permission denial costs trust.**
+First-prompt notification denial on iOS is roughly a coin-flip for non-essential apps, and **the denial is durable** (`canAskAgain` flips to false until the user manually re-enables in Settings). Asking for a permission that adds marginal value when most users will say no — and then being unable to ask again — burns trust we'd rather spend on something users actively want.
+
+### What is preserved here
+
+The full implementation lives on this branch, including:
+- The window-fill design that solves the "Expo triggers don't accept start dates" problem.
+- The `safeScheduleNotifications` cap-failure handling pattern (reusable for any future scheduling work).
+- The recurrence-aware backfill cap design.
+- The missing-reminder detection helpers (pure functions, transferable).
+- The permission UX flow (`useNotificationPermission` with AppState refresh, canAskAgain branching).
+
+If a future product direction (e.g. a dedicated bill-reminder mode, or a Pro tier where notifications are a sold feature) calls for notifications, this branch is the starting point — not a from-scratch rebuild.
+
+### What is removed on the active branch
+
+- `app/notifications/` (entire folder)
+- `app/services/notificationQueries.ts`
+- The `Notifications` table from [db/schema.ts](db/schema.ts) + a migration to drop it.
+- `notifyDaysBefore`, `notifyOnDueDay`, `notifyOnMissed`, `notificationIds` columns + their migration.
+- The `NotificationSettings` field group from the upcoming-payment form.
+- `app/features/upcomingPayments/modules/upcomingPaymentNotificationStatus.ts` (missing-reminder helpers).
+- The `bell-off-outline` icons on rows/cards, the "Reminders not scheduled" detail card.
+- `ensureWindow` and the catch-up sweep itself — without notifications, there's no value in pre-generating instances ahead; lazy generation on-demand is enough. (TBD — may keep window-fill if dashboard performance benefits from it.)
+
+The schema becomes meaningfully simpler: 2 fewer tables (`Notifications` gone, plus the columns above), and `UpcomingPayments` loses 4 notification-related columns.
