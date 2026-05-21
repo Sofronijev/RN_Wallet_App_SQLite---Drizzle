@@ -32,9 +32,7 @@ const UpcomingPaymentsAlertBanner: React.FC = () => {
   const { data: instances } = useGetUpcomingInstancesForSection();
 
   const summary = useMemo(() => {
-    // Compare the yyyy-MM-dd prefix so a stored full-ISO dueDate with timezone
-    // offset still matches today's date-only threshold.
-    const todayDate = getTodayIsoThreshold().slice(0, 10);
+    const todayIso = getTodayIsoThreshold();
     let missed = 0;
     let dueToday = 0;
     let dueTodayName: string | null = null;
@@ -43,7 +41,7 @@ const UpcomingPaymentsAlertBanner: React.FC = () => {
         missed++;
         continue;
       }
-      if (row.dueDate.slice(0, 10) === todayDate) {
+      if (row.dueDate === todayIso) {
         dueToday++;
         dueTodayName = row.name;
       }

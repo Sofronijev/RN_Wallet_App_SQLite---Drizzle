@@ -7,6 +7,7 @@ import { calendarDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingPaymentRow } from "app/queries/upcomingPayments";
 import StatusBadge from "components/StatusBadge";
+import { computeTotalCount } from "../modules/computeTotalCount";
 
 type Props = {
   row: UpcomingPaymentRow;
@@ -21,13 +22,13 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
     iconColor,
     firstDueDate,
     endDate,
-    totalCount,
     paidCount,
     missedCount,
     staleSince,
     completed,
     isActive,
   } = row;
+  const totalCount = computeTotalCount(row);
 
   return (
     <ShadowBoxView style={styles.container}>

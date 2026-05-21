@@ -56,8 +56,12 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
   const { data: editPayment, isLoading: isLoadingEdit } = useGetUpcomingPaymentById(editId);
   const historyCount = editPayment?.historyCount ?? 0;
   const isLocked = isEditMode && historyCount > 0;
-  const isLoading =
-    !selectedWallet || isSaving || isUpdating || (isEditMode && (isLoadingEdit || !editPayment));
+  const isSubmitting = isSaving || isUpdating;
+  const isInitialDataReady = isEditMode ? !isLoadingEdit && !!editPayment : !!selectedWallet;
+
+  if (!isInitialDataReady) {
+    return <AppActivityIndicator hideScreen isLoading />;
+  }
 
   const walletCurrencies = useMemo(() => {
     const map = new Map<string, { currencyCode: string; currencySymbol: string }>();
@@ -364,7 +368,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
         )}
         <CustomButton title='Save' onPress={onSubmit} style={styles.button} />
       </View>
-      <AppActivityIndicator hideScreen isLoading={isLoading} />
+      <AppActivityIndicator hideScreen isLoading={isSubmitting} />
     </ScrollView>
   );
 };

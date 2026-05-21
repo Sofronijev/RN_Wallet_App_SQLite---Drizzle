@@ -23,7 +23,6 @@ import {
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
-import { formatIsoDate } from "modules/timeAndDate";
 import { Recurrence } from "app/features/upcomingPayments/modules/types";
 
 // How many future pending instances we keep materialized per recurrence. The
@@ -210,7 +209,7 @@ export const getUpcomingPaymentById = async (id: number) => {
 
   if (!row) return null;
   const historyCount = row.paidCount + row.missedCount + row.canceledCount;
-  return { ...row, historyCount, totalCount: computeTotalCount(row) };
+  return { ...row, historyCount };
 };
 
 const REBUILD_TRIGGER_FIELDS = [
@@ -378,6 +377,7 @@ export const recomputeInstanceStatus = async (
       .update(upcomingPaymentInstances)
       .set({ status: "pending", paidAt: null })
       .where(eq(upcomingPaymentInstances.id, instanceId));
+    await ensureWindow(instance.upcomingPaymentId, executor);
   }
 };
 
@@ -538,7 +538,6 @@ export const getAllUpcomingPayments = async () => {
 
   return rows.map((row) => ({
     ...row,
-    totalCount: computeTotalCount(row),
     completed: isCompleted(row, todayIso),
   }));
 };
@@ -547,31 +546,3 @@ const isCompleted = (
   row: { endDate: string | null; pendingCount: number },
   todayIso: string,
 ): boolean => row.endDate != null && row.endDate <= todayIso && row.pendingCount === 0;
-
-type TotalCountInput = {
-  firstDueDate: string;
-  endDate: string | null;
-  recurrence: Recurrence;
-  customIntervalValue: number | null;
-  customIntervalUnit: "day" | "week" | "month" | null;
-};
-
-export const MAX_OCCURRENCES = 10_000;
-
-const computeTotalCount = (row: TotalCountInput): number | null => {
-  if (!row.endDate) return null;
-  const startIso = formatIsoDate(new Date(row.firstDueDate));
-  const endIso = formatIsoDate(new Date(row.endDate));
-  if (startIso > endIso) return 0;
-  if (row.recurrence === "none") return 1;
-
-  let current: string | null = startIso;
-  let count = 1;
-  while (count < MAX_OCCURRENCES) {
-    const next = getNextDueDate(row, current);
-    if (!next) break;
-    count++;
-    current = next;
-  }
-  return count;
-};

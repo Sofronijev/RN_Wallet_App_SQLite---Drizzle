@@ -13,7 +13,6 @@ type Props = {
   paymentCurrency: string;
   decimal: string;
   delimiter: string;
-  isLast: boolean;
   onPay: (instanceId: number) => void;
   onCancel: (instanceId: number) => void;
   onRestore: (instanceId: number) => void;
@@ -35,7 +34,6 @@ const HistoryRow: React.FC<Props> = ({
   paymentCurrency,
   decimal,
   delimiter,
-  isLast,
   onPay,
   onCancel,
   onRestore,
@@ -53,7 +51,7 @@ const HistoryRow: React.FC<Props> = ({
       : paymentCurrency;
 
   return (
-    <View style={[styles.container, !isLast && styles.divider]}>
+    <View style={styles.container}>
       <View style={styles.topRow}>
         <View style={styles.left}>
           <Label style={styles.date}>{getFormattedDate(row.dueDate, calendarDateFormat)}</Label>
@@ -118,10 +116,6 @@ const themeStyles = (theme: AppTheme) =>
     actionText: {
       fontSize: 13,
       fontWeight: "600",
-    },
-    divider: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.muted,
     },
     left: {
       flexDirection: "row",

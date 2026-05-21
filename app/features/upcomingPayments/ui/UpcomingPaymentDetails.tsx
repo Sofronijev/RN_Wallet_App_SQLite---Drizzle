@@ -317,7 +317,6 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
               paymentCurrency={currency}
               decimal={decimal}
               delimiter={delimiter}
-              isLast
               onPay={onPayInstance}
               onCancel={onCancelInstance}
               onRestore={onRestoreInstance}
