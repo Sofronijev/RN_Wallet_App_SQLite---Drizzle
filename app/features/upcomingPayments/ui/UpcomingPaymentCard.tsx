@@ -1,14 +1,12 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import ShadowBoxView from "components/ShadowBoxView";
 import { calendarDateFormat, getFormattedDate } from "modules/timeAndDate";
-import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingPaymentRow } from "app/queries/upcomingPayments";
 import StatusBadge from "components/StatusBadge";
-import { paymentHasMissingReminders } from "../modules/upcomingPaymentNotificationStatus";
 
 type Props = {
   row: UpcomingPaymentRow;
@@ -16,7 +14,6 @@ type Props = {
 
 const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
   const styles = useThemedStyles(themedStyles);
-  const themeColors = useColors();
   const {
     name,
     iconFamily,
@@ -31,7 +28,6 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
     completed,
     isActive,
   } = row;
-  const showReminderWarning = isActive && !completed && paymentHasMissingReminders(row);
 
   return (
     <ShadowBoxView style={styles.container}>
@@ -40,13 +36,6 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
         <Label numberOfLines={1} style={styles.name}>
           {name}
         </Label>
-        {showReminderWarning ? (
-          <MaterialCommunityIcons
-            name='bell-off-outline'
-            size={14}
-            color={themeColors.redDark}
-          />
-        ) : null}
         {isActive && completed ? <StatusBadge label='Completed' tone='muted' /> : null}
         {isActive && staleSince ? <StatusBadge label='Stale' tone='danger' /> : null}
       </View>

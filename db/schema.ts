@@ -192,9 +192,6 @@ export const upcomingPayments = sqliteTable("UpcomingPayments", {
     .notNull(),
   customIntervalValue: integer("customIntervalValue"),
   customIntervalUnit: text("customIntervalUnit", { enum: ["day", "week", "month"] }),
-  notifyDaysBefore: integer("notifyDaysBefore"),
-  notifyOnDueDay: integer("notifyOnDueDay", { mode: "boolean" }).default(true).notNull(),
-  notifyOnMissed: integer("notifyOnMissed", { mode: "boolean" }).default(true).notNull(),
   isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
   staleSince: text("staleSince"),
   createdAt: text("createdAt")
@@ -220,7 +217,6 @@ export const upcomingPaymentInstances = sqliteTable(
       .notNull(),
     paidAt: text("paidAt"),
     canceledAt: text("canceledAt"),
-    notificationIds: text("notificationIds"),
   },
   (table) => [
     uniqueIndex("upcoming_instance_unique_due").on(table.upcomingPaymentId, table.dueDate),
@@ -244,23 +240,6 @@ export const upcomingPaymentContributions = sqliteTable(
   },
   (table) => [uniqueIndex("upcoming_contribution_unique_tx").on(table.transactionId)],
 );
-
-// Notifications Table
-export const notifications = sqliteTable("Notifications", {
-  id: integer("id").primaryKey(),
-  osNotificationId: text("osNotificationId"),
-  entityType: text("entityType", { enum: ["payment-instance"] }),
-  entityId: integer("entityId"),
-  title: text("title").notNull(),
-  body: text("body"),
-  data: text("data"),
-  scheduledFor: text("scheduledFor").notNull(),
-  firedAt: text("firedAt"),
-  viewedAt: text("viewedAt"),
-  createdAt: text("createdAt")
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-});
 
 //Relations
 export const usersRelations = relations(users, ({ many, one }) => ({

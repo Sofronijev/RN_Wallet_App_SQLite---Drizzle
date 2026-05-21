@@ -25,19 +25,10 @@ import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upco
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
 import { formatIsoDate } from "modules/timeAndDate";
 import { Recurrence } from "app/features/upcomingPayments/modules/types";
-import {
-  cancelNotificationsForInstance,
-  cancelNotificationsForPayment,
-  createNotification,
-  rebuildNotificationsForPayment,
-  safeScheduleNotifications,
-  ScheduleResult,
-} from "app/services/notificationQueries";
 
-// How many future pending instances we keep scheduled per recurrence. Each
-// instance can hold up to 3 notification triggers, so daily=5 → up to 15 iOS
-// slots per payment. The iOS cap is 64, so users with many daily payments may
-// hit the limit (surfaced via safeScheduleNotifications + recreate CTA).
+// How many future pending instances we keep materialized per recurrence. The
+// dashboard surfaces these forward in the section list — daily users see the
+// next 5 days at a glance, weekly users see the next 2 weeks, etc.
 const WINDOW_SIZE: Record<Recurrence, number> = {
   none: 1,
   daily: 5,
@@ -98,21 +89,14 @@ const insertNextInstance = async (
   const nextDueDate = getNextDueDate(payment, latest.dueDate);
   if (!nextDueDate) return null;
 
-  const [insertedInstance] = await executor
+  await executor
     .insert(upcomingPaymentInstances)
     .values({
       upcomingPaymentId,
       dueDate: nextDueDate,
       expectedAmount: payment.amount ?? null,
     })
-    .onConflictDoNothing()
-    .returning();
-
-  if (insertedInstance) {
-    await safeScheduleNotifications(() =>
-      createNotification(payment, insertedInstance, executor),
-    );
-  }
+    .onConflictDoNothing();
 
   return { dueDate: nextDueDate };
 };
@@ -170,31 +154,23 @@ export const ensureWindow = async (
   }
 };
 
-export const addUpcomingPayment = async (
-  payment: NewUpcomingPayment,
-): Promise<ScheduleResult> => {
-  const { paymentRow, instanceRow } = await db.transaction(async (tx) => {
+export const addUpcomingPayment = async (payment: NewUpcomingPayment): Promise<void> => {
+  const paymentId = await db.transaction(async (tx) => {
     const [insertedPayment] = await tx
       .insert(upcomingPayments)
       .values(payment)
       .returning();
 
-    const [insertedInstance] = await tx
-      .insert(upcomingPaymentInstances)
-      .values({
-        upcomingPaymentId: insertedPayment.id,
-        dueDate: payment.firstDueDate,
-        expectedAmount: payment.amount ?? null,
-      })
-      .returning();
+    await tx.insert(upcomingPaymentInstances).values({
+      upcomingPaymentId: insertedPayment.id,
+      dueDate: payment.firstDueDate,
+      expectedAmount: payment.amount ?? null,
+    });
 
-    return { paymentRow: insertedPayment, instanceRow: insertedInstance };
+    return insertedPayment.id;
   });
 
-  return safeScheduleNotifications(async () => {
-    await createNotification(paymentRow, instanceRow);
-    await ensureWindow(paymentRow.id);
-  });
+  await ensureWindow(paymentId);
 };
 
 export const getUpcomingPaymentById = async (id: number) => {
@@ -222,9 +198,6 @@ export const getUpcomingPaymentById = async (id: number) => {
         sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} THEN 1 END)`.mapWith(
           Number
         ),
-      missingInstanceReminderCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} AND (${upcomingPaymentInstances.notificationIds} IS NULL OR ${upcomingPaymentInstances.notificationIds} = '' OR ${upcomingPaymentInstances.notificationIds} = '[]') THEN 1 END)`.mapWith(
-        Number,
-      ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
@@ -245,9 +218,6 @@ const REBUILD_TRIGGER_FIELDS = [
   "recurrence",
   "endDate",
   "firstDueDate",
-  "notifyDaysBefore",
-  "notifyOnDueDay",
-  "notifyOnMissed",
   "customIntervalValue",
   "customIntervalUnit",
 ] as const;
@@ -255,7 +225,7 @@ const REBUILD_TRIGGER_FIELDS = [
 export const updateUpcomingPayment = async (
   id: number,
   values: EditUpcomingPayment,
-): Promise<ScheduleResult> => {
+): Promise<void> => {
   const existing = await getUpcomingPaymentById(id);
   if (!existing) throw new Error("Upcoming payment not found");
 
@@ -274,17 +244,15 @@ export const updateUpcomingPayment = async (
 
   await db.update(upcomingPayments).set(safeValues).where(eq(upcomingPayments.id, id));
 
-  if (!needsRebuild) return { ok: true };
+  if (!needsRebuild) return;
 
-  await cancelNotificationsForPayment(id);
   const [updatedPayment] = await db
     .select()
     .from(upcomingPayments)
     .where(eq(upcomingPayments.id, id));
-  if (!updatedPayment) return { ok: true };
+  if (!updatedPayment) return;
 
-  // If endDate moved earlier, drop any pending instances now past the new end —
-  // their notifications were already cleared by cancelNotificationsForPayment above.
+  // If endDate moved earlier, drop any pending instances now past the new end.
   if (updatedPayment.endDate) {
     await db
       .delete(upcomingPaymentInstances)
@@ -297,42 +265,16 @@ export const updateUpcomingPayment = async (
       );
   }
 
-  return safeScheduleNotifications(async () => {
-    await rebuildNotificationsForPayment(updatedPayment);
-    await ensureWindow(id);
-  });
+  await ensureWindow(id);
 };
 
 export const softDeleteUpcomingPayment = async (id: number) => {
-  await cancelNotificationsForPayment(id);
   await db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
 };
 
-export const restoreUpcomingPayment = async (id: number): Promise<ScheduleResult> => {
+export const restoreUpcomingPayment = async (id: number): Promise<void> => {
   await db.update(upcomingPayments).set({ isActive: true }).where(eq(upcomingPayments.id, id));
-
-  const [payment] = await db
-    .select()
-    .from(upcomingPayments)
-    .where(eq(upcomingPayments.id, id));
-  if (!payment) return { ok: true };
-  return safeScheduleNotifications(async () => {
-    await rebuildNotificationsForPayment(payment);
-    await ensureWindow(id);
-  });
-};
-
-export const recreatePaymentNotifications = async (id: number): Promise<ScheduleResult> => {
-  await cancelNotificationsForPayment(id);
-  const [payment] = await db
-    .select()
-    .from(upcomingPayments)
-    .where(eq(upcomingPayments.id, id));
-  if (!payment) return { ok: true };
-  return safeScheduleNotifications(async () => {
-    await rebuildNotificationsForPayment(payment);
-    await ensureWindow(id);
-  });
+  await ensureWindow(id);
 };
 
 export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
@@ -340,8 +282,6 @@ export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
     .select({ upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId })
     .from(upcomingPaymentInstances)
     .where(eq(upcomingPaymentInstances.id, instanceId));
-
-  await cancelNotificationsForInstance(instanceId);
 
   await db
     .update(upcomingPaymentInstances)
@@ -394,21 +334,6 @@ export const restoreUpcomingPaymentInstance = async (instanceId: number) => {
     .update(upcomingPaymentInstances)
     .set({ status: "pending", canceledAt: null })
     .where(eq(upcomingPaymentInstances.id, instanceId));
-
-  const [row] = await db
-    .select({
-      instance: getTableColumns(upcomingPaymentInstances),
-      payment: getTableColumns(upcomingPayments),
-    })
-    .from(upcomingPaymentInstances)
-    .innerJoin(
-      upcomingPayments,
-      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
-    )
-    .where(eq(upcomingPaymentInstances.id, instanceId));
-
-  if (!row) return;
-  await safeScheduleNotifications(() => createNotification(row.payment, row.instance));
 };
 
 export const recomputeInstanceStatus = async (
@@ -439,7 +364,6 @@ export const recomputeInstanceStatus = async (
   const currentlyPaid = instance.status === "paid";
 
   if (shouldBePaid && !currentlyPaid) {
-    await cancelNotificationsForInstance(instanceId, executor);
     await executor
       .update(upcomingPaymentInstances)
       .set({ status: "paid", paidAt: new Date().toISOString() })
@@ -454,24 +378,6 @@ export const recomputeInstanceStatus = async (
       .update(upcomingPaymentInstances)
       .set({ status: "pending", paidAt: null })
       .where(eq(upcomingPaymentInstances.id, instanceId));
-
-    const [row] = await executor
-      .select({
-        instance: getTableColumns(upcomingPaymentInstances),
-        payment: getTableColumns(upcomingPayments),
-      })
-      .from(upcomingPaymentInstances)
-      .innerJoin(
-        upcomingPayments,
-        eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
-      )
-      .where(eq(upcomingPaymentInstances.id, instanceId));
-
-    if (row) {
-      await safeScheduleNotifications(() =>
-        createNotification(row.payment, row.instance, executor),
-      );
-    }
   }
 };
 
@@ -578,14 +484,10 @@ export const getUpcomingInstancesForSection = async () => {
       dueDate: upcomingPaymentInstances.dueDate,
       expectedAmount: upcomingPaymentInstances.expectedAmount,
       status: upcomingPaymentInstances.status,
-      notificationIds: upcomingPaymentInstances.notificationIds,
       name: upcomingPayments.name,
       staleSince: upcomingPayments.staleSince,
       recurrence: upcomingPayments.recurrence,
       endDate: upcomingPayments.endDate,
-      notifyDaysBefore: upcomingPayments.notifyDaysBefore,
-      notifyOnDueDay: upcomingPayments.notifyOnDueDay,
-      notifyOnMissed: upcomingPayments.notifyOnMissed,
       currencyCode: upcomingPayments.currencyCode,
       currencySymbol: upcomingPayments.currencySymbol,
       iconFamily: categories.iconFamily,
@@ -624,9 +526,6 @@ export const getAllUpcomingPayments = async () => {
       ),
       pendingCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' THEN 1 END)`.mapWith(
         Number
-      ),
-      missingInstanceReminderCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} AND (${upcomingPaymentInstances.notificationIds} IS NULL OR ${upcomingPaymentInstances.notificationIds} = '' OR ${upcomingPaymentInstances.notificationIds} = '[]') THEN 1 END)`.mapWith(
-        Number,
       ),
     })
     .from(upcomingPayments)

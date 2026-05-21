@@ -1,17 +1,3 @@
-CREATE TABLE `Notifications` (
-	`id` integer PRIMARY KEY NOT NULL,
-	`osNotificationId` text,
-	`entityType` text,
-	`entityId` integer,
-	`title` text NOT NULL,
-	`body` text,
-	`data` text,
-	`scheduledFor` text NOT NULL,
-	`firedAt` text,
-	`viewedAt` text,
-	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE `UpcomingPaymentContributions` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`instanceId` integer NOT NULL,
@@ -30,7 +16,6 @@ CREATE TABLE `UpcomingPaymentInstances` (
 	`status` text(10) DEFAULT 'pending' NOT NULL,
 	`paidAt` text,
 	`canceledAt` text,
-	`notificationIds` text,
 	FOREIGN KEY (`upcomingPaymentId`) REFERENCES `UpcomingPayments`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
@@ -50,9 +35,6 @@ CREATE TABLE `UpcomingPayments` (
 	`recurrence` text(10) DEFAULT 'none' NOT NULL,
 	`customIntervalValue` integer,
 	`customIntervalUnit` text,
-	`notifyDaysBefore` integer,
-	`notifyOnDueDay` integer DEFAULT true NOT NULL,
-	`notifyOnMissed` integer DEFAULT true NOT NULL,
 	`isActive` integer DEFAULT true NOT NULL,
 	`staleSince` text,
 	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL,

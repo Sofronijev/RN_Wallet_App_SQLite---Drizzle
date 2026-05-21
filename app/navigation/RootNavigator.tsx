@@ -7,7 +7,6 @@ import DrizzleStudio from "db/DrizzleStudio";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { StatusBar } from "expo-status-bar";
 import { useAppTheme } from "app/theme/ThemeContext";
-import useNotifications from "app/notifications/useNotifications";
 
 const RootNavigator: React.FC = () => {
   const { pinVisible, isLoading } = usePinCodeStatus();
@@ -21,8 +20,6 @@ const RootNavigator: React.FC = () => {
       closeSheet();
     }
   }, [pinVisible]);
-
-  useNotifications();
 
   return (
     <View style={{ flex: 1 }}>

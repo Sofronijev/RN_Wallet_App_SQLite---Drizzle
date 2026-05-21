@@ -60,5 +60,3 @@ export type UpcomingPaymentInstance = InferSelectModel<typeof schema.upcomingPay
 export type UpcomingPaymentContribution = InferSelectModel<
   typeof schema.upcomingPaymentContributions
 >;
-
-export type NewNotification = InferInsertModel<typeof schema.notifications>;

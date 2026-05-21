@@ -3,7 +3,6 @@ import { FlatList, StyleSheet, View } from "react-native";
 import NullScreen from "components/NullScreen";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { useGetUpcomingInstancesForSection } from "app/queries/upcomingPayments";
-import NotificationPermissionBanner from "app/notifications/NotificationPermissionBanner";
 import UpcomingPaymentRow from "./UpcomingPaymentRow";
 
 const UpcomingPaymentsMonth: React.FC = () => {
@@ -13,9 +12,6 @@ const UpcomingPaymentsMonth: React.FC = () => {
   if (rows.length === 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.bannerWrap}>
-          <NotificationPermissionBanner />
-        </View>
         <NullScreen
           icon='celebrate'
           title="You're all caught up!"
@@ -32,8 +28,6 @@ const UpcomingPaymentsMonth: React.FC = () => {
       data={rows}
       keyExtractor={(row) => row.id.toString()}
       renderItem={({ item }) => <UpcomingPaymentRow row={item} />}
-      ListHeaderComponent={<NotificationPermissionBanner />}
-      ListHeaderComponentStyle={styles.header}
     />
   );
 };
@@ -50,12 +44,5 @@ const themedStyles = (theme: AppTheme) =>
       padding: 16,
       gap: 8,
       paddingBottom: 40,
-    },
-    header: {
-      marginBottom: 8,
-    },
-    bannerWrap: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
     },
   });

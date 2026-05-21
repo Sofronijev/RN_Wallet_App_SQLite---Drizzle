@@ -18,8 +18,6 @@ import { RouteProp } from "@react-navigation/native";
 import CustomButton from "components/CustomButton";
 import RepetitionPicker from "./fields/RepetitionPicker";
 import EndDatePicker from "./fields/EndDatePicker";
-import NotificationSettings from "./fields/NotificationSettings";
-import NotificationPermissionBanner from "app/notifications/NotificationPermissionBanner";
 import LockedInfoBox from "./LockedInfoBox";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
@@ -99,9 +97,6 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
         values.recurrence === "custom" ? values.customIntervalValue : null,
       customIntervalUnit:
         values.recurrence === "custom" ? values.customIntervalUnit : null,
-      notifyDaysBefore: values.notifyDaysBefore,
-      notifyOnDueDay: values.notifyOnDueDay,
-      notifyOnMissed: values.notifyOnMissed,
     };
 
     const onError = (err: unknown) => {
@@ -139,9 +134,6 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
       customIntervalValue: null,
       customIntervalUnit: null,
       endDate: null,
-      notifyDaysBefore: null,
-      notifyOnDueDay: true,
-      notifyOnMissed: true,
     };
   }, [isEditMode, editPayment, categoriesById, selectedWallet]);
 
@@ -370,17 +362,6 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
             <InputErrorLabel text={errors.endDate} isVisible={!!errors.endDate} />
           </View>
         )}
-        <View style={styles.input}>
-          <NotificationPermissionBanner />
-          <NotificationSettings
-            notifyDaysBefore={values.notifyDaysBefore}
-            onNotifyDaysBeforeChange={(value) => setFieldValue("notifyDaysBefore", value)}
-            notifyOnDueDay={values.notifyOnDueDay}
-            onNotifyOnDueDayChange={(value) => setFieldValue("notifyOnDueDay", value)}
-            notifyOnMissed={values.notifyOnMissed}
-            onNotifyOnMissedChange={(value) => setFieldValue("notifyOnMissed", value)}
-          />
-        </View>
         <CustomButton title='Save' onPress={onSubmit} style={styles.button} />
       </View>
       <AppActivityIndicator hideScreen isLoading={isLoading} />

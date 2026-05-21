@@ -24,8 +24,5 @@ export const deriveEditInitialValues = (
     customIntervalValue: payment.customIntervalValue,
     customIntervalUnit: payment.customIntervalUnit as CustomIntervalUnit | null,
     endDate: payment.endDate,
-    notifyDaysBefore: payment.notifyDaysBefore,
-    notifyOnDueDay: payment.notifyOnDueDay,
-    notifyOnMissed: payment.notifyOnMissed,
   };
 };

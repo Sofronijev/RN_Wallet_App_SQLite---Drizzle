@@ -16,9 +16,6 @@ export type UpcomingPaymentFormInputs = {
   customIntervalValue: number | null;
   customIntervalUnit: CustomIntervalUnit | null;
   endDate: string | null;
-  notifyDaysBefore: number | null;
-  notifyOnDueDay: boolean;
-  notifyOnMissed: boolean;
 };
 
 export const upcomingPaymentValidationSchema = Yup.object({
@@ -75,7 +72,4 @@ export const upcomingPaymentValidationSchema = Yup.object({
         }),
       otherwise: (schema) => schema.notRequired(),
     }),
-  notifyDaysBefore: Yup.number().nullable(),
-  notifyOnDueDay: Yup.boolean(),
-  notifyOnMissed: Yup.boolean(),
 });
