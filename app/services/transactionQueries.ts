@@ -192,12 +192,17 @@ type LinkOpts = {
   linkedUpcomingInstanceId?: number | null;
 };
 
-export const addTransaction = async (transaction: NewTransaction, opts?: LinkOpts) => {
+export type TransactionWriteResult = { touchedUpcoming: boolean };
+
+export const addTransaction = async (
+  transaction: NewTransaction,
+  opts?: LinkOpts,
+): Promise<TransactionWriteResult> => {
   const linkedUpcomingInstanceId = opts?.linkedUpcomingInstanceId ?? null;
 
   if (linkedUpcomingInstanceId == null) {
     await db.insert(transactions).values(transaction);
-    return;
+    return { touchedUpcoming: false };
   }
 
   await db.transaction(async (tx) => {
@@ -213,10 +218,11 @@ export const addTransaction = async (transaction: NewTransaction, opts?: LinkOpt
 
     await recomputeInstanceStatus(linkedUpcomingInstanceId, tx);
   });
+  return { touchedUpcoming: true };
 };
 
-export const deleteTransaction = async (id: number) => {
-  await db.transaction(async (tx) => {
+export const deleteTransaction = async (id: number): Promise<TransactionWriteResult> => {
+  return db.transaction(async (tx) => {
     const priorInstanceId = await findLinkedInstanceId(tx, id);
 
     await tx.delete(transactions).where(eq(transactions.id, id));
@@ -224,6 +230,7 @@ export const deleteTransaction = async (id: number) => {
     if (priorInstanceId != null) {
       await recomputeInstanceStatus(priorInstanceId, tx);
     }
+    return { touchedUpcoming: priorInstanceId != null };
   });
 };
 
@@ -231,10 +238,10 @@ export const editTransaction = async (
   id: number,
   data: Partial<TransactionType>,
   opts?: LinkOpts,
-) => {
+): Promise<TransactionWriteResult> => {
   const newInstanceId = opts?.linkedUpcomingInstanceId ?? null;
 
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const priorInstanceId = await findLinkedInstanceId(tx, id);
 
     await tx.update(transactions).set(data).where(eq(transactions.id, id));
@@ -259,5 +266,7 @@ export const editTransaction = async (
     for (const iid of toRecompute) {
       await recomputeInstanceStatus(iid, tx);
     }
+
+    return { touchedUpcoming: priorInstanceId != null || newInstanceId != null };
   });
 };

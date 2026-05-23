@@ -132,13 +132,16 @@ export const useGetTransactionByIdQuery = (transactionId: number | null | undefi
   };
 };
 
-const invalidateAfterTransactionWrite = (clientQuery: ReturnType<typeof useQueryClient>) => {
+const invalidateAfterTransactionWrite = (
+  clientQuery: ReturnType<typeof useQueryClient>,
+  touchedUpcoming: boolean,
+) => {
   clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
   clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
   clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
   clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
   clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
-  invalidateUpcomingPayments(clientQuery);
+  if (touchedUpcoming) invalidateUpcomingPayments(clientQuery);
 };
 
 export const addTransactionMutation = () => {
@@ -151,7 +154,7 @@ export const addTransactionMutation = () => {
       transaction: NewTransaction;
       linkedUpcomingInstanceId?: number | null;
     }) => addTransaction(transaction, { linkedUpcomingInstanceId }),
-    onSuccess: () => invalidateAfterTransactionWrite(clientQuery),
+    onSuccess: (result) => invalidateAfterTransactionWrite(clientQuery, result.touchedUpcoming),
   });
 
   return {
@@ -173,7 +176,7 @@ export const editTransactionMutation = () => {
       transaction: Partial<TransactionType>;
       linkedUpcomingInstanceId?: number | null;
     }) => editTransaction(id, transaction, { linkedUpcomingInstanceId }),
-    onSuccess: () => invalidateAfterTransactionWrite(clientQuery),
+    onSuccess: (result) => invalidateAfterTransactionWrite(clientQuery, result.touchedUpcoming),
   });
   return {
     editTransaction: mutate,
@@ -186,7 +189,7 @@ export const deleteTransactionMutation = () => {
   const clientQuery = useQueryClient();
   const { mutate, isPending, isError } = useMutation({
     mutationFn: (id: number) => deleteTransaction(id),
-    onSuccess: () => invalidateAfterTransactionWrite(clientQuery),
+    onSuccess: (result) => invalidateAfterTransactionWrite(clientQuery, result.touchedUpcoming),
   });
 
   return {
