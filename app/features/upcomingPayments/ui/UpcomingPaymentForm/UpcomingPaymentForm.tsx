@@ -59,10 +59,6 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
   const isSubmitting = isSaving || isUpdating;
   const isInitialDataReady = isEditMode ? !isLoadingEdit && !!editPayment : !!selectedWallet;
 
-  if (!isInitialDataReady) {
-    return <AppActivityIndicator hideScreen isLoading />;
-  }
-
   const walletCurrencies = useMemo(() => {
     const map = new Map<string, { currencyCode: string; currencySymbol: string }>();
     for (const w of wallets) {
@@ -149,6 +145,10 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
       onSubmit: onUpcomingSubmit,
       enableReinitialize: true,
     });
+
+  if (!isInitialDataReady) {
+    return <AppActivityIndicator hideScreen isLoading />;
+  }
 
   const walletCurrency = values.currencySymbol || values.currencyCode;
 
@@ -318,7 +318,10 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.inputNoInset}>
           <RepetitionPicker
             recurrence={values.recurrence}
-            onRecurrenceChange={(value) => setFieldValue("recurrence", value)}
+            onRecurrenceChange={(value) => {
+              setFieldValue("recurrence", value);
+              if (value === "none") setFieldValue("endDate", null);
+            }}
             customIntervalValue={values.customIntervalValue}
             onCustomIntervalValueChange={(value) => setFieldValue("customIntervalValue", value)}
             customIntervalUnit={values.customIntervalUnit}

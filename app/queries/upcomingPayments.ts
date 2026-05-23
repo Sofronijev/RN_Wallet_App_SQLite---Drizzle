@@ -28,10 +28,11 @@ export const useGetUpcomingPayments = () => {
 export type UpcomingPaymentRow = ReturnType<typeof useGetUpcomingPayments>["data"][number];
 
 export const useGetUpcomingPaymentById = (id: number | undefined) => {
+  const enabled = typeof id === "number";
   const { data, isLoading, isError } = useQuery({
+    enabled,
     queryKey: [queryKeys.upcomingPaymentById, id],
-    queryFn: () => getUpcomingPaymentById(id as number),
-    enabled: typeof id === "number",
+    queryFn: enabled ? () => getUpcomingPaymentById(id) : skipToken,
   });
 
   return { data: data ?? null, isLoading, isError };
@@ -41,10 +42,11 @@ export type UpcomingPaymentDetailRow = NonNullable<
 >;
 
 export const useGetUpcomingPaymentInstances = (id: number | undefined) => {
+  const enabled = typeof id === "number";
   const { data, isLoading, isError } = useQuery({
+    enabled,
     queryKey: [queryKeys.upcomingPaymentInstances, id],
-    queryFn: () => getUpcomingPaymentInstancesWithContributions(id as number),
-    enabled: typeof id === "number",
+    queryFn: enabled ? () => getUpcomingPaymentInstancesWithContributions(id) : skipToken,
   });
 
   return { data: data ?? [], isLoading, isError };

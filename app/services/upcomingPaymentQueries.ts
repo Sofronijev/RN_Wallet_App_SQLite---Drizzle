@@ -13,7 +13,6 @@ import {
   desc,
   eq,
   getTableColumns,
-  gt,
   gte,
   isNull,
   lt,
@@ -251,17 +250,29 @@ export const updateUpcomingPayment = async (
     .where(eq(upcomingPayments.id, id));
   if (!updatedPayment) return;
 
-  // If endDate moved earlier, drop any pending instances now past the new end.
-  if (updatedPayment.endDate) {
-    await db
-      .delete(upcomingPaymentInstances)
-      .where(
-        and(
-          eq(upcomingPaymentInstances.upcomingPaymentId, id),
-          eq(upcomingPaymentInstances.status, "pending"),
-          gt(upcomingPaymentInstances.dueDate, updatedPayment.endDate),
-        ),
-      );
+  // Drop all pending instances so they get regenerated under the new schedule.
+  // Paid/canceled instances are settled history and stay put.
+  await db
+    .delete(upcomingPaymentInstances)
+    .where(
+      and(
+        eq(upcomingPaymentInstances.upcomingPaymentId, id),
+        eq(upcomingPaymentInstances.status, "pending"),
+      ),
+    );
+
+  // No settled history left → re-seed at firstDueDate so ensureWindow has an anchor.
+  const [anchor] = await db
+    .select({ id: upcomingPaymentInstances.id })
+    .from(upcomingPaymentInstances)
+    .where(eq(upcomingPaymentInstances.upcomingPaymentId, id))
+    .limit(1);
+  if (!anchor) {
+    await db.insert(upcomingPaymentInstances).values({
+      upcomingPaymentId: id,
+      dueDate: updatedPayment.firstDueDate,
+      expectedAmount: updatedPayment.amount ?? null,
+    });
   }
 
   await ensureWindow(id);
@@ -272,7 +283,10 @@ export const softDeleteUpcomingPayment = async (id: number) => {
 };
 
 export const restoreUpcomingPayment = async (id: number): Promise<void> => {
-  await db.update(upcomingPayments).set({ isActive: true }).where(eq(upcomingPayments.id, id));
+  await db
+    .update(upcomingPayments)
+    .set({ isActive: true, staleSince: null })
+    .where(eq(upcomingPayments.id, id));
   await ensureWindow(id);
 };
 
@@ -335,10 +349,15 @@ export const restoreUpcomingPaymentInstance = async (instanceId: number) => {
     .where(eq(upcomingPaymentInstances.id, instanceId));
 };
 
+// Signal returned to the caller when a stale flag needs clearing. The catch-up
+// loop in clearStaleFlag can run hundreds of iterations, so we never run it
+// inside the caller's transaction — the caller invokes it after commit.
+export type RecomputeStaleSignal = { clearStaleForPaymentId: number };
+
 export const recomputeInstanceStatus = async (
   instanceId: number,
   executor: DbExecutor = db
-): Promise<void> => {
+): Promise<RecomputeStaleSignal | null> => {
   const [instance] = await executor
     .select({
       upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId,
@@ -351,7 +370,7 @@ export const recomputeInstanceStatus = async (
       eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
     )
     .where(eq(upcomingPaymentInstances.id, instanceId));
-  if (!instance) return;
+  if (!instance) return null;
 
   const [link] = await executor
     .select({ id: upcomingPaymentContributions.id })
@@ -360,25 +379,24 @@ export const recomputeInstanceStatus = async (
     .limit(1);
 
   const shouldBePaid = link != null;
-  const currentlyPaid = instance.status === "paid";
 
-  if (shouldBePaid && !currentlyPaid) {
+  if (shouldBePaid && instance.status === "pending") {
     await executor
       .update(upcomingPaymentInstances)
       .set({ status: "paid", paidAt: new Date().toISOString() })
       .where(eq(upcomingPaymentInstances.id, instanceId));
     if (instance.parentStaleSince != null) {
-      await clearStaleFlag(instance.upcomingPaymentId, executor);
-    } else {
-      await ensureWindow(instance.upcomingPaymentId, executor);
+      return { clearStaleForPaymentId: instance.upcomingPaymentId };
     }
-  } else if (!shouldBePaid && currentlyPaid) {
+    await ensureWindow(instance.upcomingPaymentId, executor);
+  } else if (!shouldBePaid && instance.status === "paid") {
     await executor
       .update(upcomingPaymentInstances)
       .set({ status: "pending", paidAt: null })
       .where(eq(upcomingPaymentInstances.id, instanceId));
     await ensureWindow(instance.upcomingPaymentId, executor);
   }
+  return null;
 };
 
 export const getUpcomingPaymentInstancesWithContributions = async (upcomingPaymentId: number) => {

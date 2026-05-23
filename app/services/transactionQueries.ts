@@ -20,7 +20,11 @@ import {
   sql,
   sum,
 } from "drizzle-orm";
-import { recomputeInstanceStatus } from "./upcomingPaymentQueries";
+import {
+  clearStaleFlag,
+  recomputeInstanceStatus,
+  RecomputeStaleSignal,
+} from "./upcomingPaymentQueries";
 
 const transactionListColumns = {
   ...getTableColumns(transactions),
@@ -194,6 +198,12 @@ type LinkOpts = {
 
 export type TransactionWriteResult = { touchedUpcoming: boolean };
 
+const runDeferredStaleClears = async (signals: RecomputeStaleSignal[]) => {
+  for (const s of signals) {
+    await clearStaleFlag(s.clearStaleForPaymentId);
+  }
+};
+
 export const addTransaction = async (
   transaction: NewTransaction,
   opts?: LinkOpts,
@@ -205,7 +215,7 @@ export const addTransaction = async (
     return { touchedUpcoming: false };
   }
 
-  await db.transaction(async (tx) => {
+  const signal = await db.transaction(async (tx) => {
     const [inserted] = await tx
       .insert(transactions)
       .values(transaction)
@@ -216,22 +226,24 @@ export const addTransaction = async (
       transactionId: inserted.id,
     });
 
-    await recomputeInstanceStatus(linkedUpcomingInstanceId, tx);
+    return recomputeInstanceStatus(linkedUpcomingInstanceId, tx);
   });
+  if (signal) await runDeferredStaleClears([signal]);
   return { touchedUpcoming: true };
 };
 
 export const deleteTransaction = async (id: number): Promise<TransactionWriteResult> => {
-  return db.transaction(async (tx) => {
+  const { touchedUpcoming, signal } = await db.transaction(async (tx) => {
     const priorInstanceId = await findLinkedInstanceId(tx, id);
 
     await tx.delete(transactions).where(eq(transactions.id, id));
 
-    if (priorInstanceId != null) {
-      await recomputeInstanceStatus(priorInstanceId, tx);
-    }
-    return { touchedUpcoming: priorInstanceId != null };
+    const recomputed =
+      priorInstanceId != null ? await recomputeInstanceStatus(priorInstanceId, tx) : null;
+    return { touchedUpcoming: priorInstanceId != null, signal: recomputed };
   });
+  if (signal) await runDeferredStaleClears([signal]);
+  return { touchedUpcoming };
 };
 
 export const editTransaction = async (
@@ -241,7 +253,7 @@ export const editTransaction = async (
 ): Promise<TransactionWriteResult> => {
   const newInstanceId = opts?.linkedUpcomingInstanceId ?? null;
 
-  return db.transaction(async (tx) => {
+  const { touchedUpcoming, signals } = await db.transaction(async (tx) => {
     const priorInstanceId = await findLinkedInstanceId(tx, id);
 
     await tx.update(transactions).set(data).where(eq(transactions.id, id));
@@ -263,10 +275,17 @@ export const editTransaction = async (
     const toRecompute = new Set<number>();
     if (priorInstanceId != null) toRecompute.add(priorInstanceId);
     if (newInstanceId != null) toRecompute.add(newInstanceId);
+    const collected: RecomputeStaleSignal[] = [];
     for (const iid of toRecompute) {
-      await recomputeInstanceStatus(iid, tx);
+      const s = await recomputeInstanceStatus(iid, tx);
+      if (s) collected.push(s);
     }
 
-    return { touchedUpcoming: priorInstanceId != null || newInstanceId != null };
+    return {
+      touchedUpcoming: priorInstanceId != null || newInstanceId != null,
+      signals: collected,
+    };
   });
+  if (signals.length) await runDeferredStaleClears(signals);
+  return { touchedUpcoming };
 };
