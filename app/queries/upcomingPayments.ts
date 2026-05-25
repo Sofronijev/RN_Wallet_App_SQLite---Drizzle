@@ -83,7 +83,7 @@ export const invalidateUpcomingPayments = (
   }
 };
 
-export const addUpcomingPaymentMutation = () => {
+export const useAddUpcomingPaymentMutation = () => {
   const clientQuery = useQueryClient();
   const { mutate, isPending, isError } = useMutation({
     mutationFn: (payment: NewUpcomingPayment) => addUpcomingPayment(payment),

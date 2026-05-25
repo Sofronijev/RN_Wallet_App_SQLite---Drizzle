@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { startOfDay } from "date-fns";
+import { addDays, startOfDay } from "date-fns";
 import { pressableOpacityStyle } from "modules/pressable";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Label from "components/Label";
@@ -19,11 +19,14 @@ const EndDatePicker: React.FC<Props> = ({ endDate, onChange, minimumDate }) => {
   const { primary, muted } = useColors();
 
   const hasEnd = endDate !== null;
+  // The validator requires endDate strictly after firstDueDate, so the picker's
+  // floor is one day after the start.
+  const earliestEnd = addDays(startOfDay(minimumDate ?? new Date()), 1);
 
   const selectNoEnd = () => onChange(null);
   const selectHasEnd = () => {
     if (!hasEnd) {
-      onChange(formatIsoDate(startOfDay(minimumDate ?? new Date())));
+      onChange(formatIsoDate(earliestEnd));
     }
   };
 
@@ -53,7 +56,7 @@ const EndDatePicker: React.FC<Props> = ({ endDate, onChange, minimumDate }) => {
           <DatePickerInput
             date={new Date(endDate)}
             onDateSelect={onChange}
-            minimumDate={minimumDate}
+            minimumDate={earliestEnd}
             hideTime
           />
         </View>

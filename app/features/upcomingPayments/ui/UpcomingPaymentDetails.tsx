@@ -121,26 +121,29 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View style={styles.headerActions}>
-          {isArchived ? (
+      headerRight: () =>
+        isArchived ? (
+          <View style={styles.headerActions}>
             <HeaderIcon onPress={onRestore}>
               <MaterialCommunityIcons name='restore' size={22} color={colors.white} />
             </HeaderIcon>
-          ) : (
-            <>
-              <HeaderIcon onPress={onEdit}>
-                <MaterialIcons name='edit' size={22} color={colors.white} />
-              </HeaderIcon>
-              <HeaderIcon onPress={onDelete}>
-                <Ionicons name='archive' size={22} color={colors.white} />
-              </HeaderIcon>
-            </>
-          )}
-        </View>
-      ),
+          </View>
+        ) : (
+          <View style={styles.headerActions}>
+            <HeaderIcon onPress={onEdit}>
+              <MaterialIcons name='edit' size={22} color={colors.white} />
+            </HeaderIcon>
+            <HeaderIcon onPress={onDelete}>
+              <Ionicons name='archive' size={22} color={colors.white} />
+            </HeaderIcon>
+          </View>
+        ),
     });
-  }, [navigation, payment?.id, isArchived]);
+    // onEdit/onDelete/onRestore close over `id`, `payment`, and the mutation hooks.
+    // `id` is route-stable; the rest are tracked via payment?.id and isArchived,
+    // which fire after invalidation. styles.headerActions is static (flex layout
+    // only), so theme changes don't affect the rendered header.
+  }, [navigation, payment?.id, isArchived, styles.headerActions]);
 
   if (!payment) {
     return <AppActivityIndicator hideScreen isLoading={paymentLoading} />;

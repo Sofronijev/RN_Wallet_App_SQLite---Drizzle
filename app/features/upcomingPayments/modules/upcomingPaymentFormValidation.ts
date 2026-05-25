@@ -1,7 +1,6 @@
 import * as Yup from "yup";
 import { Category, Type } from "db";
 import { CUSTOM_INTERVAL_UNIT_VALUES, RECURRENCE_VALUES } from "db/schema";
-import { CategoryNumber } from "modules/categories";
 import { CustomIntervalUnit, Recurrence } from "./types";
 
 export type UpcomingPaymentFormInputs = {
@@ -26,15 +25,7 @@ export const upcomingPaymentValidationSchema = Yup.object({
     .min(0, "Amount cannot be negative")
     .label("Amount"),
   category: Yup.object().required("Please choose a category").nullable().label("Category"),
-  type: Yup.object()
-    .nullable()
-    .when("category", (category, schema) => {
-      if (category?.id === CategoryNumber.balanceCorrection) {
-        return schema.required("Balance correction requires selecting an option.");
-      }
-      return schema.notRequired();
-    })
-    .label("Type"),
+  type: Yup.object().nullable().notRequired().label("Type"),
   currencyCode: Yup.string().trim().label("Currency"),
   currencySymbol: Yup.string(),
   name: Yup.string().trim().required("Please enter a name").max(255),

@@ -22,7 +22,7 @@ import InlineNoticeBox from "components/InlineNoticeBox";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
 import {
-  addUpcomingPaymentMutation,
+  useAddUpcomingPaymentMutation,
   useGetUpcomingPaymentById,
   useUpdateUpcomingPaymentMutation,
 } from "app/queries/upcomingPayments";
@@ -51,7 +51,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
   const { data: selectedWallet } = useGetSelectedWalletQuery();
   const { data: wallets } = useGetWalletsWithBalance();
   const { categoriesById } = useGetCategories();
-  const { addUpcomingPayment, isLoading: isSaving } = addUpcomingPaymentMutation();
+  const { addUpcomingPayment, isLoading: isSaving } = useAddUpcomingPaymentMutation();
   const { updateUpcomingPayment, isLoading: isUpdating } = useUpdateUpcomingPaymentMutation();
   const { data: editPayment, isLoading: isLoadingEdit } = useGetUpcomingPaymentById(editId);
   const historyCount = editPayment?.historyCount ?? 0;

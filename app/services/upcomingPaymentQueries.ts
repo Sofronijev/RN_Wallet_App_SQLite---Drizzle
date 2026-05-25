@@ -244,6 +244,14 @@ export const updateUpcomingPayment = async (
 
   if (!needsRebuild) return;
 
+  // User is actively editing the schedule, so the "abandoned?" flag no longer
+  // applies. Clear it before rebuild, otherwise ensureWindow would no-op and
+  // leave the payment with zero pending instances.
+  await db
+    .update(upcomingPayments)
+    .set({ staleSince: null })
+    .where(eq(upcomingPayments.id, id));
+
   const [updatedPayment] = await db
     .select()
     .from(upcomingPayments)
@@ -296,10 +304,17 @@ export const cancelUpcomingPaymentInstance = async (instanceId: number) => {
     .from(upcomingPaymentInstances)
     .where(eq(upcomingPaymentInstances.id, instanceId));
 
+  // Only pending instances can be canceled — paid instances are settled and
+  // canceling one would orphan its contribution.
   await db
     .update(upcomingPaymentInstances)
     .set({ status: "canceled", canceledAt: new Date().toISOString() })
-    .where(eq(upcomingPaymentInstances.id, instanceId));
+    .where(
+      and(
+        eq(upcomingPaymentInstances.id, instanceId),
+        eq(upcomingPaymentInstances.status, "pending"),
+      ),
+    );
 
   if (instance) {
     await ensureWindow(instance.upcomingPaymentId);
@@ -460,14 +475,17 @@ export const getLinkablePendingInstances = async (
   categoryId: number,
   includeInstanceId?: number | null,
 ) => {
-  const pendingInCategory = and(
+  const activePendingInCategory = and(
+    eq(upcomingPayments.isActive, true),
     eq(upcomingPayments.categoryId, categoryId),
     eq(upcomingPaymentInstances.status, "pending"),
   );
-  const matchClause =
+  // includeInstanceId bypasses isActive so a transaction already linked to a
+  // since-archived payment still shows up in the edit form and can be unlinked.
+  const whereClause =
     includeInstanceId != null
-      ? or(pendingInCategory, eq(upcomingPaymentInstances.id, includeInstanceId))
-      : pendingInCategory;
+      ? or(activePendingInCategory, eq(upcomingPaymentInstances.id, includeInstanceId))
+      : activePendingInCategory;
 
   return db
     .select({
@@ -488,7 +506,7 @@ export const getLinkablePendingInstances = async (
       eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
     )
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
-    .where(and(eq(upcomingPayments.isActive, true), matchClause))
+    .where(whereClause)
     .orderBy(asc(upcomingPaymentInstances.dueDate));
 };
 
