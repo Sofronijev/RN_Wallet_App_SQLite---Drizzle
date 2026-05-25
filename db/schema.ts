@@ -8,6 +8,17 @@ import {
   AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
+export const RECURRENCE_VALUES = [
+  "none",
+  "daily",
+  "weekly",
+  "monthly",
+  "yearly",
+  "custom",
+] as const;
+
+export const CUSTOM_INTERVAL_UNIT_VALUES = ["day", "week", "month"] as const;
+
 const DEFAULT_USER_ID = 1;
 
 // Users Table
@@ -186,12 +197,12 @@ export const upcomingPayments = sqliteTable("UpcomingPayments", {
   endDate: text("endDate"),
   recurrence: text("recurrence", {
     length: 10,
-    enum: ["none", "daily", "weekly", "monthly", "yearly", "custom"],
+    enum: RECURRENCE_VALUES,
   })
     .default("none")
     .notNull(),
   customIntervalValue: integer("customIntervalValue"),
-  customIntervalUnit: text("customIntervalUnit", { enum: ["day", "week", "month"] }),
+  customIntervalUnit: text("customIntervalUnit", { enum: CUSTOM_INTERVAL_UNIT_VALUES }),
   isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
   staleSince: text("staleSince"),
   createdAt: text("createdAt")

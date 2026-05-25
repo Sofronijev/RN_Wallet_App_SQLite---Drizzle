@@ -1,5 +1,5 @@
 import { dateAndTimeStrings } from "constants/strings";
-import { format, formatISO, isToday, isYesterday } from "date-fns";
+import { format, formatISO, isToday, isYesterday, parseISO } from "date-fns";
 
 export const dateIsoFormat = "yyyy-MM-dd";
 export const dayAndMonthFormat = "dd MMM";
@@ -26,4 +26,18 @@ export const formatDayString = (date: Date | string | number) => {
   if (isToday(getDate)) return dateAndTimeStrings.today;
   if (isYesterday(getDate)) return dateAndTimeStrings.yesterday;
   return getFormattedDate(getDate, dayAndMonthFormat);
+};
+
+// Relative label for a date vs today ("Today", "Tomorrow", "in 5 days", "3 days ago").
+export const relativeDaysLabel = (iso: string) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = parseISO(iso);
+  due.setHours(0, 0, 0, 0);
+  const diff = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  if (diff === -1) return "Yesterday";
+  if (diff > 0) return `in ${diff} days`;
+  return `${Math.abs(diff)} days ago`;
 };

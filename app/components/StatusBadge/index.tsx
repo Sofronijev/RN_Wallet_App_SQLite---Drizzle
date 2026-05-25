@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
-type Tone = "danger" | "muted";
+type Tone = "danger" | "muted" | "success";
 
 type Props = {
   label: string;
@@ -36,5 +36,9 @@ const themeStyles = (theme: AppTheme) =>
     muted: {
       color: theme.colors.muted,
       borderColor: theme.colors.muted,
+    },
+    success: {
+      color: theme.colors.primary,
+      borderColor: theme.colors.primary,
     },
   });

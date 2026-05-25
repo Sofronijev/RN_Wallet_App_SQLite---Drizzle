@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import Label from "components/Label";
 import ButtonText from "components/ButtonText";
+import StatusBadge from "components/StatusBadge";
 import { calendarDateFormat, getFormattedDate } from "modules/timeAndDate";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingPaymentInstanceRow } from "app/queries/upcomingPayments";
@@ -28,6 +29,8 @@ const statusMeta: Record<
   pending: { label: "Pending", tone: "muted" },
 };
 
+type StatusKey = keyof typeof statusMeta;
+
 const HistoryRow: React.FC<Props> = ({
   row,
   isMissed,
@@ -39,7 +42,7 @@ const HistoryRow: React.FC<Props> = ({
   onRestore,
 }) => {
   const styles = useThemedStyles(themeStyles);
-  const meta = isMissed ? statusMeta.missed : statusMeta[row.status];
+  const meta = isMissed ? statusMeta.missed : statusMeta[row.status as StatusKey];
   const paidAmount =
     row.transactionAmount != null ? Math.abs(row.transactionAmount) : row.expectedAmount ?? null;
   const isCanceled = row.status === "canceled";
@@ -55,11 +58,7 @@ const HistoryRow: React.FC<Props> = ({
       <View style={styles.topRow}>
         <View style={styles.left}>
           <Label style={styles.date}>{getFormattedDate(row.dueDate, calendarDateFormat)}</Label>
-          <View style={[styles.pill, styles[`pill_${meta.tone}` as const]]}>
-            <Label style={[styles.pillText, styles[`pillText_${meta.tone}` as const]]}>
-              {meta.label}
-            </Label>
-          </View>
+          <StatusBadge label={meta.label} tone={meta.tone} />
         </View>
         <Label style={styles.amount}>
           {formatPaymentAmount(paidAmount, { delimiter, decimal, currency })}
@@ -126,34 +125,6 @@ const themeStyles = (theme: AppTheme) =>
     date: {
       fontSize: 14,
       fontWeight: "500",
-    },
-    pill: {
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 4,
-      borderWidth: 1,
-    },
-    pill_success: {
-      borderColor: theme.colors.primary,
-    },
-    pill_danger: {
-      borderColor: theme.colors.redDark,
-    },
-    pill_muted: {
-      borderColor: theme.colors.muted,
-    },
-    pillText: {
-      fontSize: 11,
-      fontWeight: "600",
-    },
-    pillText_success: {
-      color: theme.colors.primary,
-    },
-    pillText_danger: {
-      color: theme.colors.redDark,
-    },
-    pillText_muted: {
-      color: theme.colors.muted,
     },
     amount: {
       fontSize: 14,

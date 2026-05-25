@@ -4,12 +4,14 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
+type Tone = "locked" | "info";
+
 type Props = {
   text: string;
-  tone?: "locked" | "info";
+  tone?: Tone;
 };
 
-const LockedInfoBox: React.FC<Props> = ({ text, tone = "locked" }) => {
+const InlineNoticeBox: React.FC<Props> = ({ text, tone = "locked" }) => {
   const styles = useThemedStyles(themeStyles);
   const iconName = tone === "locked" ? "lock-outline" : "info-outline";
 
@@ -21,7 +23,7 @@ const LockedInfoBox: React.FC<Props> = ({ text, tone = "locked" }) => {
   );
 };
 
-export default LockedInfoBox;
+export default InlineNoticeBox;
 
 const themeStyles = (theme: AppTheme) =>
   StyleSheet.create({

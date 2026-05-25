@@ -1,2 +1,4 @@
-export type Recurrence = "none" | "daily" | "weekly" | "monthly" | "yearly" | "custom";
-export type CustomIntervalUnit = "day" | "week" | "month";
+import { UpcomingPayment } from "db";
+
+export type Recurrence = UpcomingPayment["recurrence"];
+export type CustomIntervalUnit = NonNullable<UpcomingPayment["customIntervalUnit"]>;

@@ -1,5 +1,6 @@
 import * as Yup from "yup";
 import { Category, Type } from "db";
+import { CUSTOM_INTERVAL_UNIT_VALUES, RECURRENCE_VALUES } from "db/schema";
 import { CategoryNumber } from "modules/categories";
 import { CustomIntervalUnit, Recurrence } from "./types";
 
@@ -37,9 +38,7 @@ export const upcomingPaymentValidationSchema = Yup.object({
   currencyCode: Yup.string().trim().label("Currency"),
   currencySymbol: Yup.string(),
   name: Yup.string().trim().required("Please enter a name").max(255),
-  recurrence: Yup.string()
-    .oneOf(["none", "daily", "weekly", "monthly", "yearly", "custom"])
-    .required(),
+  recurrence: Yup.string().oneOf([...RECURRENCE_VALUES]).required(),
   customIntervalValue: Yup.number()
     .nullable()
     .when("recurrence", {
@@ -57,7 +56,7 @@ export const upcomingPaymentValidationSchema = Yup.object({
     .when("recurrence", {
       is: "custom",
       then: (schema) =>
-        schema.oneOf(["day", "week", "month"]).required("Pick an interval unit"),
+        schema.oneOf([...CUSTOM_INTERVAL_UNIT_VALUES]).required("Pick an interval unit"),
       otherwise: (schema) => schema.notRequired(),
     }),
   endDate: Yup.string()

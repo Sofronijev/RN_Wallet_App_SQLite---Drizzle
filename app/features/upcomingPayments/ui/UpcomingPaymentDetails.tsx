@@ -3,7 +3,6 @@ import { Alert, FlatList, StyleSheet, View } from "react-native";
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { parseISO } from "date-fns";
 import { AppStackParamList } from "navigation/routes";
 import Label from "components/Label";
 import ShadowBoxView from "components/ShadowBoxView";
@@ -12,7 +11,12 @@ import { getCategoryIcon } from "components/CategoryIcon";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
-import { calendarDateFormat, dueDateFormat, getFormattedDate } from "modules/timeAndDate";
+import {
+  calendarDateFormat,
+  dueDateFormat,
+  getFormattedDate,
+  relativeDaysLabel,
+} from "modules/timeAndDate";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import {
   useCancelUpcomingPaymentInstanceMutation,
@@ -33,19 +37,6 @@ import HistoryRow from "./details/HistoryRow";
 type Props = {
   navigation: StackNavigationProp<AppStackParamList>;
   route: RouteProp<AppStackParamList, "UpcomingPaymentDetails">;
-};
-
-const daysUntil = (iso: string) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = parseISO(iso);
-  due.setHours(0, 0, 0, 0);
-  const diff = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Tomorrow";
-  if (diff === -1) return "Yesterday";
-  if (diff > 0) return `in ${diff} days`;
-  return `${Math.abs(diff)} days ago`;
 };
 
 const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
@@ -240,7 +231,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
                     <Label style={styles.nextDate}>
                       {getFormattedDate(nextPending.dueDate, dueDateFormat)}
                     </Label>
-                    <Label style={styles.nextSub}>{daysUntil(nextPending.dueDate)}</Label>
+                    <Label style={styles.nextSub}>{relativeDaysLabel(nextPending.dueDate)}</Label>
                   </View>
                   <Label style={styles.nextAmount}>
                     {formatExpectedAmount(nextPending.expectedAmount, {

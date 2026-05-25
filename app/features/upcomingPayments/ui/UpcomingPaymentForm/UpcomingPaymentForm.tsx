@@ -18,7 +18,7 @@ import { RouteProp } from "@react-navigation/native";
 import CustomButton from "components/CustomButton";
 import RepetitionPicker from "./fields/RepetitionPicker";
 import EndDatePicker from "./fields/EndDatePicker";
-import LockedInfoBox from "./LockedInfoBox";
+import InlineNoticeBox from "components/InlineNoticeBox";
 import { getCategoryIcon } from "components/CategoryIcon";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
 import {
@@ -280,7 +280,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
         </Label>
         <View style={styles.horizontalInset}>
           {isLocked && hasMultipleCurrencies && (
-            <LockedInfoBox text='Currency is locked because this payment has recorded history. Changing it would mix currencies across paid transactions.' />
+            <InlineNoticeBox text='Currency is locked because this payment has recorded history. Changing it would mix currencies across paid transactions.' />
           )}
           {hasMultipleCurrencies && (
             <InputErrorLabel text={errors.currencyCode} isVisible={!!errors.currencyCode} />
@@ -348,12 +348,12 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
             />
           </View>
           {isLocked && (
-            <LockedInfoBox text='Start date is locked because this payment has recorded history. It anchors the recurrence — changing it would invalidate past due dates.' />
+            <InlineNoticeBox text='Start date is locked because this payment has recorded history. It anchors the recurrence — changing it would invalidate past due dates.' />
           )}
         </View>
         {isEditMode && !isLocked && values.recurrence !== "none" && (
           <View style={styles.input}>
-            <LockedInfoBox
+            <InlineNoticeBox
               text='Changes to repetition or interval apply to future instances only. Past paid instances are unchanged.'
               tone='info'
             />
