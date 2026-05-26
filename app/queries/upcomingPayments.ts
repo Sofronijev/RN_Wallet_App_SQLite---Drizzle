@@ -10,6 +10,7 @@ import {
   getUpcomingPaymentById,
   getUpcomingPaymentInstancesWithContributions,
   getUpcomingPaymentInstanceWithContext,
+  hardDeleteUpcomingPayment,
   restoreUpcomingPayment,
   restoreUpcomingPaymentInstance,
   softDeleteUpcomingPayment,
@@ -195,6 +196,30 @@ export const useDeleteUpcomingPaymentMutation = () => {
 
   return {
     deleteUpcomingPayment: mutate,
+    isLoading: isPending,
+    isError,
+  };
+};
+
+export const useHardDeleteUpcomingPaymentMutation = () => {
+  const clientQuery = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: ({ id, cascadeTransactions }: { id: number; cascadeTransactions: boolean }) =>
+      hardDeleteUpcomingPayment(id, cascadeTransactions),
+    onSuccess: (_data, variables) => {
+      invalidateUpcomingPayments(clientQuery, variables.id);
+      if (variables.cascadeTransactions) {
+        clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
+        clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
+        clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+        clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
+        clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
+      }
+    },
+  });
+
+  return {
+    hardDeleteUpcomingPayment: mutate,
     isLoading: isPending,
     isError,
   };

@@ -6,7 +6,7 @@ import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
 import { MaterialIcons } from "@expo/vector-icons";
-import { formatIsoDate } from "modules/timeAndDate";
+import { calendarDateFormat, formatIsoDate, getFormattedDate } from "modules/timeAndDate";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
@@ -340,13 +340,20 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
         </View>
         <View style={styles.input}>
           <Label style={styles.heading}>Start date</Label>
-          <View style={isLocked && styles.lockedWrapper} pointerEvents={isLocked ? "none" : "auto"}>
+          {isLocked ? (
+            <View style={styles.lockedDate}>
+              <MaterialIcons name='lock-outline' size={18} color={primary} />
+              <Label style={styles.lockedDateText}>
+                {getFormattedDate(values.date, calendarDateFormat)}
+              </Label>
+            </View>
+          ) : (
             <DatePickerInput
               date={new Date(values.date ?? undefined)}
               onDateSelect={onDateChange}
               hideTime
             />
-          </View>
+          )}
           {isLocked && (
             <InlineNoticeBox text='Start date is locked because this payment has recorded history. It anchors the recurrence — changing it would invalidate past due dates.' />
           )}
@@ -455,4 +462,14 @@ const themeStyles = (theme: AppTheme) =>
     label: { fontSize: 20, flex: 1, fontWeight: "500" },
     placeHolder: { color: theme.colors.placeholder },
     lockedWrapper: { opacity: 0.55 },
+    lockedDate: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 6,
+    },
+    lockedDateText: {
+      fontSize: 16,
+      fontWeight: "500",
+    },
   });

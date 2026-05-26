@@ -28,6 +28,20 @@ export const formatDayString = (date: Date | string | number) => {
   return getFormattedDate(getDate, dayAndMonthFormat);
 };
 
+// Short label for a due date: "Today" / "Tomorrow" / short weekday ("Mon").
+// Used on row labels where the full date is redundant — the user knows the
+// current week from context, so day-name is the most readable cue.
+export const dueDateShortLabel = (iso: string) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = parseISO(iso);
+  due.setHours(0, 0, 0, 0);
+  const diff = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  return format(due, "E");
+};
+
 // Relative label for a date vs today ("Today", "Tomorrow", "in 5 days", "3 days ago").
 export const relativeDaysLabel = (iso: string) => {
   const today = new Date();

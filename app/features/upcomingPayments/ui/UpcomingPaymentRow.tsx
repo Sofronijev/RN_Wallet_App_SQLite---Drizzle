@@ -4,7 +4,7 @@ import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import ButtonText from "components/ButtonText";
 import { pressableOpacityStyle } from "modules/pressable";
-import { dueDateFormat, getFormattedDate } from "modules/timeAndDate";
+import { dueDateShortLabel } from "modules/timeAndDate";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
@@ -55,7 +55,7 @@ const UpcomingPaymentRow: React.FC<Props> = ({ row }) => {
         </Label>
         <View style={styles.metaRow}>
           <Label style={styles.dueDate} numberOfLines={1}>
-            {`Due ${getFormattedDate(dueDate, dueDateFormat)}`}
+            {`Due ${dueDateShortLabel(dueDate)}`}
           </Label>
           {isStale && (
             <View style={styles.missedBadge}>
@@ -137,6 +137,7 @@ const themedStyles = (theme: AppTheme) =>
     amountVariable: {
       color: theme.colors.muted,
       fontStyle: "italic",
+      paddingRight: 2,
     },
     payButtonText: {
       fontSize: 13,

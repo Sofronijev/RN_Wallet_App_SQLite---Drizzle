@@ -176,6 +176,12 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
     if (hasOpenedAmountSheet.current) return;
     if (editTransactionId) return;
     if (upcomingPaymentInstanceId && !payContext) return;
+    // Pay flow with a fixed expected amount: prefilled already, don't prompt.
+    // Variable payments (expectedAmount == null) still need user input.
+    if (payContext && payContext.expectedAmount != null) {
+      hasOpenedAmountSheet.current = true;
+      return;
+    }
     hasOpenedAmountSheet.current = true;
     if (values.amount > 0) return;
     showAmountSheet();

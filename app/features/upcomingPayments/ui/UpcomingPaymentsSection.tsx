@@ -39,12 +39,14 @@ const UpcomingPaymentsSection: React.FC = () => {
       else totals.set(currency, { currency, total: row.expectedAmount });
     }
     if (totals.size === 0 && variableCount === 0) return null;
-    const parts = Array.from(totals.values()).map((line) => {
+    const amountParts = Array.from(totals.values()).map((line) => {
       const amount = formatDecimalDigits(line.total, delimiter, decimal);
       return line.currency ? `${amount} ${line.currency}` : amount;
     });
-    if (variableCount > 0) parts.push(`+ ${variableCount} variable`);
-    return parts.join(" · ");
+    const amountText = amountParts.join(" · ");
+    if (variableCount === 0) return amountText;
+    const variableText = `${variableCount} variable`;
+    return amountText ? `${amountText} + ${variableText}` : variableText;
   }, [instances, decimal, delimiter]);
 
   const onShowAll = () => {

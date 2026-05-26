@@ -1,9 +1,10 @@
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import React from "react";
 import Label from "components/Label";
 import CategoryIcon from "components/CategoryIcon";
 import ShadowBoxView from "components/ShadowBoxView";
 import { calendarDateFormat, getFormattedDate } from "modules/timeAndDate";
+import { pressableOpacityStyle } from "modules/pressable";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import { UpcomingPaymentRow } from "app/queries/upcomingPayments";
 import StatusBadge from "components/StatusBadge";
@@ -11,9 +12,10 @@ import { computeTotalCount } from "../modules/computeTotalCount";
 
 type Props = {
   row: UpcomingPaymentRow;
+  onPress?: () => void;
 };
 
-const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
+const UpcomingPaymentCard: React.FC<Props> = ({ row, onPress }) => {
   const styles = useThemedStyles(themedStyles);
   const {
     name,
@@ -30,8 +32,8 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
   } = row;
   const totalCount = computeTotalCount(row);
 
-  return (
-    <ShadowBoxView style={styles.container}>
+  const content = (
+    <>
       <View style={styles.header}>
         <CategoryIcon color={iconColor} iconFamily={iconFamily} name={iconName} />
         <Label numberOfLines={1} style={styles.name}>
@@ -63,6 +65,22 @@ const UpcomingPaymentCard: React.FC<Props> = ({ row }) => {
             .join(" · ")}
         </Label>
       </View>
+    </>
+  );
+
+  return (
+    <ShadowBoxView>
+      {onPress ? (
+        <Pressable
+          onPress={onPress}
+          android_ripple={null}
+          style={pressableOpacityStyle(styles.pressable)}
+        >
+          {content}
+        </Pressable>
+      ) : (
+        <View style={styles.pressable}>{content}</View>
+      )}
     </ShadowBoxView>
   );
 };
@@ -71,7 +89,7 @@ export default UpcomingPaymentCard;
 
 const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    container: {
+    pressable: {
       padding: 12,
       gap: 8,
     },

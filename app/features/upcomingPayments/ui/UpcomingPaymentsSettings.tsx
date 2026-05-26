@@ -1,11 +1,10 @@
-import { FlatList, ListRenderItem, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, ListRenderItem, StyleSheet, View } from "react-native";
 import React, { useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "components/CustomButton";
 import TwoOptionSelector from "components/TwoOptionsSelector";
 import NullScreen from "components/NullScreen";
 import { useAppNavigation } from "navigation/routes";
-import { pressableOpacityStyle } from "modules/pressable";
 import { UpcomingPaymentRow, useGetUpcomingPayments } from "app/queries/upcomingPayments";
 import { useThemedStyles } from "app/theme/useThemedStyles";
 import UpcomingPaymentCard from "./UpcomingPaymentCard";
@@ -31,12 +30,10 @@ const UpcomingPaymentsSettings: React.FC = () => {
   );
 
   const renderItem: ListRenderItem<UpcomingPaymentRow> = ({ item }) => (
-    <Pressable
+    <UpcomingPaymentCard
+      row={item}
       onPress={() => navigation.navigate("UpcomingPaymentDetails", { id: item.id })}
-      style={pressableOpacityStyle()}
-    >
-      <UpcomingPaymentCard row={item} />
-    </Pressable>
+    />
   );
 
   return (

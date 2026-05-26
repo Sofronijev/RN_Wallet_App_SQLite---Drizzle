@@ -24,6 +24,7 @@ import {
   useDeleteUpcomingPaymentMutation,
   useGetUpcomingPaymentById,
   useGetUpcomingPaymentInstances,
+  useHardDeleteUpcomingPaymentMutation,
   useRestoreUpcomingPaymentInstanceMutation,
   useRestoreUpcomingPaymentMutation,
 } from "app/queries/upcomingPayments";
@@ -49,6 +50,8 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
   const { deleteUpcomingPayment, isLoading: isDeleting } = useDeleteUpcomingPaymentMutation();
   const { restoreUpcomingPayment, isLoading: isRestoringPayment } =
     useRestoreUpcomingPaymentMutation();
+  const { hardDeleteUpcomingPayment, isLoading: isHardDeleting } =
+    useHardDeleteUpcomingPaymentMutation();
   const { cancelInstance, isLoading: isCanceling } = useCancelUpcomingPaymentInstanceMutation(id);
   const { restoreInstance, isLoading: isRestoring } = useRestoreUpcomingPaymentInstanceMutation(id);
   const { clearStaleFlag, isLoading: isClearingStale } = useClearStaleFlagMutation();
@@ -117,6 +120,28 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
     });
   };
 
+  const onHardDelete = () => {
+    if (!payment) return;
+    const runDelete = (cascadeTransactions: boolean) =>
+      hardDeleteUpcomingPayment(
+        { id, cascadeTransactions },
+        { onSuccess: () => navigation.goBack() },
+      );
+    Alert.alert(
+      "Delete this payment permanently?",
+      "This removes the schedule and its history. Already-paid transactions can stay in your history or be deleted along with the schedule.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Keep transactions", onPress: () => runDelete(false) },
+        {
+          text: "Delete with transactions",
+          style: "destructive",
+          onPress: () => runDelete(true),
+        },
+      ],
+    );
+  };
+
   const isArchived = payment ? !payment.isActive : false;
 
   useEffect(() => {
@@ -126,6 +151,9 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.headerActions}>
             <HeaderIcon onPress={onRestore}>
               <MaterialCommunityIcons name='restore' size={22} color={colors.white} />
+            </HeaderIcon>
+            <HeaderIcon onPress={onHardDelete}>
+              <Ionicons name='trash-sharp' size={22} color={colors.white} />
             </HeaderIcon>
           </View>
         ) : (
@@ -324,6 +352,7 @@ const UpcomingPaymentDetails: React.FC<Props> = ({ navigation, route }) => {
         hideScreen
         isLoading={
           isDeleting ||
+          isHardDeleting ||
           isRestoringPayment ||
           isCanceling ||
           isRestoring ||
@@ -409,6 +438,7 @@ const themeStyles = (theme: AppTheme) =>
     amountVariable: {
       color: theme.colors.muted,
       fontStyle: "italic",
+      paddingRight: 2,
     },
     description: {
       fontSize: 13,

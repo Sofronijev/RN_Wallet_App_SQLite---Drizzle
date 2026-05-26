@@ -290,6 +290,34 @@ export const softDeleteUpcomingPayment = async (id: number) => {
   await db.update(upcomingPayments).set({ isActive: false }).where(eq(upcomingPayments.id, id));
 };
 
+// Permanently removes an archived upcoming payment.
+// - cascadeTransactions: false → only the schedule + instances + contributions go.
+//   Paid transactions stay in history and lose the link.
+// - cascadeTransactions: true → also deletes the linked Transaction rows, which
+//   retroactively shifts wallet balances. Run inside a single tx so partial
+//   deletes can't strand contributions.
+export const hardDeleteUpcomingPayment = async (
+  id: number,
+  cascadeTransactions: boolean,
+): Promise<void> => {
+  await db.transaction(async (tx) => {
+    if (cascadeTransactions) {
+      const linkedTxIds = await tx
+        .select({ transactionId: upcomingPaymentContributions.transactionId })
+        .from(upcomingPaymentContributions)
+        .innerJoin(
+          upcomingPaymentInstances,
+          eq(upcomingPaymentInstances.id, upcomingPaymentContributions.instanceId),
+        )
+        .where(eq(upcomingPaymentInstances.upcomingPaymentId, id));
+      for (const row of linkedTxIds) {
+        await tx.delete(transactions).where(eq(transactions.id, row.transactionId));
+      }
+    }
+    await tx.delete(upcomingPayments).where(eq(upcomingPayments.id, id));
+  });
+};
+
 export const restoreUpcomingPayment = async (id: number): Promise<void> => {
   await db
     .update(upcomingPayments)
