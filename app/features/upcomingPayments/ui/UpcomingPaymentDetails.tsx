@@ -438,7 +438,6 @@ const themeStyles = (theme: AppTheme) =>
     amountVariable: {
       color: theme.colors.muted,
       fontStyle: "italic",
-      paddingRight: 2,
     },
     description: {
       fontSize: 13,
