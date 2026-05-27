@@ -17,7 +17,7 @@ export default {
   expo: {
     name: getAppName(),
     slug: 'spendy-fly',
-    version: '1.0.0',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './app/assets/ios-light.png',
     updates: {
