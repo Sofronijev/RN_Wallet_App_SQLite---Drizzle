@@ -128,8 +128,10 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
     if (!editCategoryId) return;
 
     Keyboard.dismiss();
-    showDeleteCategoryAlert(() => deleteCategory(editCategoryId));
-    navigation.goBack();
+    showDeleteCategoryAlert(() => {
+      deleteCategory(editCategoryId);
+      navigation.goBack();
+    });
   };
 
   const onCategorySubmit = async (values: CategorySchema) => {

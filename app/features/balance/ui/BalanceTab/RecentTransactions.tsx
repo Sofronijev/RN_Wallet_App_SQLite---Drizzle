@@ -47,9 +47,11 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({
     <ShadowBoxView style={styles.container}>
       {title && <Label style={styles.title}>{title}</Label>}
       {loading ? renderLoading : renderTransactions}
-      <View style={styles.button}>
-        <ButtonText title='View all transactions' onPress={navigateToTransactionSearch} />
-      </View>
+      {hasTransactions && (
+        <View style={styles.button}>
+          <ButtonText title='View all transactions' onPress={navigateToTransactionSearch} />
+        </View>
+      )}
     </ShadowBoxView>
   );
 };

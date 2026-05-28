@@ -1,6 +1,7 @@
 import React, { FC, useCallback, useRef } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import { Ionicons } from "@expo/vector-icons";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
@@ -11,16 +12,21 @@ import { AppTheme, useThemedStyles, useColors } from "app/theme/useThemedStyles"
 type Props = {
   onSelect: (currency: CurrencyType | null) => void;
   selectedCurrencyCode?: CurrencyType["currencyCode"] | null;
+  allowedCurrencyCodes?: string[];
 };
 
 const currencyArray = Object.values(currencies);
 
 const keyExtractor = (item: CurrencyType) => item.currencyCode;
 
-const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode }) => {
-  const sheetRef = useRef<BottomSheetModal>(null);
+const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode, allowedCurrencyCodes }) => {
+  const sheetRef = useRef<BottomSheetModalMethods | null>(null);
   const styles = useThemedStyles(themedStyles);
   const { primary } = useColors();
+
+  const data = allowedCurrencyCodes
+    ? currencyArray.filter((c) => allowedCurrencyCodes.includes(c.currencyCode))
+    : currencyArray;
 
   const onItemPress = (item: CurrencyType) => () => {
     onSelect(item);
@@ -66,7 +72,7 @@ const CurrencySheet: FC<Props> = ({ onSelect, selectedCurrencyCode }) => {
   return (
     <SheetModal sheetRef={sheetRef}>
       <BottomSheetFlatList
-        data={currencyArray}
+        data={data}
         renderItem={renderItem}
         contentContainerStyle={styles.container}
         ListHeaderComponent={() => (

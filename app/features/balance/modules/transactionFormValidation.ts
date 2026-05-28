@@ -8,6 +8,7 @@ export type TransactionFromInputs = {
   category: Category | null;
   type: Type | null;
   walletId: string;
+  linkedUpcomingInstanceId: number | null;
 };
 
 export const transactionValidationSchema = Yup.object({

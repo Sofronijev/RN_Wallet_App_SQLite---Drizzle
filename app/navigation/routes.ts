@@ -9,7 +9,7 @@ export type HomeStackParamList = {
 
 export type AppStackParamList = {
   Home: undefined;
-  Transaction: { id: number } | undefined;
+  Transaction: { id?: number; upcomingPaymentInstanceId?: number } | undefined;
   TransactionSearch: undefined;
   WalletSettings: undefined;
   TransferForm: {
@@ -24,6 +24,10 @@ export type AppStackParamList = {
   DashboardSettings: undefined;
   ExportImport: undefined;
   AboutApp: undefined;
+  UpcomingPayment: { id: number } | undefined;
+  UpcomingPaymentDetails: { id: number };
+  UpcomingPaymentsMonth: undefined;
+  UpcomingPaymentsSettings: undefined;
 };
 
 export type AuthStackParamList = {

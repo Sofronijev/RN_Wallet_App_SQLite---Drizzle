@@ -12,4 +12,10 @@ export const queryKeys = {
   numberSeparator: "numberSeparator",
   types: "types",
   totalBalanceHistory: "totalBalanceHistory",
+  upcomingPayments: "upcomingPayments",
+  upcomingPaymentById: "upcomingPaymentById",
+  upcomingPaymentInstances: "upcomingPaymentInstances",
+  upcomingInstancesForSection: "upcomingInstancesForSection",
+  linkablePendingInstances: "linkablePendingInstances",
+  upcomingPaymentInstanceContext: "upcomingPaymentInstanceContext",
 } as const;

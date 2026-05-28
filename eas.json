@@ -15,7 +15,10 @@
       "android": {
         "buildType": "apk"
       },
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "preview"
+      }
     },
     "production": {
       "android": {

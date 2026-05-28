@@ -3,7 +3,7 @@ import React from "react";
 import TransactionsRow from "components/TransactionRow";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import NullScreen from "components/NullScreen";
-import { TransactionType } from "db";
+import { TransactionListItem } from "db";
 import { useGetTransactionsInfiniteQuery } from "app/queries/transactions";
 import { useGetSelectedWalletQuery } from "app/queries/wallets";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
@@ -55,7 +55,7 @@ const TransactionSearch = () => {
     );
   }
 
-  const renderItem = ({ item }: { item: TransactionType }) => (
+  const renderItem = ({ item }: { item: TransactionListItem }) => (
     <TransactionsRow key={item.id} transaction={item} />
   );
 

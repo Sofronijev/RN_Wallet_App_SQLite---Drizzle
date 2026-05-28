@@ -10,6 +10,9 @@ const nullScreenIcon = {
   wallet: <Ionicons name='wallet-outline' size={100} color={colors.greyNullScreen} />,
   chart: <MaterialCommunityIcons name='finance' size={100} color={colors.greyNullScreen} />,
   search: <MaterialIcons name='search' size={100} color={colors.greyNullScreen} />,
+  celebrate: (
+    <MaterialCommunityIcons name='party-popper' size={100} color={colors.greyNullScreen} />
+  ),
 };
 
 type IconTypes = keyof typeof nullScreenIcon;

@@ -4,7 +4,6 @@ import AppNavigator from "./AppNavigator";
 import AuthNavigator from "./AuthNavigator";
 import { usePinCodeStatus } from "app/features/pinCode/ui/PinCodeStatusProvider";
 import DrizzleStudio from "db/DrizzleStudio";
-import colors from "constants/colors";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { StatusBar } from "expo-status-bar";
 import { useAppTheme } from "app/theme/ThemeContext";

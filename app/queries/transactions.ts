@@ -16,6 +16,7 @@ import {
   getTransactions,
 } from "app/services/transactionQueries";
 import { queryKeys } from "./index";
+import { invalidateUpcomingPayments } from "./upcomingPayments";
 import { NewTransaction, TransactionType } from "db";
 
 export const useGetMonthlyBalanceQuery = (
@@ -131,17 +132,29 @@ export const useGetTransactionByIdQuery = (transactionId: number | null | undefi
   };
 };
 
+const invalidateAfterTransactionWrite = (
+  clientQuery: ReturnType<typeof useQueryClient>,
+  touchedUpcoming: boolean,
+) => {
+  clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
+  clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
+  clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
+  clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
+  clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
+  if (touchedUpcoming) invalidateUpcomingPayments(clientQuery);
+};
+
 export const addTransactionMutation = () => {
   const clientQuery = useQueryClient();
   const { mutate, isPending, isError } = useMutation({
-    mutationFn: (transaction: NewTransaction) => addTransaction(transaction),
-    onSuccess: () => {
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
-    },
+    mutationFn: ({
+      transaction,
+      linkedUpcomingInstanceId,
+    }: {
+      transaction: NewTransaction;
+      linkedUpcomingInstanceId?: number | null;
+    }) => addTransaction(transaction, { linkedUpcomingInstanceId }),
+    onSuccess: (result) => invalidateAfterTransactionWrite(clientQuery, result.touchedUpcoming),
   });
 
   return {
@@ -154,15 +167,16 @@ export const addTransactionMutation = () => {
 export const editTransactionMutation = () => {
   const clientQuery = useQueryClient();
   const { mutate, isPending, isError } = useMutation({
-    mutationFn: ({ id, transaction }: { id: number; transaction: Partial<TransactionType> }) =>
-      editTransaction(id, transaction),
-    onSuccess: () => {
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
-    },
+    mutationFn: ({
+      id,
+      transaction,
+      linkedUpcomingInstanceId,
+    }: {
+      id: number;
+      transaction: Partial<TransactionType>;
+      linkedUpcomingInstanceId?: number | null;
+    }) => editTransaction(id, transaction, { linkedUpcomingInstanceId }),
+    onSuccess: (result) => invalidateAfterTransactionWrite(clientQuery, result.touchedUpcoming),
   });
   return {
     editTransaction: mutate,
@@ -175,13 +189,7 @@ export const deleteTransactionMutation = () => {
   const clientQuery = useQueryClient();
   const { mutate, isPending, isError } = useMutation({
     mutationFn: (id: number) => deleteTransaction(id),
-    onSuccess: () => {
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.transactions] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyBalance] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.wallets] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.monthlyGraph] });
-      clientQuery.invalidateQueries({ queryKey: [queryKeys.totalBalanceHistory] });
-    },
+    onSuccess: (result) => invalidateAfterTransactionWrite(clientQuery, result.touchedUpcoming),
   });
 
   return {

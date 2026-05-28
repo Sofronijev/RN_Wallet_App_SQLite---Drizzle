@@ -1,5 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "constants/colors";
 import Label from "components/Label";
 import { formatDecimalDigits } from "modules/numbers";
@@ -7,14 +8,14 @@ import { formatDayString } from "modules/timeAndDate";
 import { useAppNavigation } from "navigation/routes";
 import { useGetCategories } from "app/queries/categories";
 import CategoryIcon from "components/CategoryIcon";
-import { TransactionType } from "db";
+import { TransactionListItem } from "db";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
-import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { isIncomeTransaction } from "app/features/balance/modules/transaction";
 import { CategoryNumber } from "modules/categories";
 
 type Props = {
-  transaction: TransactionType;
+  transaction: TransactionListItem;
 };
 
 const TransactionsRow: React.FC<Props> = ({ transaction }) => {
@@ -22,10 +23,14 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
   const { categoriesById } = useGetCategories();
   const { decimal, delimiter } = useGetNumberSeparatorQuery();
   const styles = useThemedStyles(themedStyles);
+  const themeColors = useColors();
 
   if (!transaction) return null;
 
   const hasDescription = !!transaction.description;
+  const linkedPaymentName = transaction.linkedPaymentName;
+  const hasLinkedPayment = !!linkedPaymentName;
+  const hasSubLine = hasDescription || hasLinkedPayment;
   const transactionId = transaction.id;
   const transferId = transaction.transfer_id;
   const category = categoriesById[transaction.categoryId];
@@ -62,14 +67,28 @@ const TransactionsRow: React.FC<Props> = ({ transaction }) => {
         />
       </View>
       <View style={styles.descriptionContainer}>
-        <Label numberOfLines={hasDescription ? 1 : 2} style={styles.label}>
+        <Label numberOfLines={hasSubLine ? 1 : 2} style={styles.label}>
           {`${rowLabel} `}
           {transaction.type_id && <Label style={styles.typeText}>{rowType}</Label>}
         </Label>
-        {hasDescription && (
-          <Label numberOfLines={1} style={styles.descriptionText}>
-            {transaction.description}
-          </Label>
+        {hasSubLine && (
+          <View style={styles.subLine}>
+            {hasLinkedPayment && (
+              <MaterialCommunityIcons
+                name='calendar-clock'
+                size={14}
+                color={themeColors.muted}
+                style={styles.subLineIcon}
+              />
+            )}
+            <Label numberOfLines={1} style={styles.descriptionText}>
+              {hasLinkedPayment && hasDescription
+                ? `${linkedPaymentName} · ${transaction.description}`
+                : hasLinkedPayment
+                  ? linkedPaymentName
+                  : transaction.description}
+            </Label>
+          </View>
         )}
       </View>
       <View>
@@ -113,9 +132,17 @@ const themedStyles = (theme: AppTheme) =>
       fontWeight: "bold",
     },
     descriptionText: {
+      flex: 1,
       fontSize: 16,
       color: theme.colors.muted,
       fontStyle: "italic",
+    },
+    subLine: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    subLineIcon: {
+      marginRight: 4,
     },
     typeText: {
       fontWeight: "normal",

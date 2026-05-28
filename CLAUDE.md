@@ -10,17 +10,31 @@ SpendyFly — a React Native (Expo SDK 54) expense tracking app with local-first
 
 ```bash
 yarn start              # Start Expo dev server
-expo run:android        # Run on Android device/emulator
-expo run:ios            # Run on iOS simulator
-yarn apk                # Build release APK locally
-yarn apk_eas            # Build preview APK via EAS
-yarn apk_prod           # Build production app-bundle via EAS
-yarn prebuild           # Generate native projects
+yarn android            # Build & install DEBUG APK on device/emulator
+yarn ios                # Build & install DEBUG on iOS simulator
+yarn apk                # Build RELEASE APK locally as Preview variant (side-by-side install)
+yarn apk_eas            # Build Preview APK via EAS (side-by-side install)
+yarn apk_prod           # Build production app-bundle via EAS (Play Store)
+yarn prebuild           # Regenerate native android/ + ios/ projects
 yarn db:generate        # Generate Drizzle migrations from schema changes
 yarn db:customMigrate   # Generate custom migration file
 ```
 
 No test runner is configured.
+
+### Build Variants
+
+Project uses Expo's [APP_VARIANT pattern](https://docs.expo.dev/build-reference/variants). Defined in `app.config.js`:
+
+| `APP_VARIANT` | Name | Android package | iOS bundle ID | Used by |
+|---|---|---|---|---|
+| `development` | SpendyFly (Dev) | `com.misurapps.spendyfly.dev` | `com.sofronijev.spendyFly.dev` | reserved |
+| `preview` | SpendyFly (Preview) | `com.misurapps.spendyfly.preview` | `com.sofronijev.spendyFly.preview` | `yarn apk`, `yarn apk_eas` |
+| *(unset)* | SpendyFly | `com.misurapps.spendyfly` | `com.sofronijev.spendyFly` | `yarn apk_prod` |
+
+Unique package names let Preview install alongside the Play Store version. `yarn apk` runs `prebuild --clean -p android` first because package name is baked into native code at prebuild time — this regenerates `android/` and wipes any manual edits there. EAS `preview` profile sets `APP_VARIANT=preview` via `eas.json` env.
+
+`cross-env` is required (in devDeps) so the env var works on Windows shells.
 
 ## Architecture
 

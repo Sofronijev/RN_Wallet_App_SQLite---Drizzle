@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Keyboard, Platform, StyleSheet, TextStyle, TouchableOpacity, View } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { startOfDay } from "date-fns";
 import {
   calendarDateFormat,
   formatIsoDate,
@@ -22,6 +23,7 @@ type DatePickerInputProps = {
   minimumDate?: Date;
   onDateSelect?: (selectedDate: string) => void;
   style?: TextStyle;
+  hideTime?: boolean;
 };
 
 const DatePickerInput: React.FC<DatePickerInputProps> = ({
@@ -29,15 +31,17 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
   maximumDate,
   minimumDate,
   onDateSelect,
+  hideTime,
 }) => {
   const value = date || new Date();
   const [showDate, setShowDate] = useState(isIosDevice);
-  const [showTime, setShowTime] = useState(isIosDevice);
+  const [showTime, setShowTime] = useState(isIosDevice && !hideTime);
 
   const onChangeDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate ?? new Date();
+    const normalized = hideTime ? startOfDay(currentDate) : currentDate;
     setShowDate(isIosDevice);
-    if (typeof onDateSelect === "function") onDateSelect(formatIsoDate(currentDate));
+    if (typeof onDateSelect === "function") onDateSelect(formatIsoDate(normalized));
   };
 
   const onChangeTime = (event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -65,24 +69,26 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
               <Label>{getFormattedDate(value, calendarDateFormat)}</Label>
             </TouchableOpacity>
           </ShadowBoxView>
-          <ShadowBoxView style={styles.flex}>
-            <TouchableOpacity onPress={showClock} style={styles.row}>
-              <AntDesign name='clock-circle' size={24} color={colors.greenMint} />
-              <Label>{formatTime(value)}</Label>
-            </TouchableOpacity>
-          </ShadowBoxView>
+          {!hideTime && (
+            <ShadowBoxView style={styles.flex}>
+              <TouchableOpacity onPress={showClock} style={styles.row}>
+                <AntDesign name='clock-circle' size={24} color={colors.greenMint} />
+                <Label>{formatTime(value)}</Label>
+              </TouchableOpacity>
+            </ShadowBoxView>
+          )}
         </View>
       )}
       {showDate && (
         <DateTimePicker
           value={value}
-          mode={isIosDevice ? "datetime" : "date"}
+          mode={isIosDevice && !hideTime ? "datetime" : "date"}
           onChange={onChangeDate}
           maximumDate={maximumDate}
           minimumDate={minimumDate}
         />
       )}
-      {showTime && !isIosDevice && (
+      {showTime && !isIosDevice && !hideTime && (
         <DateTimePicker
           value={value}
           mode='time'

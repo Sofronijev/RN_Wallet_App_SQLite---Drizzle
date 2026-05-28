@@ -16,10 +16,13 @@ import TransactionFilters from "app/features/balance/ui/TransactionSearch/Transa
 import { TransactionFiltersProvider } from "app/features/balance/ui/TransactionSearch/context/TransactionFiltersContext";
 import CategorySettings from "app/features/settings/ui/categories/CategorySettings";
 import CategoryForm from "app/features/settings/ui/categories/CategoryForm";
-import HeaderTextButton from "components/Header/HeaderTextButton";
 import DashboardSettings from "app/features/settings/ui/dashboard/DashboardSettings";
 import { DatabaseBackupScreen } from "app/features/settings/ui/importExport";
 import AboutScreen from "app/features/settings/ui/aboutApp";
+import UpcomingPaymentForm from "app/features/upcomingPayments/ui/UpcomingPaymentForm/UpcomingPaymentForm";
+import UpcomingPaymentDetails from "app/features/upcomingPayments/ui/UpcomingPaymentDetails";
+import UpcomingPaymentsMonth from "app/features/upcomingPayments/ui/UpcomingPaymentsMonth";
+import UpcomingPaymentsSettings from "app/features/upcomingPayments/ui/UpcomingPaymentsSettings";
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -134,6 +137,36 @@ const AppNavigator: React.FC = () => {
           options={{
             animation: "default",
             title: "About",
+          }}
+        />
+        <Stack.Screen
+          name='UpcomingPayment'
+          component={UpcomingPaymentForm}
+          options={({ route }) => ({
+            animation: "slide_from_bottom",
+            title: route.params?.id ? "Edit upcoming payment" : "New upcoming payment",
+          })}
+        />
+        <Stack.Screen
+          name='UpcomingPaymentDetails'
+          component={UpcomingPaymentDetails}
+          options={{
+            animation: "slide_from_bottom",
+            title: "Upcoming payment",
+          }}
+        />
+        <Stack.Screen
+          name='UpcomingPaymentsMonth'
+          component={UpcomingPaymentsMonth}
+          options={{
+            title: "Upcoming payments",
+          }}
+        />
+        <Stack.Screen
+          name='UpcomingPaymentsSettings'
+          component={UpcomingPaymentsSettings}
+          options={{
+            title: "Upcoming payments",
           }}
         />
       </Stack.Navigator>

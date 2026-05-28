@@ -19,6 +19,8 @@ import { DashboardOptions } from "app/context/DashboardOptions/dashboardSettingS
 import ButtonText from "components/ButtonText";
 import { useAppNavigation } from "navigation/routes";
 import ShadowBoxView from "components/ShadowBoxView";
+import UpcomingPaymentsSection from "app/features/upcomingPayments/ui/UpcomingPaymentsSection";
+import UpcomingPaymentsAlertBanner from "app/features/upcomingPayments/ui/UpcomingPaymentsAlertBanner";
 
 const BalanceScreen: React.FC = () => {
   const navigation = useAppNavigation();
@@ -66,6 +68,11 @@ const BalanceScreen: React.FC = () => {
         contentContainerStyle={tStyles.container}
         showsVerticalScrollIndicator={false}
       >
+        {dashboardOptions.showUpcomingPayments && (
+          <View style={tStyles.itemContainer}>
+            <UpcomingPaymentsAlertBanner />
+          </View>
+        )}
         {dashboardOptions.showTotalBalance && <TotalWalletsBalance />}
         <WalletList selectedWalletId={selectedWallet?.walletId} />
         {dashboardOptions.showMonthlySummary && (
@@ -76,6 +83,11 @@ const BalanceScreen: React.FC = () => {
         {dashboardOptions.showBalanceTrend && (
           <View style={tStyles.itemContainer}>
             <TotalHistoryChart />
+          </View>
+        )}
+        {dashboardOptions.showUpcomingPayments && (
+          <View style={tStyles.itemContainer}>
+            <UpcomingPaymentsSection />
           </View>
         )}
         {dashboardOptions.showRecentTransactions ? (

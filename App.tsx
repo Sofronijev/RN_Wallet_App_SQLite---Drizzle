@@ -15,6 +15,8 @@ import RootNavigator from "navigation/RootNavigator";
 import { ThemeProvider, useAppTheme } from "app/theme/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { DashboardOptionsProvider } from "app/context/DashboardOptions/DashboardOptionsContext";
+import { catchUpUpcomingPaymentInstances } from "app/services/upcomingPaymentQueries";
+import { queryKeys } from "app/queries";
 
 const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
@@ -27,10 +29,24 @@ const AppContent = () => {
     if (error) {
       Alert.alert(
         "Initialization Error",
-        "There was a problem initializing the app. Please try restarting the app. If the issue persists, consider reinstalling the app."
+        "There was a problem initializing the app. Please try restarting the app. If the issue persists, consider reinstalling the app.",
       );
     }
   }, [error]);
+
+  useEffect(() => {
+    if (!success) return;
+    // Defer one tick so the UI paints before we touch the DB on cold start.
+    const handle = setTimeout(() => {
+      catchUpUpcomingPaymentInstances()
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingInstancesForSection] });
+          queryClient.invalidateQueries({ queryKey: [queryKeys.upcomingPayments] });
+        })
+        .catch(() => {});
+    }, 0);
+    return () => clearTimeout(handle);
+  }, [success]);
 
   const onLayoutRootView = useCallback(async () => {
     if (success) {

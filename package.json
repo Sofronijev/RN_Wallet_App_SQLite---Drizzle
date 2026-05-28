@@ -10,7 +10,7 @@
     "eject": "expo eject",
     "apk_eas": "eas build -p android --profile preview",
     "apk_prod": "eas build --platform android --profile production",
-    "apk": "npx expo run:android --variant release",
+    "apk": "cross-env APP_VARIANT=preview npx expo prebuild --clean -p android && cross-env APP_VARIANT=preview npx expo run:android --variant release",
     "prebuild": "npx expo prebuild",
     "db:generate": "npx drizzle-kit generate",
     "db:customMigrate": "npx drizzle-kit generate --custom"
@@ -64,6 +64,7 @@
     "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-module-resolver": "^4.1.0",
     "baseline-browser-mapping": "^2.10.18",
+    "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.6",
     "typescript": "~5.9.2"
   },

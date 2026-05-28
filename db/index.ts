@@ -12,6 +12,10 @@ expoDb.execSync("PRAGMA foreign_keys = ON;");
 
 export const db = drizzle(expoDb, { logger: false, schema });
 
+// Accepts the top-level `db` or a transaction `tx`, so helpers can run inside
+// or outside an existing db.transaction(...) block.
+export type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0] | typeof db;
+
 export type User = InferSelectModel<typeof schema.users>;
 export type NewUser = InferInsertModel<typeof schema.users>;
 export type WalletType = InferSelectModel<typeof schema.wallet>;
@@ -19,9 +23,13 @@ export type WalletType = InferSelectModel<typeof schema.wallet>;
 export type Wallet = InferSelectModel<typeof schema.wallet> & { currentBalance: number };
 
 export type TransactionType = InferSelectModel<typeof schema.transactions>;
+export type TransactionListItem = TransactionType & {
+  linkedPaymentName: string | null;
+};
 export type TransactionWithDetails = InferSelectModel<typeof schema.transactions> & {
   category: InferSelectModel<typeof schema.categories>;
   type: InferSelectModel<typeof schema.types> | null;
+  upcomingPayment: { instanceId: number } | null;
 };
 export type NewTransaction = InferInsertModel<typeof schema.transactions>;
 
@@ -43,3 +51,12 @@ export type EditCategory = Partial<Omit<NewCategory, "id">> & { id: number; type
 
 export type NewType = InferInsertModel<typeof schema.types>;
 export type EditType = Omit<NewType, "id"> & { id: number };
+
+export type UpcomingPayment = InferSelectModel<typeof schema.upcomingPayments>;
+export type NewUpcomingPayment = InferInsertModel<typeof schema.upcomingPayments>;
+export type EditUpcomingPayment = Partial<Omit<NewUpcomingPayment, "id" | "createdAt" | "userId">>;
+
+export type UpcomingPaymentInstance = InferSelectModel<typeof schema.upcomingPaymentInstances>;
+export type UpcomingPaymentContribution = InferSelectModel<
+  typeof schema.upcomingPaymentContributions
+>;
