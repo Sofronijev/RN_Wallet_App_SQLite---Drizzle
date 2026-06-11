@@ -5,7 +5,17 @@ import { openDatabaseSync } from "expo-sqlite";
 import { File, Paths } from "expo-file-system";
 import * as schema from "db/schema";
 import { eq } from "drizzle-orm";
-import { Category, TransactionType, TransferType, Type, User, Wallet, WalletType } from "db";
+import {
+  Category,
+  TransactionType,
+  TransferType,
+  Type,
+  UpcomingPayment,
+  UpcomingPaymentContribution,
+  UpcomingPaymentInstance,
+  User,
+  WalletType,
+} from "db";
 
 type Migration = {
   id: number;
@@ -23,6 +33,10 @@ type ExportData = {
     wallet: WalletType[];
     transactions: TransactionType[];
     transfer: TransferType[];
+    // Optional: backups created before the upcoming-payments feature don't have these
+    upcomingPayments?: UpcomingPayment[];
+    upcomingPaymentInstances?: UpcomingPaymentInstance[];
+    upcomingPaymentContributions?: UpcomingPaymentContribution[];
   };
 };
 
@@ -91,6 +105,11 @@ export async function exportDatabase(): Promise<{
     const wallets = await db.select().from(schema.wallet);
     const transactions = await db.select().from(schema.transactions);
     const transfers = await db.select().from(schema.transfer);
+    const upcomingPayments = await db.select().from(schema.upcomingPayments);
+    const upcomingPaymentInstances = await db.select().from(schema.upcomingPaymentInstances);
+    const upcomingPaymentContributions = await db
+      .select()
+      .from(schema.upcomingPaymentContributions);
 
     const exportData: ExportData = {
       exportDate: new Date().toISOString(),
@@ -102,6 +121,9 @@ export async function exportDatabase(): Promise<{
         wallet: wallets,
         transactions,
         transfer: transfers,
+        upcomingPayments,
+        upcomingPaymentInstances,
+        upcomingPaymentContributions,
       },
     };
     file.write(JSON.stringify(exportData, null));
@@ -179,6 +201,9 @@ export async function importDatabase(): Promise<{ success: boolean; message: str
 
     try {
       // Delete all existing data (in reverse order due to foreign keys)
+      await db.delete(schema.upcomingPaymentContributions);
+      await db.delete(schema.upcomingPaymentInstances);
+      await db.delete(schema.upcomingPayments);
       await db.delete(schema.transfer);
       await db.delete(schema.transactions);
       await db.delete(schema.wallet);
@@ -201,6 +226,20 @@ export async function importDatabase(): Promise<{ success: boolean; message: str
       }
       if (importData.data.transfer.length > 0) {
         await db.insert(schema.transfer).values(importData.data.transfer);
+      }
+
+      // Upcoming payments are optional — older backups don't contain them
+      const upcomingPayments = importData.data.upcomingPayments ?? [];
+      const upcomingPaymentInstances = importData.data.upcomingPaymentInstances ?? [];
+      const upcomingPaymentContributions = importData.data.upcomingPaymentContributions ?? [];
+      if (upcomingPayments.length > 0) {
+        await db.insert(schema.upcomingPayments).values(upcomingPayments);
+      }
+      if (upcomingPaymentInstances.length > 0) {
+        await db.insert(schema.upcomingPaymentInstances).values(upcomingPaymentInstances);
+      }
+      if (upcomingPaymentContributions.length > 0) {
+        await db.insert(schema.upcomingPaymentContributions).values(upcomingPaymentContributions);
       }
 
       // Update user wallet selections instead of replacing
@@ -254,6 +293,9 @@ export async function deleteAllData(): Promise<{ success: boolean; message: stri
     try {
       // Drop all user tables (in reverse order due to foreign keys)
       await expoDb.execAsync(`
+        DROP TABLE IF EXISTS UpcomingPaymentContributions;
+        DROP TABLE IF EXISTS UpcomingPaymentInstances;
+        DROP TABLE IF EXISTS UpcomingPayments;
         DROP TABLE IF EXISTS transfer;
         DROP TABLE IF EXISTS transactions;
         DROP TABLE IF EXISTS wallet;
