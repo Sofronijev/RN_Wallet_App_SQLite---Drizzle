@@ -211,7 +211,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
 
   const onSetAmount = (amount: number) => {
     setFieldValue("amount", amount, hasSubmittedForm);
-    if (!values.category?.id) {
+    if (!values.category?.id && !upcomingPaymentInstanceId) {
       showCategoriesSheet();
     }
   };

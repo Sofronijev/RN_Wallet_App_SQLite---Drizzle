@@ -14,6 +14,7 @@ import {
   eq,
   getTableColumns,
   gte,
+  inArray,
   isNull,
   lt,
   or,
@@ -21,6 +22,7 @@ import {
 } from "drizzle-orm";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getTodayIsoThreshold } from "app/features/upcomingPayments/modules/upcomingPaymentStatus";
+import { computeVariableEstimates } from "app/features/upcomingPayments/modules/estimateVariableAmounts";
 import { getNextDueDate } from "app/modules/upcomingPayments/upcomingPaymentRecurrence";
 import { Recurrence } from "app/features/upcomingPayments/modules/types";
 
@@ -154,10 +156,7 @@ export const ensureWindow = async (
 
 export const addUpcomingPayment = async (payment: NewUpcomingPayment): Promise<void> => {
   const paymentId = await db.transaction(async (tx) => {
-    const [insertedPayment] = await tx
-      .insert(upcomingPayments)
-      .values(payment)
-      .returning();
+    const [insertedPayment] = await tx.insert(upcomingPayments).values(payment).returning();
 
     await tx.insert(upcomingPaymentInstances).values({
       upcomingPaymentId: insertedPayment.id,
@@ -182,26 +181,26 @@ export const getUpcomingPaymentById = async (id: number) => {
       categoryName: categories.name,
       paidCount:
         sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'paid' THEN 1 END)`.mapWith(
-          Number
+          Number,
         ),
       missedCount:
         sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} < ${todayIso} THEN 1 END)`.mapWith(
-          Number
+          Number,
         ),
       canceledCount:
         sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'canceled' THEN 1 END)`.mapWith(
-          Number
+          Number,
         ),
       pendingCount:
         sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} >= ${todayIso} THEN 1 END)`.mapWith(
-          Number
+          Number,
         ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
     .leftJoin(
       upcomingPaymentInstances,
-      eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPayments.id)
+      eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPayments.id),
     )
     .where(eq(upcomingPayments.id, id))
     .groupBy(upcomingPayments.id);
@@ -247,10 +246,7 @@ export const updateUpcomingPayment = async (
   // User is actively editing the schedule, so the "abandoned?" flag no longer
   // applies. Clear it before rebuild, otherwise ensureWindow would no-op and
   // leave the payment with zero pending instances.
-  await db
-    .update(upcomingPayments)
-    .set({ staleSince: null })
-    .where(eq(upcomingPayments.id, id));
+  await db.update(upcomingPayments).set({ staleSince: null }).where(eq(upcomingPayments.id, id));
 
   const [updatedPayment] = await db
     .select()
@@ -362,10 +358,7 @@ export const catchUpUpcomingPaymentInstances = async () => {
 // in a single tap.
 const CLEAR_STALE_CATCHUP_LIMIT = 365;
 
-export const clearStaleFlag = async (
-  upcomingPaymentId: number,
-  executor: DbExecutor = db,
-) => {
+export const clearStaleFlag = async (upcomingPaymentId: number, executor: DbExecutor = db) => {
   // Reset stale flag first so insertNextInstance / ensureWindow won't skip.
   await executor
     .update(upcomingPayments)
@@ -399,7 +392,7 @@ export type RecomputeStaleSignal = { clearStaleForPaymentId: number };
 
 export const recomputeInstanceStatus = async (
   instanceId: number,
-  executor: DbExecutor = db
+  executor: DbExecutor = db,
 ): Promise<RecomputeStaleSignal | null> => {
   const [instance] = await executor
     .select({
@@ -410,7 +403,7 @@ export const recomputeInstanceStatus = async (
     .from(upcomingPaymentInstances)
     .innerJoin(
       upcomingPayments,
-      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
     )
     .where(eq(upcomingPaymentInstances.id, instanceId));
   if (!instance) return null;
@@ -462,7 +455,7 @@ export const getUpcomingPaymentInstancesWithContributions = async (upcomingPayme
     .from(upcomingPaymentInstances)
     .leftJoin(
       upcomingPaymentContributions,
-      eq(upcomingPaymentContributions.instanceId, upcomingPaymentInstances.id)
+      eq(upcomingPaymentContributions.instanceId, upcomingPaymentInstances.id),
     )
     .leftJoin(transactions, eq(transactions.id, upcomingPaymentContributions.transactionId))
     .leftJoin(wallet, eq(wallet.walletId, transactions.wallet_id))
@@ -491,7 +484,7 @@ export const getUpcomingPaymentInstanceWithContext = async (instanceId: number) 
     .from(upcomingPaymentInstances)
     .innerJoin(
       upcomingPayments,
-      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
     )
     .where(eq(upcomingPaymentInstances.id, instanceId));
 
@@ -531,7 +524,7 @@ export const getLinkablePendingInstances = async (
     .from(upcomingPaymentInstances)
     .innerJoin(
       upcomingPayments,
-      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
     )
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
     .where(whereClause)
@@ -541,7 +534,7 @@ export const getLinkablePendingInstances = async (
 export const getUpcomingInstancesForSection = async () => {
   const nextMonthIso = format(addMonths(startOfMonth(new Date()), 1), "yyyy-MM-dd");
 
-  return db
+  const rows = await db
     .select({
       id: upcomingPaymentInstances.id,
       upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId,
@@ -561,17 +554,50 @@ export const getUpcomingInstancesForSection = async () => {
     .from(upcomingPaymentInstances)
     .innerJoin(
       upcomingPayments,
-      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId)
+      eq(upcomingPayments.id, upcomingPaymentInstances.upcomingPaymentId),
     )
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
     .where(
       and(
         eq(upcomingPayments.isActive, true),
         eq(upcomingPaymentInstances.status, "pending"),
-        lt(upcomingPaymentInstances.dueDate, nextMonthIso)
-      )
+        lt(upcomingPaymentInstances.dueDate, nextMonthIso),
+      ),
     )
     .orderBy(asc(upcomingPaymentInstances.dueDate));
+
+  const variableIds = rows
+    .filter((row) => row.expectedAmount == null)
+    .map((row) => row.upcomingPaymentId);
+
+  let estimates = new Map<number, number>();
+  if (variableIds.length > 0) {
+    const paidRows = await db
+      .select({
+        upcomingPaymentId: upcomingPaymentInstances.upcomingPaymentId,
+        paidTotal: sql<number | null>`SUM(${transactions.amount})`,
+      })
+      .from(upcomingPaymentInstances)
+      .leftJoin(
+        upcomingPaymentContributions,
+        eq(upcomingPaymentContributions.instanceId, upcomingPaymentInstances.id),
+      )
+      .leftJoin(transactions, eq(transactions.id, upcomingPaymentContributions.transactionId))
+      .where(
+        and(
+          inArray(upcomingPaymentInstances.upcomingPaymentId, variableIds),
+          eq(upcomingPaymentInstances.status, "paid"),
+        ),
+      )
+      .groupBy(upcomingPaymentInstances.id)
+      .orderBy(desc(upcomingPaymentInstances.dueDate));
+    estimates = computeVariableEstimates(paidRows);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    estimatedAmount: estimates.get(row.upcomingPaymentId) ?? null,
+  }));
 };
 
 export const getAllUpcomingPayments = async () => {
@@ -582,21 +608,24 @@ export const getAllUpcomingPayments = async () => {
       iconFamily: categories.iconFamily,
       iconName: categories.iconName,
       iconColor: categories.iconColor,
-      paidCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'paid' THEN 1 END)`.mapWith(
-        Number
-      ),
-      missedCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} < ${todayIso} THEN 1 END)`.mapWith(
-        Number
-      ),
-      pendingCount: sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' THEN 1 END)`.mapWith(
-        Number
-      ),
+      paidCount:
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'paid' THEN 1 END)`.mapWith(
+          Number,
+        ),
+      missedCount:
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' AND ${upcomingPaymentInstances.dueDate} < ${todayIso} THEN 1 END)`.mapWith(
+          Number,
+        ),
+      pendingCount:
+        sql<number>`COUNT(CASE WHEN ${upcomingPaymentInstances.status} = 'pending' THEN 1 END)`.mapWith(
+          Number,
+        ),
     })
     .from(upcomingPayments)
     .innerJoin(categories, eq(categories.id, upcomingPayments.categoryId))
     .leftJoin(
       upcomingPaymentInstances,
-      eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPayments.id)
+      eq(upcomingPaymentInstances.upcomingPaymentId, upcomingPayments.id),
     )
     .groupBy(upcomingPayments.id);
 

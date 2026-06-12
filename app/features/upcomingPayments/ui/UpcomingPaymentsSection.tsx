@@ -14,7 +14,7 @@ import UpcomingPaymentRow from "./UpcomingPaymentRow";
 
 const MAX_VISIBLE_ROWS = 3;
 
-type ForecastLine = { currency: string; total: number };
+type ForecastLine = { currency: string; total: number; isEstimated: boolean };
 
 const UpcomingPaymentsSection: React.FC = () => {
   const styles = useThemedStyles(themedStyles);
@@ -29,19 +29,26 @@ const UpcomingPaymentsSection: React.FC = () => {
     const totals = new Map<string, ForecastLine>();
     let variableCount = 0;
     for (const row of instances) {
-      if (row.expectedAmount == null) {
+      const amount = row.expectedAmount ?? row.estimatedAmount;
+      if (amount == null) {
         variableCount++;
         continue;
       }
+      const isEstimated = row.expectedAmount == null;
       const currency = row.currencySymbol || row.currencyCode || "";
       const existing = totals.get(currency);
-      if (existing) existing.total += row.expectedAmount;
-      else totals.set(currency, { currency, total: row.expectedAmount });
+      if (existing) {
+        existing.total += amount;
+        existing.isEstimated ||= isEstimated;
+      } else {
+        totals.set(currency, { currency, total: amount, isEstimated });
+      }
     }
     if (totals.size === 0 && variableCount === 0) return null;
     const amountParts = Array.from(totals.values()).map((line) => {
       const amount = formatDecimalDigits(line.total, delimiter, decimal);
-      return line.currency ? `${amount} ${line.currency}` : amount;
+      const text = line.currency ? `${amount} ${line.currency}` : amount;
+      return line.isEstimated ? `~${text}` : text;
     });
     const amountText = amountParts.join(" · ");
     if (variableCount === 0) return amountText;
