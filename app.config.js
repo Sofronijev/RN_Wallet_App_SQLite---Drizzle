@@ -20,7 +20,11 @@ export default {
     version: '1.1.1',
     orientation: 'portrait',
     icon: './app/assets/ios-light.png',
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
     updates: {
+      url: 'https://u.expo.dev/6928b3f1-f181-4c14-a110-d718064f777c',
       fallbackToCacheTimeout: 0,
     },
     assetBundlePatterns: ['**/*'],
