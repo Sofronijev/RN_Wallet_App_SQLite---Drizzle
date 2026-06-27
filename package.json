@@ -16,6 +16,7 @@
     "db:customMigrate": "npx drizzle-kit generate --custom"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
     "@gorhom/bottom-sheet": "5.2.9",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-navigation/bottom-tabs": "^7.8.4",
