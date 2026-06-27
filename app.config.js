@@ -68,6 +68,7 @@ export default {
       '@react-native-community/datetimepicker',
       'expo-sharing',
       'expo-sqlite',
+      'expo-status-bar',
     ],
   },
 };
