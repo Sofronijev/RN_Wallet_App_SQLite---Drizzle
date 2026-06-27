@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import React, { FC, PropsWithChildren } from "react";
 import Label from "components/Label";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import Octicons from "@expo/vector-icons/Octicons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons/static";
+import Octicons from "@react-native-vector-icons/octicons/static";
+import FontAwesome5 from "@react-native-vector-icons/fontawesome5/static";
 import { useGetNumberSeparatorQuery, useSetDecimal, useSetDelimiter } from "app/queries/user";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 
@@ -63,7 +63,7 @@ const NumberSeparators = () => {
             <MaterialCommunityIcons name='comma' size={20} color={text} />
           </Button>
           <Button isSelected={"" === delimiter} onPress={() => setDelimiter("")}>
-            <FontAwesome5 name='ban' size={18} color={text} />
+            <FontAwesome5 iconStyle="solid" name='ban' size={18} color={text} />
             <Text style={styles.buttonText}>None</Text>
           </Button>
         </View>

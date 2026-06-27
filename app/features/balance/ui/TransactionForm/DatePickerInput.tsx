@@ -10,10 +10,10 @@ import {
 } from "modules/timeAndDate";
 import colors from "constants/colors";
 import StyledLabelInput from "components/StyledLabelInput";
-import { FontAwesome } from "@expo/vector-icons";
+import FontAwesome from "@react-native-vector-icons/fontawesome/static";
 import ShadowBoxView from "components/ShadowBoxView";
 import Label from "components/Label";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import AntDesign from "@react-native-vector-icons/ant-design/static";
 
 const isIosDevice = Platform.OS === "ios";
 

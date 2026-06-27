@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";
 import { RouteProp } from "@react-navigation/native";

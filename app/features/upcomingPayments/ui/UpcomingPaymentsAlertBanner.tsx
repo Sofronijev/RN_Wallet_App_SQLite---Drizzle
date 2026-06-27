@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons/static";
 import Label from "components/Label";
 import ShadowBoxView from "components/ShadowBoxView";
 import { pressableOpacityStyle } from "modules/pressable";

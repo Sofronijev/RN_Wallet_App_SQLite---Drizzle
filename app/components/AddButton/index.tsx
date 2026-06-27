@@ -1,7 +1,7 @@
 import colors from "constants/colors";
 import React from "react";
 import { TouchableOpacity, StyleSheet, View, Platform } from "react-native";
-import { Entypo } from "@expo/vector-icons";
+import Entypo from "@react-native-vector-icons/entypo/static";
 import { useAppNavigation } from "navigation/routes";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 

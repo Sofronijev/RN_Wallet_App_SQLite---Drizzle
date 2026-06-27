@@ -1,7 +1,7 @@
 import React, { FC, useRef } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import FontAwesome from "@react-native-vector-icons/fontawesome/static";
 import SheetModal from "../components/SheetModal";
 import SheetHeader from "../components/SheetHeader";
 import colors from "constants/colors";

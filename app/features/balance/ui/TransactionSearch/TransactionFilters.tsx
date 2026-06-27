@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import ListLabel from "components/Lists/ListLabel";
 import CategoryFilterItem from "./CategoryFilterItem";

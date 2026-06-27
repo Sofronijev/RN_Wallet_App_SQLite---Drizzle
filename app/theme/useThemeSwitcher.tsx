@@ -1,6 +1,6 @@
 import colors from "constants/colors";
 import { useAppTheme } from "./ThemeContext";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 
 export const useThemeSwitcher = () => {
   const { themeMode, setThemeMode, theme } = useAppTheme();

@@ -1,6 +1,9 @@
 import { StyleSheet, View } from "react-native";
 import React, { memo } from "react";
-import { FontAwesome, FontAwesome5, MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import FontAwesome from "@react-native-vector-icons/fontawesome/static";
+import FontAwesome5 from "@react-native-vector-icons/fontawesome5/static";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons/static";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import colors from "constants/colors";
 import { CategoriesWithType } from "db";
 import { addColorOpacity } from "modules/colorHelper";
@@ -25,7 +28,18 @@ const iconMap: Record<string, any> = {
 export const getCategoryIcon = ({ iconFamily, name, iconSize, color }: Props) => {
   const IconComponent = iconMap[iconFamily];
 
-  return <IconComponent name={name} size={iconSize ?? ICON_SIZE} color={color ?? colors.white} />;
+  // FontAwesome5 free icons live in the "solid" style; without this it defaults
+  // to "regular" and warns noSuchGlyph for solid-only names (e.g. balance-scale).
+  const fontAwesome5Style = iconFamily === "FontAwesome5" ? { iconStyle: "solid" as const } : {};
+
+  return (
+    <IconComponent
+      name={name}
+      size={iconSize ?? ICON_SIZE}
+      color={color ?? colors.white}
+      {...fontAwesome5Style}
+    />
+  );
 };
 
 const DEFAULT_CONTAINER_SIZE = 50;

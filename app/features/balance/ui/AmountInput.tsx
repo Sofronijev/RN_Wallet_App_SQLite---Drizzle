@@ -4,7 +4,7 @@ import Label from "components/Label";
 import { formatDecimalDigits } from "modules/numbers";
 import colors from "constants/colors";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome5 from "@react-native-vector-icons/fontawesome5/static";
 import ShadowBoxView from "components/ShadowBoxView";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 
@@ -31,7 +31,7 @@ const AmountInput: FC<Props> = ({
     <ShadowBoxView style={[styles.container, style, disabled && styles.disabledContainer]}>
       <TouchableOpacity style={styles.flexRow} onPress={onPress} disabled={disabled}>
         <View style={styles.icon}>
-          <FontAwesome5 name='coins' size={30} color={colors.greenMint} />
+          <FontAwesome5 iconStyle="solid" name='coins' size={30} color={colors.greenMint} />
         </View>
         <Label style={[styles.label, !amount && styles.placeHolder, disabled && styles.disabled]}>
           {amount

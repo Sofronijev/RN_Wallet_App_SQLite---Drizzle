@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 

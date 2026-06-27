@@ -1,6 +1,8 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
-import { MaterialCommunityIcons, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons/static";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import colors from "constants/colors";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import Label from "components/Label";

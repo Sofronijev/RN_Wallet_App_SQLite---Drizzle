@@ -1,5 +1,5 @@
 import { View, StyleSheet } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import React from "react";
 import colors from "constants/colors";
 import { useColors } from "app/theme/useThemedStyles";

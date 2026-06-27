@@ -1,6 +1,6 @@
 import { Alert, FlatList, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import { useDeleteCategoryMutation, useGetCategories } from "app/queries/categories";
 import ShadowBoxView from "components/ShadowBoxView";
 import CategoryIcon from "components/CategoryIcon";

@@ -13,8 +13,8 @@ import {
   WalletType,
 } from "app/queries/wallets";
 import { CurrencyType } from "app/currencies/currencies";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Feather from "@expo/vector-icons/Feather";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
+import Feather from "@react-native-vector-icons/feather/static";
 import AlertPrompt from "components/AlertPrompt";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";

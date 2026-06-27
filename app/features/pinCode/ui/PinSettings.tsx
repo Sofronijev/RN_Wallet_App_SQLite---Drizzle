@@ -2,8 +2,8 @@ import { StyleSheet, View, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import AppSwitch from "components/AppSwitch";
 import Label from "components/Label";
-import { Ionicons } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
+import Feather from "@react-native-vector-icons/feather/static";
 import AlertPrompt from "components/AlertPrompt";
 import { hideValues, isNumber } from "modules/numbers";
 import {

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import Label from "components/Label";
 import ButtonText from "components/ButtonText";
 import ShadowBoxView from "components/ShadowBoxView";

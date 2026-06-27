@@ -1,6 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React, { useMemo, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import ShadowBoxView from "components/ShadowBoxView";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { useGetSelectedWalletQuery, useGetWalletTotalsForChart } from "app/queries/wallets";

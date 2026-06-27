@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
   interpolate,
 } from "react-native-reanimated";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
 import { CategoriesWithType } from "db";

@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import { formatIsoDate } from "modules/timeAndDate";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -14,7 +14,7 @@ import {
   transactionValidationSchema,
 } from "../../modules/transactionFormValidation";
 import { RouteProp } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import HeaderIcon from "components/Header/HeaderIcon";
 import {
   deleteTransactionAlert,

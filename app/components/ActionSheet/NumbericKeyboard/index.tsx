@@ -5,7 +5,7 @@ import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import CustomButton from "components/CustomButton";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome5 from "@react-native-vector-icons/fontawesome5/static";
 import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
 import { tapHaptic } from "modules/haptics";
@@ -185,6 +185,7 @@ const NumericKeyboard: FC<Props> = ({
     if (icon) {
       return (
         <FontAwesome5
+          iconStyle='solid'
           name={icon}
           size={24}
           color={icon === "backspace" ? colors.text : colors.primary}

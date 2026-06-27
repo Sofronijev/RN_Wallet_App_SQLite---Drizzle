@@ -2,7 +2,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import colors from "constants/colors";
 import { HomeStackParamList } from "./routes";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import SettingsScreen from "app/features/settings";
 import BalanceScreen from "app/features/balance/ui/BalanceTab/BalanceScreen";
 import { useColors } from "app/theme/useThemedStyles";

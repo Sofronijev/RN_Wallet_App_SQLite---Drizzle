@@ -2,7 +2,7 @@ import React, { FC, useCallback, useRef } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { CurrencyType, currencies } from "app/currencies/currencies";

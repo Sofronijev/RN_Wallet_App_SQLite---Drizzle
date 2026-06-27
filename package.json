@@ -16,7 +16,6 @@
     "db:customMigrate": "npx drizzle-kit generate --custom"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.1.1",
     "@gorhom/bottom-sheet": "5.2.9",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-navigation/bottom-tabs": "^7.8.4",
@@ -54,7 +53,16 @@
     "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.0",
     "react-native-worklets": "0.8.3",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "@react-native-vector-icons/material-design-icons": "^13.1.2",
+    "@react-native-vector-icons/material-icons": "^13.1.2",
+    "@react-native-vector-icons/ionicons": "^13.1.2",
+    "@react-native-vector-icons/fontawesome5": "^13.1.2",
+    "@react-native-vector-icons/octicons": "^21.1.2",
+    "@react-native-vector-icons/entypo": "^13.1.2",
+    "@react-native-vector-icons/feather": "^13.1.2",
+    "@react-native-vector-icons/fontawesome": "^13.1.2",
+    "@react-native-vector-icons/ant-design": "^13.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

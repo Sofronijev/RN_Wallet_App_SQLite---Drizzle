@@ -13,7 +13,7 @@ import InputErrorLabel from "components/InputErrorLabel";
 import WalletPicker from "app/features/balance/ui/TransactionForm/WalletPicker";
 import CustomButton from "components/CustomButton";
 import colors from "constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { AppStackParamList } from "navigation/routes";
 import Label from "components/Label";

@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import PinButton from "./PinButton";
-import Feather from "@expo/vector-icons/Feather";
+import Feather from "@react-native-vector-icons/feather/static";
 import { usePinCodeStatus } from "./PinCodeStatusProvider";
 import { useGetPinCodeDataQuery } from "app/queries/user";
 import { tapHaptic } from "modules/haptics";

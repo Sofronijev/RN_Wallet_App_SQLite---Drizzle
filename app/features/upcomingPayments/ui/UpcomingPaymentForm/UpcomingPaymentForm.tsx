@@ -5,7 +5,7 @@ import { useFormik } from "formik";
 import StyledLabelInput from "components/StyledLabelInput";
 import InputErrorLabel from "components/InputErrorLabel";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
-import { MaterialIcons } from "@expo/vector-icons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import { calendarDateFormat, formatIsoDate, getFormattedDate } from "modules/timeAndDate";
 import AppActivityIndicator from "components/AppActivityIndicator";
 import { StackNavigationProp } from "@react-navigation/stack";

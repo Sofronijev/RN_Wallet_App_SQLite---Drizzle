@@ -1,6 +1,6 @@
 import { TouchableOpacity } from "react-native";
 import React, { FC } from "react";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons/static";
 import colors from "constants/colors";
 import { useColors } from "app/theme/useThemedStyles";
 

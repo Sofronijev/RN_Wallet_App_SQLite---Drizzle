@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons/static";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "navigation/routes";

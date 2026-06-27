@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { addDays, startOfDay } from "date-fns";
 import { pressableOpacityStyle } from "modules/pressable";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialIcons from "@react-native-vector-icons/material-icons/static";
 import Label from "components/Label";
 import DatePickerInput from "app/features/balance/ui/TransactionForm/DatePickerInput";
 import { formatIsoDate } from "modules/timeAndDate";

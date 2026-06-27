@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@react-native-vector-icons/ionicons/static";
 import React from "react";
 import HeaderIcon from "components/Header/HeaderIcon";
 import colors from "constants/colors";
