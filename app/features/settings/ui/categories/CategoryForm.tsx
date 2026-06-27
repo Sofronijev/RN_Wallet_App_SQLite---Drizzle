@@ -387,7 +387,7 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <MaterialIcons name='inventory-2' size={32} color={muted} opacity={0.3} />
+              <MaterialIcons name='inventory-2' size={32} color={muted} />
               <Label style={styles.emptyText}>No subcategories yet</Label>
               <Label style={styles.emptySubtext}>Tap + to add your first one</Label>
             </View>

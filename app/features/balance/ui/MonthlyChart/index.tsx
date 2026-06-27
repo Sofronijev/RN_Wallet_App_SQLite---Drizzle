@@ -120,7 +120,7 @@ const themedStyles = (theme: AppTheme) =>
       color: theme.colors.text,
     },
     emptyWrapper: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: "center",
       alignItems: "center",
     },

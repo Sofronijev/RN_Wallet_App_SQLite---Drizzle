@@ -30,7 +30,7 @@ export default AppActivityIndicator;
 const styles = (theme: AppTheme) =>
   StyleSheet.create({
     activityIndicator: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     hideScreen: {
       backgroundColor: theme.colors.background,

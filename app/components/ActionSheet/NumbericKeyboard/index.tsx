@@ -5,7 +5,9 @@ import SheetModal from "../components/SheetModal";
 import Label from "components/Label";
 import { useGetNumberSeparatorQuery } from "app/queries/user";
 import CustomButton from "components/CustomButton";
-import FontAwesome5 from "@react-native-vector-icons/fontawesome5/static";
+import FontAwesome5, {
+  FontAwesome5SolidIconName,
+} from "@react-native-vector-icons/fontawesome5/static";
 import { numericKeyboardStrings } from "constants/strings";
 import SheetHeader from "../components/SheetHeader";
 import { tapHaptic } from "modules/haptics";
@@ -157,7 +159,7 @@ const NumericKeyboard: FC<Props> = ({
     onSetAmount(result);
   };
 
-  const rawButtons = [
+  const rawButtons: { label?: string; icon?: FontAwesome5SolidIconName; onPress: () => void }[] = [
     { label: "1", onPress: () => onNumberPress("1") },
     { label: "2", onPress: () => onNumberPress("2") },
     { label: "3", onPress: () => onNumberPress("3") },
@@ -181,7 +183,7 @@ const NumericKeyboard: FC<Props> = ({
 
   const buttons = Array.from({ length: 4 }, (_, i) => rawButtons.slice(i * 4, i * 4 + 4));
 
-  const renderButton = (icon?: string, label?: string) => {
+  const renderButton = (icon?: FontAwesome5SolidIconName, label?: string) => {
     if (icon) {
       return (
         <FontAwesome5
