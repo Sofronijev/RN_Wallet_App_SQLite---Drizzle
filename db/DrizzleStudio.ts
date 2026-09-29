@@ -3,7 +3,7 @@ import React from "react";
 import { expoDb } from "db";
 
 const DrizzleStudio: React.FC = () => {
-  useDrizzleStudio(expoDb);
+  useDrizzleStudio(expoDb ?? null);
   return null;
 };
 

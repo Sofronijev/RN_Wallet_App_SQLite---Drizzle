@@ -1,16 +1,30 @@
-import { openDatabaseSync } from "expo-sqlite";
+import { openDatabaseSync, type SQLiteDatabase } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as schema from "./schema";
 
-export const expoDb = openDatabaseSync("db.db", {
-  enableChangeListener: true,
-});
+let expoDb: SQLiteDatabase | undefined;
+let initError: Error | null = null;
 
-// Turn on foreign keys, they are off by default
-expoDb.execSync("PRAGMA foreign_keys = ON;");
+try {
+  expoDb = openDatabaseSync("db.db", {
+    enableChangeListener: true,
+  });
+  // Turn on foreign keys, they are off by default
+  expoDb.execSync("PRAGMA foreign_keys = ON;");
+} catch (error) {
+  initError = error instanceof Error ? error : new Error(String(error));
+  console.error("Failed to open the on-device database", initError);
+}
 
-export const db = drizzle(expoDb, { logger: false, schema });
+const createDb = (client: SQLiteDatabase) => drizzle(client, { logger: false, schema });
+
+// Typed as always set: App.tsx shows the recovery screen before any query runs when it isn't.
+let db: ReturnType<typeof createDb>;
+
+if (expoDb) db = createDb(expoDb);
+
+export { expoDb, initError, db };
 
 // Accepts the top-level `db` or a transaction `tx`, so helpers can run inside
 // or outside an existing db.transaction(...) block.

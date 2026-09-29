@@ -21,6 +21,9 @@ Then press `a` (Android) or `i` (iOS) in the Expo CLI, or run `yarn android` / `
 | `yarn apk` | Build a **release** APK locally and install it side-by-side as a separate app (see [Build Variants](#build-variants)). |
 | `yarn apk_eas` | Build a **preview** APK in the cloud via EAS (side-by-side variant, internal distribution). |
 | `yarn apk_prod` | Build the **production** Android App Bundle via EAS — this is what goes to the Play Store. |
+| `yarn ota_preview` | Publish a JS-only OTA update to the `preview` channel (see [OTA Updates](#ota-updates-eas-update)). |
+| `yarn ota_prod` | Publish a JS-only OTA update to the `production` channel (Play Store builds). |
+| `yarn ota_rollback` | Roll back the latest OTA update on a branch (interactive). |
 | `yarn prebuild` | Regenerate the native `android/` and `ios/` projects from `app.config.js` and Expo plugins. |
 | `yarn db:generate` | Generate a Drizzle migration after editing `db/schema.ts`. |
 | `yarn db:customMigrate` | Generate an empty custom migration file you can fill in manually. |
@@ -45,6 +48,23 @@ Because each variant has a unique package name, Android treats them as **separat
 - The Preview build is signed with the **debug keystore**, not your Play Store upload key. Fine for personal testing, but you cannot ship it to the store.
 - `cross-env` is required because Windows shells don't honor `VAR=value cmd` inline. It's already in `devDependencies`.
 - Switching between variants (e.g. running `yarn apk` after `yarn android`) needs a fresh `prebuild --clean` because the package name is baked into native code at prebuild time. The `apk` script handles this automatically.
+
+## OTA Updates (EAS Update)
+
+JS/asset-only changes can ship without a store release. An update reaches every installed build with the same **runtime version** (= app `version` in `app.config.js`) on the matching **channel** (set per profile in `eas.json`).
+
+Flow:
+
+1. Bump the code-push label in `package.json` `version` (`1.1.1-cp1` → `1.1.1-cp2` …) — it's shown in About. Leave `app.config.js` `version` as-is (that's the runtime version). When you bump the real version, set both to the plain version (e.g. `1.1.2`). Commit.
+2. `yarn ota_preview -m "message"` → test on a Preview APK built with `yarn apk_eas` (local `yarn apk` builds don't have a channel and won't receive updates).
+3. `yarn ota_prod -m "1.1.1-cp1: message"` → goes to Play Store builds. Put the label in the message so it's visible on expo.dev too.
+4. Open the app, close it, open again — updates download on one launch and apply on the next.
+
+If something breaks: `yarn ota_rollback` and pick the previous update or the embedded one (the JS shipped in the build). Rollback restores code only, not user data in SQLite.
+
+**Bump `version` and make a new store build instead of an OTA** when you add/upgrade a native dependency, upgrade the Expo SDK, or change `app.config.js` plugins/native config. Otherwise older builds with the same version can receive a JS bundle that doesn't match their native code and crash.
+
+Docs: [EAS Update](https://docs.expo.dev/eas-update/introduction/) · [Runtime versions](https://docs.expo.dev/eas-update/runtime-versions/) · [Rollbacks](https://docs.expo.dev/eas-update/rollbacks/)
 
 ## Installing on Your Phone
 

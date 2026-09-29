@@ -1,6 +1,6 @@
 {
   "name": "spendy_fly",
-  "version": "1.1.1",
+  "version": "1.1.1-cp1",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "yarn expo start",
@@ -11,6 +11,9 @@
     "apk_eas": "eas build -p android --profile preview",
     "apk_prod": "eas build --platform android --profile production",
     "apk": "cross-env APP_VARIANT=preview npx expo prebuild --clean -p android && cross-env APP_VARIANT=preview npx expo run:android --variant release",
+    "ota_preview": "cross-env APP_VARIANT=preview eas update --channel preview --environment preview",
+    "ota_prod": "eas update --channel production --environment production",
+    "ota_rollback": "eas update:rollback",
     "prebuild": "npx expo prebuild",
     "db:generate": "npx drizzle-kit generate",
     "db:customMigrate": "npx drizzle-kit generate --custom"

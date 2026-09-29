@@ -48,12 +48,18 @@ const CustomButton: React.FC<CustomButtonType> = ({
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.container, buttonStyle, sizeStyle, style]}
+      style={[
+        styles.container,
+        buttonStyle,
+        sizeStyle,
+        disabled && !isLoading && styles.disabled,
+        style,
+      ]}
       activeOpacity={0.5}
       disabled={disabled}
     >
       {isLoading ? (
-        <ActivityIndicator color={colors.white} />
+        <ActivityIndicator color={outline ? color : colors.white} />
       ) : (
         <Text style={[styles.text, textStyle, outline && { color }]}>{title}</Text>
       )}
@@ -68,6 +74,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
     borderWidth: 1,
+  },
+  disabled: {
+    opacity: 0.4,
   },
   text: {
     color: colors.white,

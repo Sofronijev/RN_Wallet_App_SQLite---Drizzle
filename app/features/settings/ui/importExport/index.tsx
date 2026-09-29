@@ -1,23 +1,26 @@
 import React, { useState } from "react";
 import { View, Alert, StyleSheet, ScrollView } from "react-native";
-import { exportDatabase, importDatabase, deleteAllData } from "../../modules/exportImport";
+import { importBackup, deleteAllData } from "../../modules/exportImport";
+import { createDatabaseSnapshot, type DatabaseFileResult } from "../../modules/databaseFile";
 import ShadowBoxView from "components/ShadowBoxView";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
-import colors from "constants/colors";
 import CustomButton from "components/CustomButton";
+import { restartApp } from "modules/restartApp";
+
+type BackupAction = "export" | "import" | "delete";
 
 export const DatabaseBackupScreen = () => {
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+  const [activeAction, setActiveAction] = useState<BackupAction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const styles = useThemedStyles(themedStyles);
+  const isBusy = activeAction !== null || isDeleting;
 
-  const handleExport = async () => {
-    setIsExporting(true);
+  const runExport = async (action: BackupAction, run: () => Promise<DatabaseFileResult>) => {
+    setActiveAction(action);
     try {
-      const result = await exportDatabase();
+      const result = await run();
 
       if (!result.success) {
         Alert.alert("Error", result.message, [{ text: "OK" }]);
@@ -25,33 +28,63 @@ export const DatabaseBackupScreen = () => {
     } catch (error) {
       Alert.alert("Error", "An unexpected error occurred during export.", [{ text: "OK" }]);
     } finally {
-      setIsExporting(false);
+      setActiveAction(null);
     }
   };
 
-  const handleImport = async () => {
-    setIsImporting(true);
+  const runImport = async (action: BackupAction, run: () => Promise<DatabaseFileResult>) => {
+    setActiveAction(action);
     try {
-      const result = await importDatabase();
+      const result = await run();
 
-      if (result.message !== "Import canceled") {
-        if (result.success) {
-          Alert.alert("Success", result.message, [], { cancelable: false });
-        } else {
-          Alert.alert("Error", result.message, [{ text: "OK" }]);
-        }
+      if (result.canceled) return;
+
+      if (result.success) {
+        promptRestart(result.message);
+      } else {
+        Alert.alert("Error", result.message, [{ text: "OK" }]);
       }
     } catch (error) {
       Alert.alert("Error", "Unexpected error during import", [{ text: "OK" }]);
     } finally {
-      setIsImporting(false);
+      setActiveAction(null);
     }
   };
 
+  const promptRestart = (message: string) =>
+    Alert.alert("Done", `${message}\n\nSpendyFly needs to restart before you can see it.`, [
+      { text: "Later", style: "cancel" },
+      {
+        text: "Restart now",
+        onPress: () => {
+          restartApp().catch((error) => {
+            console.error("Failed to restart SpendyFly", error);
+            Alert.alert("Error", "Please close and reopen SpendyFly to see your data.", [
+              { text: "OK" },
+            ]);
+          });
+        },
+      },
+    ]);
+
+  const confirmImport = () =>
+    Alert.alert(
+      "Replace everything?",
+      "This replaces every transaction, wallet and category on this phone with what is in the backup file you choose.\n\nSave a backup first if you might still need what is in the app now.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Choose file",
+          style: "destructive",
+          onPress: () => runImport("import", importBackup),
+        },
+      ],
+    );
+
   const handleDeleteAllData = () => {
     Alert.alert(
-      "Delete All Data",
-      "Are you sure you want to delete all your data? This action cannot be undone!\n\nConsider creating a backup first.",
+      "Delete everything?",
+      "This deletes every transaction, wallet and category on this phone. It cannot be undone.\n\nSave a backup first if you might want any of it back.",
       [
         {
           text: "Cancel",
@@ -66,7 +99,7 @@ export const DatabaseBackupScreen = () => {
               const result = await deleteAllData();
 
               if (result.success) {
-                Alert.alert("Success", result.message, [], { cancelable: false });
+                promptRestart(result.message);
               } else {
                 Alert.alert("Error", result.message, [{ text: "OK" }]);
               }
@@ -82,31 +115,31 @@ export const DatabaseBackupScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ShadowBoxView style={styles.section}>
-        <Label style={styles.sectionTitle}>Export Database</Label>
+        <Label style={styles.sectionTitle}>Save A Backup</Label>
         <Label style={styles.description}>
           Creates a backup file of all your data that you can save or share.
         </Label>
         <CustomButton
-          onPress={handleExport}
-          disabled={isExporting}
-          title='Export'
-          isLoading={isExporting}
+          onPress={() => runExport("export", createDatabaseSnapshot)}
+          disabled={isBusy}
+          title='Save Backup'
+          isLoading={activeAction === "export"}
           type='primary'
           size='small'
         />
       </ShadowBoxView>
 
       <ShadowBoxView style={styles.section}>
-        <Label style={styles.sectionTitle}>Import Database</Label>
+        <Label style={styles.sectionTitle}>Load A Backup</Label>
         <Label style={styles.description}>Loads a backup file and replaces all current data.</Label>
         <Label style={styles.warning}>⚠️ This will delete all your current data!</Label>
         <CustomButton
-          onPress={handleImport}
-          disabled={isImporting}
-          title='Import'
-          isLoading={isImporting}
+          onPress={confirmImport}
+          disabled={isBusy}
+          title='Load Backup'
+          isLoading={activeAction === "import"}
           type='danger'
           size='small'
         />
@@ -120,7 +153,7 @@ export const DatabaseBackupScreen = () => {
         </Label>
         <CustomButton
           onPress={handleDeleteAllData}
-          disabled={isDeleting}
+          disabled={isBusy}
           title='Delete All Data'
           isLoading={isDeleting}
           type='danger'
@@ -129,16 +162,15 @@ export const DatabaseBackupScreen = () => {
       </ShadowBoxView>
 
       <View style={styles.info}>
-        <Label style={styles.infoTitle}>ℹ️ Notes:</Label>
+        <Label style={styles.infoTitle}>ℹ️ Good to know:</Label>
         <Label style={styles.infoText}>
-          • Backup files are automatically checked for compatibility
+          • Backups from older versions of SpendyFly still work, and are brought up to date for you
         </Label>
         <Label style={styles.infoText}>
-          • Older backups will be automatically updated to the latest version
+          • A backup from a newer version of SpendyFly cannot be loaded. Update the app first
         </Label>
-        <Label style={styles.infoText}>• You cannot import backups from a newer app version</Label>
         <Label style={styles.infoText}>
-          • Always create a backup before deleting or importing data
+          • Always save a backup before loading one or deleting your data
         </Label>
       </View>
     </ScrollView>
@@ -149,7 +181,10 @@ const themedStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       flex: 1,
+    },
+    content: {
       padding: 16,
+      paddingBottom: 40,
     },
     section: {
       padding: 16,
@@ -170,23 +205,6 @@ const themedStyles = (theme: AppTheme) =>
       color: theme.colors.redDark,
       marginBottom: 15,
       fontWeight: "500",
-    },
-    button: {
-      padding: 8,
-      borderRadius: 8,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    exportButton: {
-      backgroundColor: theme.colors.primary,
-    },
-    importButton: {
-      backgroundColor: theme.colors.danger,
-    },
-    buttonText: {
-      color: colors.white,
-      fontSize: 16,
-      fontWeight: "600",
     },
     info: {
       backgroundColor: theme.colors.info,

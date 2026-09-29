@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MenuProvider } from "react-native-popup-menu";
@@ -9,7 +9,7 @@ import AlertPromptProvider from "components/AlertPrompt/AlertPrompt";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ActionSheetProvider from "components/ActionSheet";
 import { PinCodeStatusProvider } from "app/features/pinCode/ui/PinCodeStatusProvider";
-import { db } from "db";
+import { db, initError } from "db";
 import migrations from "drizzle/migrations";
 import RootNavigator from "navigation/RootNavigator";
 import { ThemeProvider, useAppTheme } from "app/theme/ThemeContext";
@@ -17,25 +17,23 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { DashboardOptionsProvider } from "app/context/DashboardOptions/DashboardOptionsContext";
 import { catchUpUpcomingPaymentInstances } from "app/services/upcomingPaymentQueries";
 import { queryKeys } from "app/queries";
+import InitializationRecoveryScreen from "app/features/startup/ui/InitializationRecoveryScreen";
+import { restartApp } from "modules/restartApp";
 
 const queryClient = new QueryClient();
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const AppContent = () => {
-  const { success, error } = useMigrations(db, migrations);
+  const { success, error: migrationError } = useMigrations(db, migrations);
   const { theme } = useAppTheme();
 
-  useEffect(() => {
-    if (error) {
-      Alert.alert(
-        "Initialization Error",
-        "There was a problem initializing the app. Please try restarting the app. If the issue persists, consider reinstalling the app.",
-      );
-    }
-  }, [error]);
+  // A broken handle also fails migration, so initError wins.
+  const error = initError ?? migrationError;
+  const errorCode = initError ? "INIT-DB-001" : "INIT-DB-002";
+  const isReady = success;
 
   useEffect(() => {
-    if (!success) return;
+    if (!isReady) return;
     // Defer one tick so the UI paints before we touch the DB on cold start.
     const handle = setTimeout(() => {
       catchUpUpcomingPaymentInstances()
@@ -46,15 +44,35 @@ const AppContent = () => {
         .catch(() => {});
     }, 0);
     return () => clearTimeout(handle);
-  }, [success]);
+  }, [isReady]);
+
+  useEffect(() => {
+    if (error) console.error("Database initialization failed", error);
+  }, [error]);
 
   const onLayoutRootView = useCallback(async () => {
-    if (success) {
+    if (isReady || error) {
       await SplashScreen.hideAsync();
     }
-  }, [success]);
+  }, [error, isReady]);
 
-  if (!success) return null;
+  const retryInitialization = useCallback(() => restartApp(), []);
+
+  if (error) {
+    return (
+      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+        <SafeAreaProvider>
+          <InitializationRecoveryScreen
+            onRetry={retryInitialization}
+            errorCode={errorCode}
+            errorDetail={error?.message}
+          />
+        </SafeAreaProvider>
+      </View>
+    );
+  }
+
+  if (!isReady) return null;
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <QueryClientProvider client={queryClient}>
