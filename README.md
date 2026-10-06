@@ -51,6 +51,8 @@ Because each variant has a unique package name, Android treats them as **separat
 
 ## OTA Updates (EAS Update)
 
+Step-by-step release checklist (store + OTA, tagging): [RELEASING.md](./RELEASING.md).
+
 JS/asset-only changes can ship without a store release. An update reaches every installed build with the same **runtime version** (= app `version` in `app.config.js`) on the matching **channel** (set per profile in `eas.json`).
 
 Flow:

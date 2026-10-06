@@ -7,6 +7,8 @@ npm-debug.*
 *.p12
 *.key
 *.mobileprovision
+.env
+.env*.local
 *.orig.*
 web-build/
 # Created when used andorid emulator
