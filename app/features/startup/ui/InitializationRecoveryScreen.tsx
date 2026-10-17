@@ -8,11 +8,14 @@ import { useAppTheme } from "app/theme/ThemeContext";
 import {
   createDatabaseSnapshot as saveRecoveryDatabase,
   startOverWithFreshDatabase as startOverWithEmptyDatabase,
+  restoreDatabaseSnapshot,
   type DatabaseFileResult as RecoveryActionResult,
 } from "app/features/settings/modules/databaseFile";
 import { importBackup as restoreRecoveryBackup } from "app/features/settings/modules/exportImport";
+import { getAutoBackups } from "app/features/settings/modules/autoBackup";
+import { formatBackupDate } from "modules/timeAndDate";
 
-type RecoveryAction = "retry" | "saveCopy" | "restore" | "startOver" | "support";
+type RecoveryAction = "retry" | "saveCopy" | "restore" | "autoRestore" | "startOver" | "support";
 
 const SUPPORT_EMAIL = "spendyfly+support@gmail.com";
 
@@ -35,6 +38,7 @@ const InitializationRecoveryScreen: React.FC<InitializationRecoveryScreenProps> 
   const [message, setMessage] = useState<string | null>(null);
   const [hasActionError, setHasActionError] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const [{ latest: autoBackup }] = useState(getAutoBackups);
   const styles = createStyles(theme);
   const isMigrationError = errorCode === MIGRATION_ERROR_CODE;
 
@@ -115,6 +119,28 @@ const InitializationRecoveryScreen: React.FC<InitializationRecoveryScreenProps> 
 
   const runStartOver = () => runRestoreAction("startOver", startOverWithEmptyDatabase);
 
+  const autoBackupDate = autoBackup?.savedAt ? formatBackupDate(autoBackup.savedAt) : null;
+
+  const confirmAutoRestore = () => {
+    if (!autoBackup) return;
+
+    Alert.alert(
+      "Restore automatic backup?",
+      `This replaces everything currently on this phone with the automatic backup${autoBackupDate ? ` from ${autoBackupDate}` : ""}.\n\nAnything added since then will be lost.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Restore",
+          style: "destructive",
+          onPress: () =>
+            runRestoreAction("autoRestore", () =>
+              restoreDatabaseSnapshot({ uri: autoBackup.uri, name: autoBackup.name }),
+            ),
+        },
+      ],
+    );
+  };
+
   const confirmRestore = () => {
     Alert.alert(
       "Load a backup?",
@@ -194,6 +220,18 @@ const InitializationRecoveryScreen: React.FC<InitializationRecoveryScreenProps> 
               disabled={isBusy}
               isLoading={activeAction === "retry"}
             />
+            {autoBackup && (
+              <CustomButton
+                title={
+                  autoBackupDate
+                    ? `Restore Automatic Backup (${autoBackupDate})`
+                    : "Restore Automatic Backup"
+                }
+                onPress={confirmAutoRestore}
+                disabled={isBusy}
+                isLoading={activeAction === "autoRestore"}
+              />
+            )}
             <CustomButton
               title='Choose A Backup File'
               onPress={confirmRestore}

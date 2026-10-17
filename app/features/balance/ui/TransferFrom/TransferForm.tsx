@@ -33,6 +33,7 @@ import AmountInput from "../AmountInput";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export type TransferFromInputs = {
   date: string;
@@ -59,6 +60,7 @@ const TransferForm: React.FC = () => {
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
+  const { bottom } = useSafeAreaInsets();
 
   useEffect(() => {
     if (editTransferData) {
@@ -174,7 +176,7 @@ const TransferForm: React.FC = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.flex}
     >
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: bottom }}>
         <View style={styles.inputContainer}>
           <DatePickerInput date={new Date(values.date)} onDateSelect={onDateChange} />
           <View>

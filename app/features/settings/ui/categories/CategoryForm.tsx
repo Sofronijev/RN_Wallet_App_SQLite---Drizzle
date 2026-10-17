@@ -26,6 +26,7 @@ import StyledLabelInput from "components/StyledLabelInput";
 import { categoryStrings } from "constants/strings";
 import CategoryIcon from "components/CategoryIcon";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TwoOptionSelector from "components/TwoOptionsSelector";
 import Label from "components/Label";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
@@ -99,6 +100,7 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
   const categoryToEdit = editCategoryId ? categoriesById[editCategoryId] : null;
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const styles = useThemedStyles(themedStyles);
+  const { bottom } = useSafeAreaInsets();
   const { openSheet } = useActionSheet();
   const { muted } = useColors();
 
@@ -279,7 +281,7 @@ const CategoryForm: React.FC<Props> = ({ navigation, route }) => {
     >
       <ScrollView
         keyboardShouldPersistTaps='handled'
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingBottom: 20 + bottom }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainCard}>

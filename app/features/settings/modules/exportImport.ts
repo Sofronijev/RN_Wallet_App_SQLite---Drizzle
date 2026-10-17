@@ -33,6 +33,7 @@ import {
   type DatabaseFileResult,
   type PickedBackup,
 } from "./databaseFile";
+import { deleteAutoBackups } from "./autoBackup";
 
 type Migration = {
   id: number;
@@ -287,6 +288,7 @@ export async function deleteAllData(): Promise<{
       // sqlite_sequence is automatically reset when tables are dropped
 
       await expoDb.execAsync("COMMIT");
+      deleteAutoBackups();
 
       return {
         success: true,

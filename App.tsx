@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from "react";
-import { View } from "react-native";
+import { AppState, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MenuProvider } from "react-native-popup-menu";
@@ -19,6 +19,7 @@ import { catchUpUpcomingPaymentInstances } from "app/services/upcomingPaymentQue
 import { queryKeys } from "app/queries";
 import InitializationRecoveryScreen from "app/features/startup/ui/InitializationRecoveryScreen";
 import { restartApp } from "modules/restartApp";
+import { runAutoBackupIfDue } from "app/features/settings/modules/autoBackup";
 
 const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -44,6 +45,18 @@ const AppContent = () => {
         .catch(() => {});
     }, 0);
     return () => clearTimeout(handle);
+  }, [isReady]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    const handle = setTimeout(runAutoBackupIfDue, 0);
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "background") runAutoBackupIfDue();
+    });
+    return () => {
+      clearTimeout(handle);
+      subscription.remove();
+    };
   }, [isReady]);
 
   useEffect(() => {

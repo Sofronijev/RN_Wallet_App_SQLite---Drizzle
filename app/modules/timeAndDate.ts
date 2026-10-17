@@ -28,6 +28,15 @@ export const formatDayString = (date: Date | string | number) => {
   return getFormattedDate(getDate, dayAndMonthFormat);
 };
 
+// "Today, 18:42" / "Yesterday, 09:15" / "Mon, 04 Oct 2026, 09:15"
+export const formatBackupDate = (date: Date | string | number) => {
+  const getDate = new Date(date);
+  let day = getFormattedDate(getDate, calendarDateFormat);
+  if (isToday(getDate)) day = dateAndTimeStrings.today;
+  if (isYesterday(getDate)) day = dateAndTimeStrings.yesterday;
+  return `${day}, ${formatTime(getDate)}`;
+};
+
 // Short label for a due date: "Yesterday" / "Today" / "Tomorrow" / date ("15 Jun").
 // Only the day-either-side window gets a relative label; anything further shows
 // the actual date, since a relative count is ambiguous beyond that window.

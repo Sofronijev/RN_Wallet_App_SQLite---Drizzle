@@ -34,6 +34,7 @@ import {
 } from "app/queries/transactions";
 import { useGetSelectedWalletQuery, useGetWalletsWithBalance } from "app/queries/wallets";
 import { ScrollView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Label from "components/Label";
 import TypeSelector from "./TypeSelector";
 import { useGetCategories } from "app/queries/categories";
@@ -82,6 +83,7 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
   const { primary } = useColors();
+  const { bottom } = useSafeAreaInsets();
 
   const onTransactionSubmit = async (values: TransactionFromInputs) => {
     Keyboard.dismiss();
@@ -268,7 +270,11 @@ const TransactionForm: React.FC<Props> = ({ navigation, route }) => {
   );
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps='always'>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: bottom }}
+      keyboardShouldPersistTaps='always'
+    >
       <View style={styles.inputsContainer}>
         <DatePickerInput date={new Date(values.date ?? undefined)} onDateSelect={onDateChange} />
         <View style={styles.walletPicker}>

@@ -37,6 +37,7 @@ import AmountInput from "app/features/balance/ui/AmountInput";
 import { useActionSheet } from "components/ActionSheet/ActionSheetContext";
 import { SHEETS } from "components/ActionSheet/ActionSheetManager";
 import { AppTheme, useColors, useThemedStyles } from "app/theme/useThemedStyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Type } from "db";
 
 type Props = {
@@ -76,6 +77,7 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
   const dateRef = useRef(new Date());
   const { openSheet } = useActionSheet();
   const styles = useThemedStyles(themeStyles);
+  const { bottom } = useSafeAreaInsets();
   const { primary } = useColors();
 
   const onUpcomingSubmit = async (values: UpcomingPaymentFormInputs) => {
@@ -234,7 +236,11 @@ const UpcomingPaymentForm: React.FC<Props> = ({ navigation, route }) => {
   );
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps='always'>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: bottom }}
+      keyboardShouldPersistTaps='always'
+    >
       <View style={styles.inputsContainer}>
         <View style={styles.input}>
           <StyledLabelInput

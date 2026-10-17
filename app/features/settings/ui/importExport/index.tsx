@@ -1,18 +1,40 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Alert, StyleSheet, ScrollView } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { importBackup, deleteAllData } from "../../modules/exportImport";
-import { createDatabaseSnapshot, type DatabaseFileResult } from "../../modules/databaseFile";
+import {
+  createDatabaseSnapshot,
+  restoreDatabaseSnapshot,
+  type DatabaseFileResult,
+} from "../../modules/databaseFile";
+import {
+  getAutoBackupStatus,
+  runAutoBackupIfDue,
+  type AutoBackup,
+  type AutoBackupStatus,
+} from "../../modules/autoBackup";
+import { formatBackupDate } from "modules/timeAndDate";
 import ShadowBoxView from "components/ShadowBoxView";
 import Label from "components/Label";
 import { AppTheme, useThemedStyles } from "app/theme/useThemedStyles";
 import CustomButton from "components/CustomButton";
 import { restartApp } from "modules/restartApp";
 
-type BackupAction = "export" | "import" | "delete";
+type BackupAction = "export" | "import" | "delete" | "restoreLatest" | "restorePrevious" | "retry";
 
 export const DatabaseBackupScreen = () => {
   const [activeAction, setActiveAction] = useState<BackupAction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [autoBackups, setAutoBackups] = useState<AutoBackupStatus | null>(null);
+
+  const loadAutoBackups = useCallback(() => {
+    getAutoBackupStatus()
+      .then(setAutoBackups)
+      .catch((error) => console.warn("Could not read the automatic backups", error));
+  }, []);
+
+  // Files can change while the screen is away, so re-read on every visit.
+  useFocusEffect(loadAutoBackups);
 
   const styles = useThemedStyles(themedStyles);
   const isBusy = activeAction !== null || isDeleting;
@@ -81,10 +103,69 @@ export const DatabaseBackupScreen = () => {
       ],
     );
 
+  const confirmAutoRestore = (action: BackupAction, backup: AutoBackup) => {
+    const savedAt = backup.savedAt ? ` from ${formatBackupDate(backup.savedAt)}` : "";
+
+    Alert.alert(
+      "Restore automatic backup?",
+      `This replaces every transaction, wallet and category on this phone with the automatic backup${savedAt}.\n\nAnything added since then will be lost.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Restore",
+          style: "destructive",
+          onPress: () =>
+            runImport(action, () => restoreDatabaseSnapshot({ uri: backup.uri, name: backup.name })),
+        },
+      ],
+    );
+  };
+
+  const retryAutoBackup = async () => {
+    setActiveAction("retry");
+    try {
+      await runAutoBackupIfDue();
+      loadAutoBackups();
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const renderAutoBackupRow = (label: string, action: BackupAction, backup: AutoBackup | null) =>
+    backup && (
+      <View style={styles.autoBackupRow}>
+        <View style={styles.autoBackupInfo}>
+          <Label style={styles.autoBackupLabel}>{label}</Label>
+          <Label style={styles.autoBackupDate}>
+            {backup.savedAt ? formatBackupDate(backup.savedAt) : "Unknown date"}
+          </Label>
+        </View>
+        <CustomButton
+          onPress={() => confirmAutoRestore(action, backup)}
+          disabled={isBusy}
+          title='Restore'
+          isLoading={activeAction === action}
+          type='danger'
+          size='small'
+          outline
+        />
+      </View>
+    );
+
+  const stuckMessage = () => {
+    if (autoBackups?.isLowOnStorage) {
+      return "Your phone is almost out of storage, so automatic backup can't run. Free up some space, then tap Try Again.";
+    }
+    const savedAt = autoBackups?.latest?.savedAt;
+    return savedAt
+      ? `Automatic backup hasn't worked since ${formatBackupDate(savedAt)}. Use Save Backup to keep a copy.`
+      : "Automatic backup hasn't worked yet. Use Save Backup to keep a copy.";
+  };
+
   const handleDeleteAllData = () => {
     Alert.alert(
       "Delete everything?",
-      "This deletes every transaction, wallet and category on this phone. It cannot be undone.\n\nSave a backup first if you might want any of it back.",
+      "This deletes every transaction, wallet and category on this phone, along with the automatic backups. It cannot be undone.\n\nSave a backup first if you might want any of it back.",
       [
         {
           text: "Cancel",
@@ -116,6 +197,34 @@ export const DatabaseBackupScreen = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ShadowBoxView style={styles.section}>
+        <Label style={styles.sectionTitle}>Automatic Backup</Label>
+        <Label style={styles.description}>
+          SpendyFly saves a copy of your data on this phone once a day and keeps the last two
+          copies. Use it if something goes wrong, like deleting data by mistake.
+          It stays on this phone, so to keep your data safe if you lose or change phones, use Save
+          Backup.
+        </Label>
+        {autoBackups?.isStuck && (
+          <View style={styles.stuckBox}>
+            <Label style={styles.warning}>⚠️ {stuckMessage()}</Label>
+            <CustomButton
+              onPress={retryAutoBackup}
+              disabled={isBusy}
+              title='Try Again'
+              isLoading={activeAction === "retry"}
+              size='small'
+              outline
+            />
+          </View>
+        )}
+        {autoBackups && !autoBackups.latest && !autoBackups.previous && (
+          <Label style={styles.autoBackupDate}>No automatic backup yet.</Label>
+        )}
+        {renderAutoBackupRow("Latest", "restoreLatest", autoBackups?.latest ?? null)}
+        {renderAutoBackupRow("Previous", "restorePrevious", autoBackups?.previous ?? null)}
+      </ShadowBoxView>
+
       <ShadowBoxView style={styles.section}>
         <Label style={styles.sectionTitle}>Save A Backup</Label>
         <Label style={styles.description}>
@@ -172,6 +281,9 @@ export const DatabaseBackupScreen = () => {
         <Label style={styles.infoText}>
           • Always save a backup before loading one or deleting your data
         </Label>
+        <Label style={styles.infoText}>
+          • Switching phones? Save a backup and load it on the new phone
+        </Label>
       </View>
     </ScrollView>
   );
@@ -205,6 +317,30 @@ const themedStyles = (theme: AppTheme) =>
       color: theme.colors.redDark,
       marginBottom: 15,
       fontWeight: "500",
+    },
+    stuckBox: {
+      marginBottom: 15,
+      alignItems: "flex-start",
+    },
+    autoBackupRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 10,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border,
+    },
+    autoBackupInfo: {
+      flexShrink: 1,
+      marginRight: 12,
+    },
+    autoBackupLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    autoBackupDate: {
+      fontSize: 14,
+      color: theme.colors.muted,
     },
     info: {
       backgroundColor: theme.colors.info,
